@@ -10,56 +10,71 @@ import Note from '../../../layouts/Note.astro';
     </div>
   </header>
 
+  <div class="say intro"><p>Everything so far was about how the model turns text into a prediction. But a new model's weights are random, and its predictions are garbage. Training is how those random numbers turn into something useful. It's one loop, repeated millions of times. Make a prediction, measure how wrong it was, work out which way to nudge every weight, and nudge them a tiny bit.</p><p>This chapter covers that loop and the settings that make it work, like the learning rate, the optimizer and the schedule. Then it covers reproducibility, which means being able to run the same training twice and get the same result. That sounds easy and turns out not to be.</p></div>
+
   <h2>The loop</h2>
+  <div class="say"><p>One training step, and how we measure "how wrong" a prediction was.</p></div>
   <figure class="fig" id="loop">
     <div class="fig-head"><h3>One training step, six moves</h3></div>
+    <figcaption class="say"><p>Press play to go around the loop. Grab a <b>batch</b> of text. Run it <b>forward</b> through the model to get predictions. Compute the <b>loss</b>, a single number for how wrong those predictions were. Run <b>backward</b> to find the gradient, which says which way each weight should move to lower the loss. Let the <b>optimizer</b> take a step. <b>Zero the gradients</b> so they don't pile up into the next step.</p><p>The line of code for each station shows up as it's highlighted. Every model you've heard of was trained by running these six moves over and over.</p></figcaption>
   </figure>
 
   <figure class="fig" id="xent">
     <div class="fig-head"><h3>Cross-entropy: the price of surprise</h3></div>
     <div class="formula">loss = <em>− log p(target)</em> &nbsp; · &nbsp; perplexity = e<sup>mean loss</sup></div>
+    <figcaption class="say"><p>The loss used for language models is called <b>cross-entropy</b>. It looks at the probability the model gave to the correct next word, here "tired", and takes minus the log of it. Drag the slider.</p><p>If the model gave the right word a probability of 1, the loss is 0. If it gave 0.5, the loss is about 0.7. As the probability drops toward zero, the loss shoots up. So the model is punished hardest for being confidently wrong. Perplexity, from chapter 1, is just e to the power of the average loss.</p></figcaption>
   </figure>
 
   <h2>Stepping downhill</h2>
+  <div class="say"><p>Picture the loss as a landscape of hills and valleys, and training as walking downhill toward the lowest point. These figures are about how big a step to take, which direction to step, and how to avoid falling off a cliff.</p></div>
   <figure class="fig" id="lr">
     <div class="fig-head"><h3>Learning rate: too small, just right, too big</h3></div>
+    <figcaption class="say"><p>The <b>learning rate</b> is how big a step you take downhill. Drag it and press play. The ball follows the slope of the curve.</p><p>Too small, and the ball creeps along and barely gets anywhere. Just right, and it settles into the bottom in a few steps. Too big, and it overshoots, bounces across the valley, and can fly off entirely. Getting the learning rate right is the most important tuning choice in training.</p></figcaption>
   </figure>
 
   <figure class="fig" id="adam">
     <div class="fig-head"><h3>SGD vs Adam in a narrow valley</h3></div>
+    <figcaption class="say"><p>Press play. The ovals are the outlines of a long, narrow valley, like a map of a ravine. The lowest point is in the middle. <b>SGD</b>, plain gradient descent, follows the steepest slope, which points mostly across the narrow side. So it zig-zags from wall to wall and makes slow progress along the valley.</p><p><b>Adam</b> keeps a running average of past gradients for each weight and scales each weight's step by how big its gradients usually are. That evens out the zig-zag and heads more directly to the bottom. Adam, or its cousin AdamW, trains almost every large model today.</p></figcaption>
   </figure>
 
   <figure class="fig" id="sched">
     <div class="fig-head"><h3>Warmup, then cosine decay</h3></div>
+    <figcaption class="say"><p>The learning rate usually isn't fixed. This is the standard shape. It starts tiny and rises in a straight line during <b>warmup</b>, because at the start the weights are random and big steps can wreck them. Then it slowly decays along a cosine curve toward a small final value, so the model can settle into a good spot at the end.</p><p>Drag the warmup fraction and the final learning rate to change the shape. Most large models use something very close to this.</p></figcaption>
   </figure>
 
   <figure class="fig" id="clip">
     <div class="fig-head"><h3>Gradient clipping</h3></div>
     <div class="formula">g ← g · <em>min(1, c / ‖g‖)</em></div>
+    <figcaption class="say"><p>Sometimes a batch produces a huge gradient, which would send the weights flying. <b>Gradient clipping</b> puts a cap on it. The dashed circle is the cap. Drag the gradient length past the circle and the clipped arrow stops at the edge. It keeps the same direction, but it can't be longer than the cap.</p><p>It's a cheap safety net. Nearly every large training run clips at a total length of 1.0.</p></figcaption>
   </figure>
 
   <figure class="fig" id="curves">
     <div class="fig-head"><h3>Reading loss curves</h3></div>
+    <figcaption class="say"><p>Press play to watch training unfold. The training loss is measured on data the model learns from, so it keeps falling. The validation loss is measured on data the model never trains on. It falls at first, flattens, then starts rising.</p><p>That rise is <b>overfitting</b>. The model starts memorising its training data instead of learning patterns that carry over to new text. The marked point is where validation loss was lowest, the best version of the model to keep. Big language models usually see so much data that they barely overfit, but small experiments do it all the time.</p></figcaption>
   </figure>
 
   <h2>Reproducibility</h2>
+  <div class="say"><p>If you can't rerun an experiment and get the same answer, you can't tell whether a change helped or you just got lucky. Here's what makes runs differ and how to control it.</p></div>
 
   <figure class="fig" id="seeds">
     <div class="fig-head"><h3>Same seed, different seed, nondeterministic kernels</h3></div>
+    <figcaption class="say"><p>Pick what run B does. A <b>seed</b> is the starting number for all the "random" choices in training, like the starting weights and the data order. With the same seed, the two runs match exactly. With a different seed, they follow different paths from the start but end up in similar places.</p><p>The third option is the sneaky one. Same seed, but some GPU operations add numbers in a slightly different order each time. The runs start identical, then tiny rounding differences grow until the curves drift apart.</p></figcaption>
   </figure>
 
   <figure class="fig" id="checklist">
     <div class="fig-head"><h3>The reproducibility checklist</h3></div>
+    <div class="say"><p>The list of habits that make a run reproducible. Tick them off as you go. Seeding the random number generators alone isn't enough. You also need deterministic GPU operations, seeded data loaders, a fixed data order, a saved config, pinned library versions, checkpoints that include the optimizer state, and a note of the hardware.</p></div>
   </figure>
 
   <h2>Exceptions and sharp edges</h2>
+  <div class="say"><p>Training problems you'll meet sooner or later.</p></div>
   <div class="edges">
-    <article class="edge redraw" id="e-atomic"><div class="art"></div><h4>Atomic adds on GPU</h4><span class="fix">torch.use_deterministic_algorithms(True), at some speed cost.</span></article>
-    <article class="edge redraw" id="e-hw"><div class="art"></div><h4>Different hardware</h4><span class="fix">record versions; expect “statistically same”, not “bitwise same”, across machines.</span></article>
-    <article class="edge redraw" id="e-workers"><div class="art"></div><h4>Data loader workers</h4><span class="fix">seed each worker from the base seed and worker id.</span></article>
-    <article class="edge redraw" id="e-resume"><div class="art"></div><h4>Resuming loses state</h4><span class="fix">checkpoint optimizer, scheduler, RNG states and the data position.</span></article>
-    <article class="edge redraw" id="e-batch"><div class="art"></div><h4>Changing batch size</h4><span class="fix">retune LR, or scale it with batch size and re-check.</span></article>
-    <article class="edge redraw" id="e-spike"><div class="art"></div><h4>Loss spikes</h4><span class="fix">clip gradients, lower peak LR, or rewind and skip the batch.</span></article>
+    <article class="edge redraw" id="e-atomic"><div class="art"></div><h4>Atomic adds on GPU</h4><p>Some GPU operations add numbers from many threads in whatever order they finish. Floating point addition gives slightly different answers in different orders, so results differ run to run.</p><span class="fix">torch.use_deterministic_algorithms(True), at some speed cost.</span></article>
+    <article class="edge redraw" id="e-hw"><div class="art"></div><h4>Different hardware</h4><p>Different GPUs, drivers and library versions do maths in slightly different ways. Exact bit-for-bit matches across machines are rare.</p><span class="fix">record versions; expect “statistically same”, not “bitwise same”, across machines.</span></article>
+    <article class="edge redraw" id="e-workers"><div class="art"></div><h4>Data loader workers</h4><p>Data loading often runs in several parallel workers. If they all share one random seed, or get a random one each time, the data order changes between runs.</p><span class="fix">seed each worker from the base seed and worker id.</span></article>
+    <article class="edge redraw" id="e-resume"><div class="art"></div><h4>Resuming loses state</h4><p>If you stop a run and restart from a checkpoint that only saved the weights, the optimizer forgets its running averages and the schedule restarts. The run won't continue as it would have.</p><span class="fix">checkpoint optimizer, scheduler, RNG states and the data position.</span></article>
+    <article class="edge redraw" id="e-batch"><div class="art"></div><h4>Changing batch size</h4><p>A bigger batch gives a less noisy gradient, so the best learning rate usually changes. Doubling the batch and keeping everything else the same often trains worse.</p><span class="fix">retune LR, or scale it with batch size and re-check.</span></article>
+    <article class="edge redraw" id="e-spike"><div class="art"></div><h4>Loss spikes</h4><p>Sometimes the loss suddenly jumps up mid-training. One odd batch or a too-high learning rate is the usual cause.</p><span class="fix">clip gradients, lower peak LR, or rewind and skip the batch.</span></article>
   </div>
 
   <Fragment slot="scripts"><script is:inline>

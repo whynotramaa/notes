@@ -10,54 +10,68 @@ import Note from '../../../layouts/Note.astro';
     </div>
   </header>
 
+  <div class="say intro"><p>After chapter 1 we have a list of ids, like 464, 3797, 3332. The trouble is that these numbers don't mean anything by themselves. Id 3797 isn't "bigger" than id 464 in any useful sense. They're like seat numbers on a train. They tell you which seat, not anything about who's sitting there.</p><p>So the next step gives every token a list of numbers that the model can actually learn from. That list is called an <b>embedding</b>, or a vector. Tokens with similar meanings end up with similar lists. From here on, the model never touches the ids again. It only works with these vectors.</p></div>
+
   <h2>The lookup</h2>
+  <div class="say"><p>The model keeps a big table with one row per token in the vocabulary. Each row is that token's vector. Turning an id into a vector is just "go to row number id and copy it out". Nothing more.</p></div>
 
   <figure class="fig" id="lookup">
     <div class="fig-head"><h3>Seven ids fetch seven rows</h3></div>
+    <figcaption class="say"><p>Press play. Each token on the left has an id. The id picks one row out of the embedding table E in the middle, and that row gets copied into the stack on the right. After seven tokens you have seven rows stacked together, a grid with one row per token. People call this grid <b>x</b>, and it's the input to everything that follows.</p><p>Notice that the table doesn't care about order or neighbours. The same token always gets the same row, wherever it appears.</p></figcaption>
   </figure>
 
   <figure class="fig" id="onehot">
     <div class="fig-head"><h3>Why it counts as a matrix multiply</h3></div>
+    <figcaption class="say"><p>You'll often read that the embedding is a matrix multiply. This shows why that's true. Write the id as a row of zeros with a single 1 in position id. This is called a one-hot vector. Multiply that row by the table, and every row of the table gets multiplied by zero except one. What comes out is exactly that one row.</p><p>So "look up a row" and "multiply by a one-hot vector" give the same answer. In practice, code does the lookup because it's much faster. The multiply view just explains why training can adjust the table like any other weight matrix.</p></figcaption>
   </figure>
 
   <h2>A map of meaning</h2>
+  <div class="say"><p>Each vector is a point in space. Real models use thousands of dimensions, which we can't draw, so the pictures below squash things down to two. What matters is the pattern. Words that are used in similar ways end up close together.</p></div>
 
   <figure class="fig" id="map">
     <div class="fig-head"><h3>Neighbours in embedding space</h3></div>
+    <figcaption class="say"><p>This is a toy map of words. Click any word to see its three nearest neighbours, joined by lines. Animals sit near animals, places near places, feelings near feelings. Nobody told the model these groups exist. They come out of training because words used in similar sentences get pushed toward similar vectors.</p><p>Turn on the "king − man + woman" toggle to see the famous trick. Take the vector for king, subtract man, add woman, and you land near queen. Directions in this space can carry meaning, like a "male to female" direction.</p></figcaption>
   </figure>
 
   <div class="pair">
     <figure class="fig" id="strips">
       <div class="fig-head"><h3>Vectors as colour strips</h3></div>
-    </figure>
+      <figcaption class="say"><p>Another way to look at vectors is as a strip of coloured cells, one cell per number. Darker or brighter cells mean bigger values. You don't need to read the numbers. Just look at the patterns. Cat, kitten and dog have strips that look alike. Car and truck look alike. "The" looks like nothing else.</p></figcaption>
+  </figure>
     <figure class="fig" id="cosmat">
       <div class="fig-head"><h3>Cosine similarity between them</h3></div>
-    </figure>
+      <figcaption class="say"><p>This grid puts a number on "look alike". Each cell compares two of the strips using cosine similarity, which is explained just below. Bright cells mean very similar. You can see a bright block for the animals and another for the vehicles.</p></figcaption>
+  </figure>
   </div>
 
   <figure class="fig" id="angle">
     <div class="fig-head"><h3>Cosine similarity is an angle</h3></div>
     <div class="formula">cos θ = <em>a · b</em> ÷ (‖a‖ ‖b‖)</div>
+    <figcaption class="say"><p>Cosine similarity asks one question. Do two arrows point the same way? It ignores how long they are and only looks at the angle between them. Drag the angle slider.</p><p>At 0° the arrows point the same way and the score is 1. At 90° they have nothing in common and the score is 0. At 180° they point in opposite directions and the score is −1. This is the standard way to say "how similar are these two tokens?" and it shows up again in attention, where the model scores tokens against each other in a very similar way.</p></figcaption>
   </figure>
 
   <h2>Where the map comes from</h2>
+  <div class="say"><p>Nobody writes these vectors by hand. They start as random numbers and get adjusted during training, a tiny bit at a time, along with every other weight in the model.</p></div>
 
   <figure class="fig" id="train">
     <div class="fig-head"><h3>Training pulls the points into clusters</h3></div>
+    <figcaption class="say"><p>Press play and watch training happen. Every word starts at a random spot. As training steps go by, each word gets nudged toward words that appear in similar sentences and away from words that don't. Slowly, clusters form.</p><p>The little curve in the corner is the loss, the number training tries to push down. As the map gets more organised, the model gets better at predicting text, and the loss falls. The map is a side effect of learning to predict.</p></figcaption>
   </figure>
 
   <figure class="fig" id="params">
     <div class="fig-head"><h3>The table is big, so some models share it</h3></div>
+    <figcaption class="say"><p>The embedding table has one row for each token in the vocabulary (V) and one column for each number in a vector (d). So its size is V × d. Drag the sliders and watch the parameter count. With a 128,000 token vocabulary and d = 4096, that's over half a billion numbers.</p><p>At the very end of the model there's a second matrix of the same size. It turns the final vector back into a score for every token in the vocabulary. Turn on "Tie weights" and both use the same matrix, which halves that cost. Small models often do this. Big models usually keep them separate, because the saving matters less to them.</p></figcaption>
   </figure>
 
   <h2>Exceptions and sharp edges</h2>
+  <div class="say"><p>A few things about embeddings that trip people up in practice.</p></div>
   <div class="edges">
-    <article class="edge redraw" id="e-bank"><div class="art"></div><h4>One vector per token, any context</h4><span class="fix">attention mixes in context later. That is the point of the rest of the model.</span></article>
-    <article class="edge redraw" id="e-order"><div class="art"></div><h4>Ids are not quantities</h4><span class="fix">always look up a vector, never use the id as a value.</span></article>
-    <article class="edge redraw" id="e-rare"><div class="art"></div><h4>Rare tokens barely move</h4><span class="fix">sensible vocab size, and tokenizer data that matches model data.</span></article>
-    <article class="edge redraw" id="e-range"><div class="art"></div><h4>Out-of-range id</h4><span class="fix">check that the tokenizer and model agree on V, including special tokens.</span></article>
-    <article class="edge redraw" id="e-pad"><div class="art"></div><h4>Padding has a row too</h4><span class="fix">mask pad positions in attention and in the loss.</span></article>
-    <article class="edge redraw" id="e-scale"><div class="art"></div><h4>Scale matters</h4><span class="fix">follow your architecture's convention, then keep it consistent.</span></article>
+    <article class="edge redraw" id="e-bank"><div class="art"></div><h4>One vector per token, any context</h4><p>"Bank" gets the same vector whether it's a river bank or a money bank. The embedding can't know the context. Attention, coming up soon, is what mixes in the surrounding words so the meaning can change.</p><span class="fix">attention mixes in context later. That is the point of the rest of the model.</span></article>
+    <article class="edge redraw" id="e-order"><div class="art"></div><h4>Ids are not quantities</h4><p>It's tempting to feed the id straight in as a number. That would tell the model token 5000 is "twice" token 2500, which is nonsense. Ids are names, so they must go through the table.</p><span class="fix">always look up a vector, never use the id as a value.</span></article>
+    <article class="edge redraw" id="e-rare"><div class="art"></div><h4>Rare tokens barely move</h4><p>A token that shows up a handful of times in training only gets a handful of updates. Its vector stays close to random, so the model doesn't really know what it means.</p><span class="fix">sensible vocab size, and tokenizer data that matches model data.</span></article>
+    <article class="edge redraw" id="e-range"><div class="art"></div><h4>Out-of-range id</h4><p>If the tokenizer produces id 50,300 but the table only has 50,257 rows, the lookup crashes, or on a GPU it fails with a confusing error. This usually happens after adding special tokens to one side and not the other.</p><span class="fix">check that the tokenizer and model agree on V, including special tokens.</span></article>
+    <article class="edge redraw" id="e-pad"><div class="art"></div><h4>Padding has a row too</h4><p>When sentences of different lengths are batched together, the short ones get filled with a padding token. That token still has a row and still produces a vector, so the model will happily pay attention to it unless you tell it not to.</p><span class="fix">mask pad positions in attention and in the loss.</span></article>
+    <article class="edge redraw" id="e-scale"><div class="art"></div><h4>Scale matters</h4><p>Some models multiply the looked-up vector by √d, others don't. Mixing conventions, like loading weights trained one way into code written the other way, quietly breaks the model.</p><span class="fix">follow your architecture's convention, then keep it consistent.</span></article>
   </div>
 
   <Fragment slot="scripts"><script is:inline>

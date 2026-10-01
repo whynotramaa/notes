@@ -10,49 +10,63 @@ import Note from '../../../layouts/Note.astro';
     </div>
   </header>
 
+  <div class="say intro"><p>Every block in a transformer normalises its input before attention and before the MLP. That keeps the numbers at a steady size as they pass through dozens of layers. Day 1 used <b>LayerNorm</b>, which does two jobs. It shifts the numbers so they average to zero, then scales them so their overall size is one.</p><p>In 2019 two researchers asked whether the first job is actually needed. It turns out it isn't. <b>RMSNorm</b> only does the scaling. Models train just as well, it's a bit faster, and it has fewer parts to get wrong. Llama, Mistral, Qwen and Gemma all use it. This chapter shows exactly what it does differently and where it sits in a modern block.</p></div>
+
   <h2>The computation</h2>
+  <div class="say"><p>Here are both formulas. Don't worry about every symbol. LayerNorm subtracts the mean, divides by the spread, then applies a learned scale γ and shift β. RMSNorm divides by the root mean square, which is a way of measuring the vector's typical size, then applies a learned scale γ. No subtracting, no shift.</p></div>
   <div class="formula">LayerNorm(x) = <em>(x − mean) / √(var + ε)</em> · γ + β &nbsp; &nbsp; RMSNorm(x) = <em>x / √(mean(x²) + ε)</em> · γ</div>
   <figure class="fig" id="steps">
     <div class="fig-head"><h3>Side by side, one step at a time</h3></div>
+    <figcaption class="say"><p>Press play to go step by step. Both columns start with the same input numbers. LayerNorm works out the average and subtracts it, so the numbers centre around zero. Then it divides by the spread, then scales by γ and shifts by β.</p><p>RMSNorm skips the centring. It works out the root mean square, which is the square root of the average of the squared numbers, divides by it, and scales by γ. That's one fewer pass over the numbers and one fewer set of learned weights.</p></figcaption>
   </figure>
 
   <figure class="fig" id="geometry">
     <div class="fig-head"><h3>What the two norms do geometrically</h3></div>
+    <figcaption class="say"><p>To picture this, use a vector with just two numbers, x₁ and x₂, so it's a point on a flat plane. Drag the sliders to move it.</p><p>RMSNorm keeps the point's direction and slides it onto the circle. The direction stays the same and only the size changes. LayerNorm first forces the two numbers to average zero, which pushes the point onto the diagonal line, and then onto the circle. So it ends up at one of only two spots, and most of the direction information is gone. With thousands of numbers instead of two, LayerNorm loses much less, but it still throws away one direction for no clear benefit.</p></figcaption>
   </figure>
 
   <figure class="fig" id="invariance">
     <div class="fig-head"><h3>What each norm ignores</h3></div>
+    <figcaption class="say"><p>Change the input with the scale and shift sliders. The ticks and crosses show whether each norm's output stays the same as it was for the original input.</p><p>Both ignore scaling. Doubling every number gives the same output. LayerNorm also ignores shifting, so adding 3 to every number changes nothing. RMSNorm doesn't ignore shifting. The surprising finding from the paper is that ignoring shifts was never what made LayerNorm useful. Ignoring scale was.</p></figcaption>
   </figure>
 
   <h2>The learned part</h2>
+  <div class="say"><p>After normalising, both norms multiply by a learned gain, γ. It's how the model gets to decide that some channels should be louder than others.</p></div>
   <figure class="fig" id="gain">
     <div class="fig-head"><h3>The gain γ: one learned number per channel</h3></div>
+    <figcaption class="say"><p>Each bar is one entry of γ from a trained model, one per channel. Most stay close to 1, which is where they started. A couple of channels grew much larger.</p><p>Those big channels are well known. Many large models develop a few "outlier" channels with very large values. They seem to matter for how the model works, and they cause trouble when people try to compress models into 8-bit numbers.</p></figcaption>
   </figure>
 
   <figure class="fig" id="cost">
     <div class="fig-head"><h3>What you save</h3></div>
+    <figcaption class="say"><p>The savings, side by side. RMSNorm needs one reduction, a pass that adds up a whole vector, instead of two. It needs fewer elementwise passes. And it has half the parameters, with no β. On its own the saving is small, a few percent of a training step. But norms run twice per block in every block, so it adds up, and simpler code is easier to make fast.</p></figcaption>
   </figure>
 
   <h2>Where the norms sit</h2>
+  <div class="say"><p>Modern models don't all put norms in the same places. And the tiny number ε, added to stop division by zero, matters more than it looks.</p></div>
   <figure class="fig" id="placement">
     <div class="fig-head"><h3>Pre-norm, sandwich norm, QK-norm</h3></div>
+    <figcaption class="say"><p>Pick a design. <b>Llama</b> puts one RMSNorm before attention and one before the MLP. That's the standard pre-norm from Day 1. <b>Gemma 2</b> adds a second norm after each part too, called a sandwich. <b>QK-norm</b> also normalises the queries and keys inside attention, which stops attention scores from growing out of control in big or long training runs.</p></figcaption>
   </figure>
 
   <figure class="fig" id="epsilon">
     <div class="fig-head"><h3>What ε does</h3></div>
+    <figcaption class="say"><p>ε is a tiny number added before the square root so the code never divides by zero. Pick a size for it. For normal inputs, the output's size stays flat at 1, which is the norm doing its job.</p><p>But once the input's size drops below about √ε, ε takes over and the output shrinks along with the input. So ε decides what counts as "too small to bother normalising". Common values are 1e-5 or 1e-6, and you should use whatever the model was trained with.</p></figcaption>
   </figure>
 
   <figure class="fig" id="impl">
     <div class="fig-head"><h3>A reference implementation</h3></div>
+    <figcaption class="say"><p>Here's a complete, correct RMSNorm in a few lines. The weight starts at all ones, so at first the norm doesn't change anything. The forward pass turns the input into 32-bit floats first, so squaring doesn't overflow. Then it computes the mean of squares, multiplies by one over the square root (with ε inside), turns it back to the original type, and multiplies by the weight. That's the whole module.</p></figcaption>
   </figure>
 
   <h2>Exceptions and sharp edges</h2>
+  <div class="say"><p>Small RMSNorm details that cause real bugs.</p></div>
   <div class="edges">
-    <article class="edge redraw" id="e-gemma"><div class="art"></div><h4>Gemma stores γ − 1</h4><span class="fix">check how the weight is applied before porting.</span></article>
-    <article class="edge redraw" id="e-upcast"><div class="art"></div><h4>Squaring in bf16</h4><span class="fix">x.float() before pow, cast back after.</span></article>
-    <article class="edge redraw" id="e-wd"><div class="art"></div><h4>Weight decay on γ</h4><span class="fix">exclude norm weights and biases from weight decay.</span></article>
-    <article class="edge redraw" id="e-eps"><div class="art"></div><h4>ε inside or outside the root</h4><span class="fix">match the reference implementation exactly.</span></article>
-    <article class="edge redraw" id="e-outlier"><div class="art"></div><h4>Outlier channels</h4><span class="fix">keep norms in higher precision; handle outliers in int8 schemes.</span></article>
+    <article class="edge redraw" id="e-gemma"><div class="art"></div><h4>Gemma stores γ − 1</h4><p>Gemma stores γ − 1 and computes x · (1 + γ). Its saved weights sit near 0 instead of 1. Loading them into normal RMSNorm code makes every layer's output almost zero.</p><span class="fix">check how the weight is applied before porting.</span></article>
+    <article class="edge redraw" id="e-upcast"><div class="art"></div><h4>Squaring in bf16</h4><p>In 16-bit numbers, squaring a moderately big value can overflow or lose precision. That's why reference code converts to 32-bit before squaring.</p><span class="fix">x.float() before pow, cast back after.</span></article>
+    <article class="edge redraw" id="e-wd"><div class="art"></div><h4>Weight decay on γ</h4><p>Weight decay gently pulls weights toward zero during training. For γ, that means pulling the gain toward silencing every channel, which is not what you want.</p><span class="fix">exclude norm weights and biases from weight decay.</span></article>
+    <article class="edge redraw" id="e-eps"><div class="art"></div><h4>ε inside or outside the root</h4><p>Some code adds ε inside the square root, some adds it outside. The difference is tiny, but it changes outputs enough to make checks against a reference fail.</p><span class="fix">match the reference implementation exactly.</span></article>
+    <article class="edge redraw" id="e-outlier"><div class="art"></div><h4>Outlier channels</h4><p>Those few giant channels from the γ figure become a problem when compressing models to 8-bit, since one scale has to cover both tiny and huge values.</p><span class="fix">keep norms in higher precision; handle outliers in int8 schemes.</span></article>
   </div>
 
   <Fragment slot="scripts"><script is:inline>

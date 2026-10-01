@@ -10,49 +10,62 @@ import Note from '../../../layouts/Note.astro';
     </div>
   </header>
 
+  <div class="say intro"><p>In Day 1's multi-head attention, every query head had its own keys and values. That's fine for training. It becomes a problem when generating text, because all those keys and values have to be kept in the KV cache (Day 1, chapter 11), and for every new word the GPU has to read the entire cache from memory. That reading, not the maths, is what makes generation slow.</p><p><b>Grouped-query attention</b>, or GQA, lets several query heads share one set of keys and values. Llama 3 8B, for example, has 32 query heads but only 8 key-value heads. The cache shrinks to a quarter and generation gets much faster, with almost no loss in quality. This chapter shows how it works, what it saves, and how to code it correctly.</p></div>
+
   <h2>The spectrum</h2>
+  <div class="say"><p>GQA sits between two extremes. Every query head with its own keys and values on one end, all query heads sharing one on the other.</p></div>
   <figure class="fig" id="spectrum">
     <div class="fig-head"><h3>MHA, GQA, MQA</h3></div>
+    <figcaption class="say"><p>The top row is 8 query heads. The bottom row is the key-value heads. Each line shows which KV head a query head reads from. Pick how many KV heads to use.</p><p>With 8, every query head has its own. That's standard multi-head attention, or <b>MHA</b>. With 1, all 8 share one. That's multi-query attention, or <b>MQA</b>, which is very cheap but costs some quality. Anything in between is <b>GQA</b>. Query heads in the same group, shown by matching colour, ask different questions but look them up in the same keys and values.</p></figcaption>
   </figure>
 
   <figure class="fig" id="repeat">
     <div class="fig-head"><h3>Making the shapes line up</h3></div>
     <div class="formula">[B, h<sub>kv</sub>, T, d<sub>h</sub>] → <em>repeat_interleave(h / h<sub>kv</sub>, dim=1)</em> → [B, h, T, d<sub>h</sub>]</div>
+    <figcaption class="say"><p>Attention code expects as many K and V heads as Q heads. So before attention runs, each KV head gets copied to match. Press play. Two KV heads on the left become eight on the right, each one repeated four times in a row. The shapes now line up and attention runs as normal.</p><p>The order is important. KV head 0 must be copied into slots 0 to 3, then KV head 1 into slots 4 to 7. That's what repeat_interleave does.</p></figcaption>
   </figure>
 
   <figure class="fig" id="mapping">
     <div class="fig-head"><h3>Which KV head does query head i use?</h3></div>
+    <figcaption class="say"><p>Pick the number of query heads and KV heads. Each query head is labelled with the KV head it reads. With the correct grouping you get runs, 0 0 0 0, 1 1 1 1, because query head i uses KV head i ÷ (group size).</p><p>Now turn on the bug. Using .repeat instead of .repeat_interleave copies the KV heads in a cycle, 0 1 0 1 0 1. The shapes are still correct, so nothing crashes, but each query head is now paired with the wrong keys and values. The red marks show every head that's wrong. The model gives worse answers and you get no error.</p></figcaption>
   </figure>
 
   <h2>What it saves</h2>
+  <div class="say"><p>The whole point is memory. Fewer key-value heads means a smaller cache, and a smaller cache means less to read for every word you generate.</p></div>
   <figure class="fig" id="cache">
     <div class="fig-head"><h3>KV cache size against context length</h3></div>
     <div class="formula">bytes = 2 · layers · <em>h<sub>kv</sub></em> · d<sub>h</sub> · tokens · 2</div>
+    <figcaption class="say"><p>This chart shows the size of the KV cache as the context grows, for a 32-layer model with 32, 8 or 1 KV heads. The dashed line is 80 GB, the memory of one big GPU.</p><p>With 32 KV heads, a long context fills the GPU on its own, before you even count the model's weights. With 8, the line is four times lower. With 1, it hugs the bottom. That's the difference between serving one long conversation and serving many at once.</p></figcaption>
   </figure>
 
   <figure class="fig" id="traffic">
     <div class="fig-head"><h3>Decode is a memory-reading contest</h3></div>
+    <figcaption class="say"><p>For each new token, the GPU has to read the model's weights and the whole KV cache from memory. These bars show those two reads for MHA and GQA. Drag the context length up.</p><p>At short contexts the weights dominate and GQA barely matters. At long contexts the cache becomes the bigger part, and GQA's smaller cache cuts the total a lot. The milliseconds figure estimates time per token at 2 TB per second, a typical GPU memory speed. Less to read means faster generation.</p></figcaption>
   </figure>
 
   <figure class="fig" id="tradeoff">
     <div class="fig-head"><h3>The trade-off</h3></div>
+    <figcaption class="say"><p>A rough sketch of the trade-off, with speed across and quality up. MHA is the best quality but slow. MQA is the fastest but loses noticeable quality. GQA with 8 KV heads keeps nearly all of MHA's quality while getting most of MQA's speed. That's why it became the standard.</p></figcaption>
   </figure>
 
   <figure class="fig" id="uptrain">
     <div class="fig-head"><h3>Converting an MHA checkpoint</h3></div>
+    <figcaption class="say"><p>What if you already have a model trained with MHA? You don't have to start over. Press play. The 8 key heads are split into groups of four, and each group is averaged into one new head. Same for the values. Then the model trains a bit longer, about 5% of the original training, to adjust. The paper that introduced GQA called this <b>uptraining</b>.</p></figcaption>
   </figure>
 
   <figure class="fig" id="code">
     <div class="fig-head"><h3>The code</h3></div>
+    <figcaption class="say"><p>The essential code. The k and v projections output fewer features than q, since there are fewer KV heads. A small helper, repeat_kv, copies each KV head n_rep times using expand and reshape, which does the same as repeat_interleave without extra copying. Then attention runs with q, and the repeated k and v, exactly as before.</p></figcaption>
   </figure>
 
   <h2>Exceptions and sharp edges</h2>
+  <div class="say"><p>GQA bugs are usually about getting the grouping wrong.</p></div>
   <div class="edges">
-    <article class="edge redraw" id="e-div"><div class="art"></div><h4>h must divide by h<sub>kv</sub></h4><span class="fix">choose h_kv from the divisors of h.</span></article>
-    <article class="edge redraw" id="e-tile"><div class="art"></div><h4>repeat vs repeat_interleave</h4><span class="fix">use repeat_interleave or the expand-reshape trick.</span></article>
-    <article class="edge redraw" id="e-tp"><div class="art"></div><h4>More GPUs than KV heads</h4><span class="fix">replicate KV heads across GPUs.</span></article>
-    <article class="edge redraw" id="e-cache"><div class="art"></div><h4>Caching the repeated tensor</h4><span class="fix">cache h_kv heads, repeat on the fly or let the kernel handle it.</span></article>
-    <article class="edge redraw" id="e-native"><div class="art"></div><h4>Kernels can skip the copy</h4><span class="fix">pass h_kv-shaped K and V when the kernel supports it.</span></article>
+    <article class="edge redraw" id="e-div"><div class="art"></div><h4>h must divide by h<sub>kv</sub></h4><p>Every group has to be the same size, so the number of query heads must divide evenly by the number of KV heads. 32 and 8 works. 32 and 6 doesn't.</p><span class="fix">choose h_kv from the divisors of h.</span></article>
+    <article class="edge redraw" id="e-tile"><div class="art"></div><h4>repeat vs repeat_interleave</h4><p>Both give the same shape. repeat_interleave gives 0 0 1 1, which is correct. repeat gives 0 1 0 1, which is wrong and doesn't raise an error.</p><span class="fix">use repeat_interleave or the expand-reshape trick.</span></article>
+    <article class="edge redraw" id="e-tp"><div class="art"></div><h4>More GPUs than KV heads</h4><p>Big models split heads across several GPUs. With 8 GPUs and only 4 KV heads, you can't give each GPU its own, so some KV heads have to be copied onto more than one GPU.</p><span class="fix">replicate KV heads across GPUs.</span></article>
+    <article class="edge redraw" id="e-cache"><div class="art"></div><h4>Caching the repeated tensor</h4><p>If you repeat the KV heads first and then save them to the cache, you've thrown away the entire memory saving. Cache the small version.</p><span class="fix">cache h_kv heads, repeat on the fly or let the kernel handle it.</span></article>
+    <article class="edge redraw" id="e-native"><div class="art"></div><h4>Kernels can skip the copy</h4><p>Modern attention functions, including PyTorch's SDPA with enable_gqa=True and FlashAttention, accept fewer KV heads directly and handle the sharing inside, with no copy at all.</p><span class="fix">pass h_kv-shaped K and V when the kernel supports it.</span></article>
   </div>
 
   <Fragment slot="scripts"><script is:inline>

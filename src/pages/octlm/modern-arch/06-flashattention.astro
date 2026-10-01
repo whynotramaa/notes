@@ -10,49 +10,63 @@ import Note from '../../../layouts/Note.astro';
     </div>
   </header>
 
+  <div class="say intro"><p>You'd think attention is slow because of all the multiplying. It mostly isn't. Modern GPUs can multiply incredibly fast. What slows attention down is moving data. Hand-written attention writes the big score grid out to the GPU's main memory, reads it back, writes the softmax result, reads that back too. The GPU spends most of its time waiting for those trips.</p><p><b>FlashAttention</b>, from 2022, rearranges the work so the score grid never leaves the GPU's small fast memory. It processes attention in tiles, keeps running totals, and gives exactly the same answer as normal attention, often several times faster and with far less memory. It's the reason today's long context windows are practical.</p></div>
+
   <h2>The real bottleneck</h2>
+  <div class="say"><p>To see why, you need to know that a GPU has a tiny amount of very fast memory and a much larger amount of slower memory.</p></div>
   <figure class="fig" id="hierarchy">
     <div class="fig-head"><h3>The GPU memory hierarchy</h3></div>
+    <figcaption class="say"><p>Three kinds of memory, from fast and tiny to slow and huge. At the top is <b>SRAM</b>, the memory on the GPU chip itself. It's only about 20 MB but it runs at around 19 TB per second. In the middle is <b>HBM</b>, the GPU's main memory, the "40 GB" or "80 GB" on the spec sheet. It's much bigger but roughly ten times slower. At the bottom is the computer's normal memory, which is huge and far slower again.</p><p>The whole game is to do as much work as possible in SRAM and touch HBM as little as possible.</p></figcaption>
   </figure>
 
   <figure class="fig" id="naive">
     <div class="fig-head"><h3>Standard attention's round trips</h3></div>
+    <figcaption class="say"><p>Press play to step through hand-written attention. Q, K and V live in HBM. The GPU reads Q and K into SRAM, computes the score grid S, and writes it back out. Then it reads S back in, computes softmax into P, and writes P out. Then it reads P and V back in to make the output O.</p><p>The counter adds up the memory traffic. S and P are the big squares, T × T each, and each one goes out and comes back. That back-and-forth is where the time goes.</p></figcaption>
   </figure>
 
   <h2>Tiles and online softmax</h2>
+  <div class="say"><p>The trick is to never build the whole score grid. Work on one small tile at a time, and keep just enough running numbers to finish the softmax correctly at the end.</p></div>
   <figure class="fig" id="tiling">
     <div class="fig-head"><h3>One query block, sweeping key blocks</h3></div>
+    <figcaption class="say"><p>Press play. The score grid is cut into a 4 × 4 set of tiles. FlashAttention takes one block of queries and keeps it in SRAM. Then it sweeps across the blocks of keys and values, one tile at a time. For each tile it computes the scores, uses them right away, and throws them out.</p><p>The panel on the right is what's sitting in SRAM. The query block, the current key and value block, and three running numbers per query row, m, ℓ and O. The greyed tiles above the diagonal are skipped completely, because the causal mask would hide them anyway.</p></figcaption>
   </figure>
 
   <figure class="fig" id="online">
     <div class="fig-head"><h3>Online softmax, with real numbers</h3></div>
     <div class="formula">m′ = max(m, max s) &nbsp; ℓ′ = <em>e<sup>m−m′</sup></em>ℓ + Σ e<sup>s−m′</sup> &nbsp; O′ = <em>e<sup>m−m′</sup></em>O + Σ e<sup>s−m′</sup>v &nbsp; out = O / ℓ</div>
+    <figcaption class="say"><p>Here's the running total trick with real numbers. Press play. The scores for one query arrive in two blocks of three. After each block we keep the biggest score seen so far (m), the running sum of exponentials (ℓ), and a running weighted output (O).</p><p>When the second block has a bigger score, the old ℓ and O are multiplied by a correction factor to rescale them to the new maximum. At the end, O divided by ℓ gives the answer, and the last row checks it against softmax done the normal way. They match exactly. This is the formula below the title, worked through step by step.</p></figcaption>
   </figure>
 
   <h2>What it buys</h2>
+  <div class="say"><p>Less memory traffic, less memory used, and some work skipped completely under the causal mask. Then a quick history of the three versions.</p></div>
   <figure class="fig" id="io">
     <div class="fig-head"><h3>HBM traffic against sequence length</h3></div>
+    <figcaption class="say"><p>This chart counts trips to HBM as the sequence gets longer, on log scales. Standard attention grows with the square of the length, because it writes and reads the full grid. FlashAttention grows too, but it sits several times lower, and the gap depends on the head size compared to the size of SRAM. Pick a head size to see the gap change. Fewer trips to slow memory is where the speed-up comes from.</p></figcaption>
   </figure>
 
   <figure class="fig" id="backward">
     <div class="fig-head"><h3>Backward: recompute instead of store</h3></div>
+    <figcaption class="say"><p>Training needs a backward pass, which normally uses the softmax grid P saved from the forward pass. For long texts that grid is enormous. Drag the sequence length.</p><p>FlashAttention doesn't save it. It saves one small number per row, the log-sum-exp, and recomputes the scores during the backward pass, tile by tile. That's extra maths, but maths is cheap and memory is slow, so it ends up faster and uses a tiny fraction of the memory.</p></figcaption>
   </figure>
 
   <figure class="fig" id="causal">
     <div class="fig-head"><h3>Causal masking at block level</h3></div>
+    <figcaption class="say"><p>With the causal mask, about half the grid is hidden. Pick how many blocks per side. Blocks fully above the diagonal are skipped entirely, with no work at all. Blocks fully below are computed with no masking needed. Only the blocks sitting on the diagonal need the mask applied cell by cell. With more blocks, the skipped share gets close to half, so causal attention costs about half of full attention.</p></figcaption>
   </figure>
 
   <figure class="fig" id="versions">
     <div class="fig-head"><h3>Three versions</h3></div>
+    <figcaption class="say"><p>Three versions, each faster than the last. <b>FlashAttention</b> (2022) introduced tiling, online softmax and recomputing in the backward pass. <b>FlashAttention-2</b> (2023) split the work better across the GPU, especially along the sequence, and cut extra non-matrix work, making it about twice as fast. <b>FlashAttention-3</b> (2024) was written for NVIDIA's Hopper GPUs like the H100, using their newer hardware features to overlap loading data with computing, and added support for 8-bit numbers.</p></figcaption>
   </figure>
 
   <h2>Exceptions and sharp edges</h2>
+  <div class="say"><p>Things to know before relying on FlashAttention.</p></div>
   <div class="edges">
-    <article class="edge redraw" id="e-exact"><div class="art"></div><h4>Exact, not approximate</h4><span class="fix">expect tiny numeric differences, not quality loss.</span></article>
-    <article class="edge redraw" id="e-dtype"><div class="art"></div><h4>fp16 and bf16 only</h4><span class="fix">run attention under bf16 autocast.</span></article>
-    <article class="edge redraw" id="e-hd"><div class="art"></div><h4>Head dimension limits</h4><span class="fix">keep head_dim at 64, 128 or 256.</span></article>
-    <article class="edge redraw" id="e-det"><div class="art"></div><h4>Nondeterministic backward</h4><span class="fix">use the deterministic flag when you need bitwise reproducibility.</span></article>
-    <article class="edge redraw" id="e-varlen"><div class="art"></div><h4>Packed sequences</h4><span class="fix">varlen kernels take cumulative sequence lengths instead of padding.</span></article>
+    <article class="edge redraw" id="e-exact"><div class="art"></div><h4>Exact, not approximate</h4><p>FlashAttention isn't a shortcut or an approximation. It computes the same maths in a different order. Results can differ in the last few digits because of rounding, the same way adding numbers in a different order can.</p><span class="fix">expect tiny numeric differences, not quality loss.</span></article>
+    <article class="edge redraw" id="e-dtype"><div class="art"></div><h4>fp16 and bf16 only</h4><p>It's built for 16-bit numbers (fp16 and bf16). With 32-bit inputs it won't run, and frameworks quietly fall back to slower code.</p><span class="fix">run attention under bf16 autocast.</span></article>
+    <article class="edge redraw" id="e-hd"><div class="art"></div><h4>Head dimension limits</h4><p>The kernels are tuned for certain head sizes. Unusual ones are either unsupported or slower.</p><span class="fix">keep head_dim at 64, 128 or 256.</span></article>
+    <article class="edge redraw" id="e-det"><div class="art"></div><h4>Nondeterministic backward</h4><p>In the backward pass, several parts of the GPU add into the same numbers in whatever order they finish. Results can vary very slightly between runs.</p><span class="fix">use the deterministic flag when you need bitwise reproducibility.</span></article>
+    <article class="edge redraw" id="e-varlen"><div class="art"></div><h4>Packed sequences</h4><p>When many short texts are packed together, padding everything to the same length wastes work. FlashAttention has a variable-length version that handles each text's real length.</p><span class="fix">varlen kernels take cumulative sequence lengths instead of padding.</span></article>
   </div>
 
   <Fragment slot="scripts"><script is:inline>

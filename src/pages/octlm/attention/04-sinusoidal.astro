@@ -10,48 +10,60 @@ import Note from '../../../layouts/Note.astro';
     </div>
   </header>
 
+  <div class="say intro"><p>Chapter 3 gave each position a learned row in a table. That hits a wall at the table's last row, and it treats every position as unrelated to its neighbours. The original 2017 transformer paper took a different route. Instead of learning position vectors, it calculates them with a formula, so there's no table to run out of.</p><p>The formula uses sine and cosine waves, the same smooth up-and-down curves from school maths. It sounds fancy, but the idea is close to how a clock works. You'll see that it already hints at the trick RoPE uses in the next chapter.</p></div>
+
   <h2>The formula, then the picture</h2>
+  <div class="say"><p>Don't let the formula scare you. Each position gets a vector, and each pair of numbers in that vector comes from one wave. Some waves wiggle fast, some crawl slowly. To find the vector for position 7, you read the height of every wave at the point 7.</p></div>
   <div class="formula">PE(pos, 2i) = <em>sin</em>(pos · ω<sub>i</sub>) &nbsp; PE(pos, 2i+1) = <em>cos</em>(pos · ω<sub>i</sub>) &nbsp; ω<sub>i</sub> = 1 / 10000<sup>2i/d</sup></div>
   <p>Each pair of dimensions is one wave. Early pairs wiggle fast, later pairs crawl.</p>
 
   <figure class="fig" id="waves">
     <div class="fig-head"><h3>Read a position off the waves</h3></div>
+    <figcaption class="say"><p>Each of the eight lanes is one wave. The top ones wiggle fast, the bottom ones move so slowly they look almost flat. Drag the position slider to move the vertical line. Wherever it crosses a wave, a dot marks the height, and those heights, read top to bottom, become the strip on the right. That strip is the position's vector.</p><p>Every position gets a different strip, because no two positions hit all the waves at the same heights. Fast waves tell nearby positions apart. Slow waves tell far apart positions apart.</p></figcaption>
   </figure>
 
   <figure class="fig" id="heat">
     <div class="fig-head"><h3>The famous heatmap</h3></div>
+    <figcaption class="say"><p>This is the picture from the original paper, and you'll see it in a lot of blog posts. Each row is one position, each column is one number of the vector. Colour shows the value.</p><p>On the left, the columns flip colour quickly, because those come from fast waves. On the right, they change slowly. Drag the slider to highlight a row. That row is the same kind of strip you built in the previous figure.</p></figcaption>
   </figure>
 
   <figure class="fig" id="clocks">
     <div class="fig-head"><h3>Clock hands at different speeds</h3></div>
+    <figcaption class="say"><p>Here's the clock way of seeing it. Each dial is one wave pair, and its hand turns by a fixed amount every time the position goes up by one. The first hand spins fast, the last barely moves. Below, a binary counter counts the same positions.</p><p>They work the same way. In binary, the last bit flips every step and the first bit flips rarely. With the dials, fast hands track small moves and slow hands track big ones. Together they pin down any position. The dials are just the smooth version of binary counting.</p></figcaption>
   </figure>
 
   <h2>Why waves and not just numbers</h2>
+  <div class="say"><p>Why not just use the plain number, 0, 1, 2, 3, as the position? Big numbers would swamp the token's meaning, and a single number gives the model very little to work with. Waves stay between −1 and 1, and they have a lovely property when you compare two positions, which the next figures show.</p></div>
 
   <figure class="fig" id="wavelength">
     <div class="fig-head"><h3>Wavelengths form a geometric ladder</h3></div>
+    <figcaption class="say"><p>Each bar is how many positions one wave takes to complete a full cycle, plotted on a log scale so the jumps look even. The fastest wave repeats every 6 or so positions. The slowest takes about 63,000. Each one is a fixed multiple slower than the one before, like a ladder.</p><p>This range is what lets the encoding work at every scale, from "the word right next to me" to "something thousands of words back".</p></figcaption>
   </figure>
 
   <figure class="fig" id="relative">
     <div class="fig-head"><h3>The dot product only cares about distance</h3></div>
     <div class="formula">PE(p) · PE(p+k) = Σ<sub>i</sub> <em>cos(k · ω<sub>i</sub>)</em> &nbsp; (no p anywhere)</div>
+    <figcaption class="say"><p>This is the key property. The chart shows how similar position p is to position p + k, measured with a dot product (multiply matching numbers and add them up), for every gap k from −40 to 40.</p><p>Now drag the start position p from 0 to 500. The curve doesn't move at all. The similarity only depends on the gap k, never on where you start. So "two words apart" looks the same at the start of a text and deep inside it. That's exactly the relative position idea from chapter 3, and it falls straight out of the waves.</p></figcaption>
   </figure>
 
   <figure class="fig" id="rotate">
     <div class="fig-head"><h3>A shift is a rotation</h3></div>
+    <figcaption class="say"><p>Why does that work? Each wave pair, a sine and a cosine together, is a point on a circle. Moving forward k positions turns that point by a fixed angle. Play with p and k. The arc between the two arrows depends only on k. Changing p spins both arrows together, but the gap between them stays the same.</p><p>Hold on to this picture. "Moving forward in position is a rotation" is the whole idea behind RoPE, in the next chapter.</p></figcaption>
   </figure>
 
   <figure class="fig" id="extrap">
     <div class="fig-head"><h3>“Works at any length” is only half true</h3></div>
+    <figcaption class="say"><p>Since the formula works for any number, people said sinusoidal positions work at any length. Sort of. The model can compute a vector for position 10,000, but if it only ever trained on 512 positions, it never learned what those far-away vectors mean.</p><p>This sketch shows the typical result. Loss is fine inside the training length, then climbs once you go past it. Calculating a vector is not the same as understanding it.</p></figcaption>
   </figure>
 
   <h2>Exceptions and sharp edges</h2>
+  <div class="say"><p>Practical gotchas with sinusoidal positions.</p></div>
   <div class="edges">
-    <article class="edge redraw" id="e-mix"><div class="art"></div><h4>Position and meaning share lanes</h4><span class="fix">the model learns to separate them. RoPE avoids the mixing entirely.</span></article>
-    <article class="edge redraw" id="e-slow"><div class="art"></div><h4>Slow lanes are nearly constant</h4><span class="fix">fine: they leave room for content.</span></article>
-    <article class="edge redraw" id="e-layout"><div class="art"></div><h4>Interleaved or split halves?</h4><span class="fix">match the layout used in training.</span></article>
-    <article class="edge redraw" id="e-prec"><div class="art"></div><h4>Precision at huge positions</h4><span class="fix">compute angles in fp32, then cast.</span></article>
-    <article class="edge redraw" id="e-base"><div class="art"></div><h4>The base 10000 is a choice</h4><span class="fix">long-context models often raise the base.</span></article>
+    <article class="edge redraw" id="e-mix"><div class="art"></div><h4>Position and meaning share lanes</h4><p>The position wave is added on top of the token's vector, in the same numbers. So the model has to untangle "what word" from "where" in every layer. RoPE avoids that by never adding anything.</p><span class="fix">the model learns to separate them. RoPE avoids the mixing entirely.</span></article>
+    <article class="edge redraw" id="e-slow"><div class="art"></div><h4>Slow lanes are nearly constant</h4><p>The slowest waves barely change across a normal text, so those numbers are almost the same for every position. That's not a waste. The model can use those spots mostly for word meaning.</p><span class="fix">fine: they leave room for content.</span></article>
+    <article class="edge redraw" id="e-layout"><div class="art"></div><h4>Interleaved or split halves?</h4><p>Some code puts sine and cosine side by side (sin, cos, sin, cos). Other code puts all the sines first, then all the cosines. Both are fine, but loading weights trained one way into code written the other way scrambles positions.</p><span class="fix">match the layout used in training.</span></article>
+    <article class="edge redraw" id="e-prec"><div class="art"></div><h4>Precision at huge positions</h4><p>At position 100,000 the angles are huge numbers. In half precision, tiny rounding errors in those angles turn into big errors in the sine and cosine.</p><span class="fix">compute angles in fp32, then cast.</span></article>
+    <article class="edge redraw" id="e-base"><div class="art"></div><h4>The base 10000 is a choice</h4><p>The 10,000 in the formula decides how slow the slowest wave is. Nothing magic about it. Models that need very long contexts raise it so the slow waves stretch even further.</p><span class="fix">long-context models often raise the base.</span></article>
   </div>
 
   <Fragment slot="scripts"><script is:inline>

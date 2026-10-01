@@ -9,48 +9,61 @@ import Note from '../../../layouts/Note.astro';
       <p class="lede">One line of maths runs every attention head in every modern LLM.</p>
     </div>
   </header>
+
+  <div class="say intro"><p>Chapter 6 explained the idea with one token at a time. Real models do it for every token at once, using a single formula. That's the line below, and it really is the heart of every transformer. Every attention head in GPT, Llama or Claude runs this exact computation.</p><p>It reads in plain words like this. Compare every query with every key (QKᵀ). Shrink the scores a bit (divide by √d<sub>k</sub>). Hide anything that shouldn't be seen (+ mask, chapter 8). Turn scores into weights that add up to 1 (softmax). Use the weights to blend the values (· V). The rest of this page goes through each piece.</p></div>
   <div class="formula" style="font-size:clamp(15px,2.4vw,22px);text-align:center">Attention(Q, K, V) = <em>softmax</em>( Q Kᵀ / <em>√d<sub>k</sub></em> + mask ) · V</div>
 
   <h2>The whole computation</h2>
+  <div class="say"><p>Let's walk through it one step at a time, then check that each row is just the one-token story from chapter 6 again.</p></div>
   <figure class="fig" id="pipeline">
     <div class="fig-head"><h3>Six steps, one matrix at a time</h3></div>
+    <figcaption class="say"><p>Press play to step through the six stages. The strip at the top tells you which stage you're on, and the grid below shows the numbers at that point.</p><p>First you have Q and K. Multiplying them gives the raw scores, one per pair of tokens. Then they get divided by √d<sub>k</sub>. Then the mask hides the future. Then softmax turns each row into weights. Finally the weights multiply V to give the output. It's the same six steps for every head in every layer.</p></figcaption>
   </figure>
 
   <figure class="fig" id="rowview">
     <div class="fig-head"><h3>Every row is chapter 6 again</h3></div>
+    <figcaption class="say"><p>This is the grid of weights after softmax. Each row is one token asking its question. Click any row to see it as a bar chart.</p><p>Every row is exactly chapter 6 again. One query, its scores against the keys, softmax, a set of weights. The readout below confirms each row adds up to 1. The matrix form just does all the rows at once, which is what GPUs are fast at.</p></figcaption>
   </figure>
 
   <h2>Why divide by √d<sub>k</sub></h2>
+  <div class="say"><p>The division by √d<sub>k</sub> looks like a random detail. It isn't. Without it, training gets stuck. Here's why.</p></div>
 
   <figure class="fig" id="variance">
     <div class="fig-head"><h3>Dot products spread out as width grows</h3></div>
+    <figcaption class="say"><p>Drag the d<sub>k</sub> slider. This draws 300 random dot products between random vectors. The left histogram is raw scores. As d<sub>k</sub> grows, they spread out a lot, because you're adding up more and more numbers. Their spread grows like √d<sub>k</sub>.</p><p>The right histogram is the same scores divided by √d<sub>k</sub>. They stay nicely around −1 to 1 no matter how wide the vectors are. That's all the division is for. It keeps the scores at a sensible size.</p></figcaption>
   </figure>
 
   <figure class="fig" id="saturate">
     <div class="fig-head"><h3>Large scores freeze softmax</h3></div>
+    <figcaption class="say"><p>Why do we want scores at a sensible size? Drag the multiplier up. As the scores get bigger, softmax gets more and more extreme, until one bar takes nearly all the weight and the rest go to zero.</p><p>The gauge shows the gradient, how much training can learn from this softmax. When softmax is that extreme, the gradient drops to almost nothing and learning stalls. Dividing by √d<sub>k</sub> stops scores from drifting into this frozen zone just because the vectors are wide.</p></figcaption>
   </figure>
 
   <h2>Softmax, carefully</h2>
+  <div class="say"><p>Softmax turns any list of scores into weights that are positive and add up to 1. It's simple, but the obvious way to code it breaks with big numbers. After that, two figures on what the scores and the output actually mean.</p></div>
   <figure class="fig" id="softmax">
     <div class="fig-head"><h3>Softmax step by step, with the overflow trap</h3></div>
     <div class="formula">softmax(s)<sub>i</sub> = e<sup>s<sub>i</sub> − <em>max(s)</em></sup> ÷ Σ<sub>j</sub> e<sup>s<sub>j</sub> − <em>max(s)</em></sup> &nbsp; (same answer, no overflow)</div>
+    <figcaption class="say"><p>Press play to go through softmax in four rows. Start with the scores. Subtract the biggest score from all of them. Take e to the power of each one. Divide each by the total so they add up to 1.</p><p>Why subtract the max? Turn on "Big scores". Without that step, e to the power of 1000 is too big for a computer to store, it becomes infinity, and infinity divided by infinity gives NaN, which means "not a number". The answer is ruined. Subtracting the max gives exactly the same final weights and keeps every number small.</p></figcaption>
   </figure>
 
   <figure class="fig" id="geometry">
     <div class="fig-head"><h3>What a dot product measures</h3></div>
+    <figcaption class="say"><p>What does a dot product actually measure? Drag the angle and key length sliders. The shadow of the key on the query's line is the score. Point them the same way and the score is big. At right angles it's zero. Pointing apart, it goes negative.</p><p>Making the key longer also raises the score. So the score is "how much do they point the same way" times "how big are they". It's the cosine similarity from chapter 2 with the lengths left in.</p></figcaption>
   </figure>
 
   <figure class="fig" id="hull">
     <div class="fig-head"><h3>The output is a blend, always inside the values</h3></div>
+    <figcaption class="say"><p>The three corners of the triangle are three value vectors. Move the score sliders. The dot is the output, the weighted blend of the three values. No matter what scores you choose, the dot always stays inside the triangle.</p><p>That's because softmax weights are all positive and add up to 1. So attention can only blend existing values. It can't invent something outside them. Making new things is the job of other parts of the model, like the MLP in chapter 12.</p></figcaption>
   </figure>
 
   <h2>Exceptions and sharp edges</h2>
+  <div class="say"><p>Small details of this formula that cause real bugs.</p></div>
   <div class="edges">
-    <article class="edge redraw" id="e-nan"><div class="art"></div><h4>A fully masked row</h4><span class="fix">make sure every query can see at least one key, usually itself.</span></article>
-    <article class="edge redraw" id="e-fp16"><div class="art"></div><h4>−1e9 in fp16</h4><span class="fix">use the dtype's minimum value instead of a magic number.</span></article>
-    <article class="edge redraw" id="e-tie"><div class="art"></div><h4>All scores equal</h4><span class="fix">normal at initialisation; training breaks the ties.</span></article>
-    <article class="edge redraw" id="e-drop"><div class="art"></div><h4>Attention dropout</h4><span class="fix">turn dropout off for evaluation with model.eval().</span></article>
-    <article class="edge redraw" id="e-scale"><div class="art"></div><h4>Not always 1/√d<sub>k</sub></h4><span class="fix">do not change the scale of a pretrained model.</span></article>
+    <article class="edge redraw" id="e-nan"><div class="art"></div><h4>A fully masked row</h4><p>If masking hides every key from some query, its row of scores is all minus infinity. Softmax then divides zero by zero and returns NaN, which spreads through the model and ruins everything after it.</p><span class="fix">make sure every query can see at least one key, usually itself.</span></article>
+    <article class="edge redraw" id="e-fp16"><div class="art"></div><h4>−1e9 in fp16</h4><p>Code often uses −1e9 as a stand-in for minus infinity. Half precision can't store a number that big, so it becomes real −infinity and can cause the NaN problem above.</p><span class="fix">use the dtype's minimum value instead of a magic number.</span></article>
+    <article class="edge redraw" id="e-tie"><div class="art"></div><h4>All scores equal</h4><p>At the start of training all weights are random and small, so scores are nearly equal and softmax gives every token about the same weight. That's expected.</p><span class="fix">normal at initialisation; training breaks the ties.</span></article>
+    <article class="edge redraw" id="e-drop"><div class="art"></div><h4>Attention dropout</h4><p>Some models randomly zero out attention weights during training. Forget to turn that off when you evaluate, and your results become random and worse.</p><span class="fix">turn dropout off for evaluation with model.eval().</span></article>
+    <article class="edge redraw" id="e-scale"><div class="art"></div><h4>Not always 1/√d<sub>k</sub></h4><p>Some models use a different scale, or learn one. A trained model expects the scale it was trained with, so leave it alone.</p><span class="fix">do not change the scale of a pretrained model.</span></article>
   </div>
 
   <Fragment slot="scripts"><script is:inline>

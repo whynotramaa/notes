@@ -10,51 +10,65 @@ import Note from '../../../layouts/Note.astro';
     </div>
   </header>
 
+  <div class="say intro"><p>The MLP is the part of each block where every token "thinks" on its own, and it holds about two thirds of a block's parameters. Day 1's version widens the vector, bends it with an activation function called GELU, and narrows it back.</p><p>SwiGLU adds a <b>gate</b>. Instead of one widened vector, the MLP makes two. One is passed through a smooth on/off switch and then multiplied into the other, number by number. So the model gets to decide, for each feature, how much to let through. It's a small change that reliably makes models a bit better, and Llama, Mistral, Qwen and most other modern models use it.</p></div>
+
   <h2>Two MLPs</h2>
+  <div class="say"><p>Here are the two recipes side by side. The vanilla one has two matrices, up and down. SwiGLU has three, gate, up and down. The ⊙ symbol means "multiply number by number".</p></div>
   <div class="formula">vanilla: <em>W<sub>down</sub> · GELU(W<sub>up</sub> x)</em> &nbsp; &nbsp; SwiGLU: <em>W<sub>down</sub> · ( SiLU(W<sub>gate</sub> x) ⊙ W<sub>up</sub> x )</em></div>
   <figure class="fig" id="compare">
     <div class="fig-head"><h3>Vanilla MLP vs SwiGLU MLP</h3></div>
+    <figcaption class="say"><p>On the left, the vanilla MLP. x is projected up to 4 times its width, bent with GELU, and projected back down. On the right, SwiGLU. x goes through two separate projections, gate and up, both to width h. The gate passes through SiLU, a smooth switch. Then gate and up are multiplied together, number by number, and projected back down. The hidden width h is smaller than 4d, for reasons shown further down.</p></figcaption>
   </figure>
 
   <figure class="fig" id="acts">
     <div class="fig-head"><h3>ReLU, GELU, SiLU</h3></div>
     <div class="formula">SiLU(x) = <em>x · σ(x)</em> = x / (1 + e<sup>−x</sup>)</div>
+    <figcaption class="say"><p>Three activation functions, the bends used in MLPs. <b>ReLU</b> is the simplest. Negative becomes zero and positive stays as it is, with a sharp corner at zero. <b>GELU</b> and <b>SiLU</b>, also called Swish, are smooth versions of the same idea, and they dip slightly below zero for small negative inputs.</p><p>Drag β to see Swish change shape. Large β makes it look like ReLU, small β makes it almost a straight line. Turn on the derivative to see the slope of each curve. Smooth slopes with no sharp corners make training a bit easier.</p></figcaption>
   </figure>
 
   <h2>The gate in action</h2>
+  <div class="say"><p>What does the gate actually do to the numbers? Let's run one token through it and then look at the whole picture.</p></div>
   <figure class="fig" id="gate">
     <div class="fig-head"><h3>Gating, element by element</h3></div>
+    <figcaption class="say"><p>Press play to follow one token through SwiGLU. The input has 6 numbers. The gate and up projections each make 8. SiLU is applied to the gate, then the two are multiplied together, and the result is projected back down to 6.</p><p>Look at the outlined units. Where the gate came out strongly negative, SiLU turned it into nearly zero, and multiplying by nearly zero shuts that feature off whatever the up value said. The gate decides what gets through. The up vector decides what the content is.</p></figcaption>
   </figure>
 
   <figure class="fig" id="surface">
     <div class="fig-head"><h3>The gate surface</h3></div>
+    <figcaption class="say"><p>This map shows the output SiLU(g) × u for every combination of gate value g and up value u. On the left half, where the gate is negative, everything is close to zero. The gate is closed. On the right half, the gate is open, and the output follows u, positive at the top and negative at the bottom.</p><p>A plain activation can only bend one number. Here, two learned numbers work together, one deciding whether and the other deciding what. That extra flexibility is the best guess for why gated MLPs work better.</p></figcaption>
   </figure>
 
   <h2>Sizing the hidden layer</h2>
+  <div class="say"><p>A third matrix means more parameters. To keep the cost fair, SwiGLU makes the hidden layer narrower. Then the papers, the variants, and a trick for running it faster.</p></div>
   <figure class="fig" id="size">
     <div class="fig-head"><h3>From 4d to 8d/3, then rounded</h3></div>
     <div class="formula">h = <em>multiple_of</em> · ⌈ ffn_mult · ⌊8d/3⌋ / multiple_of ⌉</div>
+    <figcaption class="say"><p>A vanilla MLP with width 4d has 2 matrices of d × 4d, so 8d² parameters. SwiGLU has 3 matrices, so to keep the same total, each one gets width 8d/3 instead of 4d. Then that number is rounded up to a multiple of 256 or 1,024, because GPUs run faster on tidy sizes. Llama 3 also multiplies it by an extra factor first.</p><p>Pick a recipe and a width. The steps show the arithmetic, and the bars compare the parameter counts. They come out almost equal, which is the point. The comparison is fair.</p></figcaption>
   </figure>
 
   <figure class="fig" id="family">
     <div class="fig-head"><h3>The GLU family</h3></div>
+    <figcaption class="say"><p>SwiGLU is one of a family. They all multiply a gated projection by an ungated one, and the only difference is the switch used on the gate. GLU uses the sigmoid, an S-curve from 0 to 1. Bilinear uses no switch at all. ReGLU uses ReLU. GEGLU uses GELU. SwiGLU uses SiLU. The tiny curves show each one's switch shape.</p></figcaption>
   </figure>
 
   <figure class="fig" id="results">
     <div class="fig-head"><h3>What the paper found</h3></div>
+    <figcaption class="say"><p>These are results from Noam Shazeer's 2020 paper, which tried all these variants on the same model and data. Each bar is the final log-perplexity, so lower is better. The plain MLPs with ReLU, GELU or Swish score worst. GEGLU and SwiGLU score best.</p><p>The paper gives no deep theory for why. In its own words it attributes the success "to divine benevolence". But the gain held up in every later model that tried it, which is why it became the default.</p></figcaption>
   </figure>
 
   <figure class="fig" id="fused">
     <div class="fig-head"><h3>Fusing gate and up into one matmul</h3></div>
+    <figcaption class="say"><p>Gate and up both take the same input x. So instead of two matrix multiplies, code can do one, with a matrix twice as wide, and then cut the result in half. On the left is the code, on the right is the one wide matrix being split. One big multiply runs faster on a GPU than two smaller ones.</p></figcaption>
   </figure>
 
   <h2>Exceptions and sharp edges</h2>
+  <div class="say"><p>What trips people up when building or loading a SwiGLU MLP.</p></div>
   <div class="edges">
-    <article class="edge redraw" id="e-hidden"><div class="art"></div><h4>Hidden size is not 4d</h4><span class="fix">read intermediate_size from the config.</span></article>
-    <article class="edge redraw" id="e-chunk"><div class="art"></div><h4>Swapped halves</h4><span class="fix">check the loading code's split order.</span></article>
-    <article class="edge redraw" id="e-mem"><div class="art"></div><h4>More activation memory</h4><span class="fix">activation checkpointing, or fused kernels that recompute.</span></article>
-    <article class="edge redraw" id="e-bias"><div class="art"></div><h4>No biases</h4><span class="fix">bias=False on all three projections.</span></article>
-    <article class="edge redraw" id="e-name"><div class="art"></div><h4>Names vary</h4><span class="fix">map names explicitly when converting.</span></article>
+    <article class="edge redraw" id="e-hidden"><div class="art"></div><h4>Hidden size is not 4d</h4><p>The hidden width of a SwiGLU MLP is usually around 2.7 to 3.5 times d, not 4 times. Llama 3 8B uses 14,336 for d = 4096. Guessing it from d gives the wrong shape.</p><span class="fix">read intermediate_size from the config.</span></article>
+    <article class="edge redraw" id="e-chunk"><div class="art"></div><h4>Swapped halves</h4><p>With the fused version, the wide output is cut into two halves. Which half is the gate and which is up depends on how the weights were saved. Swap them and the model still runs, but badly.</p><span class="fix">check the loading code's split order.</span></article>
+    <article class="edge redraw" id="e-mem"><div class="art"></div><h4>More activation memory</h4><p>During training, SwiGLU has to remember both the gate and up vectors for the backward pass. That's more memory per token than the vanilla MLP.</p><span class="fix">activation checkpointing, or fused kernels that recompute.</span></article>
+    <article class="edge redraw" id="e-bias"><div class="art"></div><h4>No biases</h4><p>Modern MLPs drop the bias vectors entirely. Code that adds them anyway won't match the trained weights.</p><span class="fix">bias=False on all three projections.</span></article>
+    <article class="edge redraw" id="e-name"><div class="art"></div><h4>Names vary</h4><p>The same three matrices go by many names across codebases, like w1, w2, w3, or gate_proj, up_proj, down_proj, and the numbers don't always mean the same thing. Map them carefully when converting.</p><span class="fix">map names explicitly when converting.</span></article>
   </div>
 
   <Fragment slot="scripts"><script is:inline>

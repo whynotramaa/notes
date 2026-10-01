@@ -10,45 +10,58 @@ import Note from '../../../layouts/Note.astro';
     </div>
   </header>
 
+  <div class="say intro"><p>One round of attention gives each token one set of weights. That's a problem, because a word often needs to look at several things for different reasons at once. "It" needs to find what it refers to, and it also cares about the verb right before it. One set of weights has to share itself between those needs, and the result is a blurry average of both.</p><p>Multi-head attention runs several smaller attentions side by side, each with its own Q, K and V. Each one is called a <b>head</b>. Each head can focus on something different, and their results get combined at the end. Every real transformer uses this.</p></div>
+
   <h2>Single head vs multi-head</h2>
+  <div class="say"><p>First, see the blur problem, then how heads split the work without making the model any bigger.</p></div>
   <figure class="fig" id="blur">
     <div class="fig-head"><h3>One softmax, two needs</h3></div>
+    <figcaption class="say"><p>On the left, one head is trying to look at both "cat" and "because". It has to split its weight between them, so its output is a muddy mix of the two. On the right, two heads each pick one target. Each output is sharp and clear.</p><p>Two people each reading one book do better than one person trying to read two books at once.</p></figcaption>
   </figure>
 
   <figure class="fig" id="split">
     <div class="fig-head"><h3>Split the width, do not multiply it</h3></div>
+    <figcaption class="say"><p>Pick a number of heads. The vector of width 12 gets cut into equal slices, one per head. Each head works only on its own slice, with width d<sub>model</sub> ÷ h.</p><p>This is the important part. Heads don't make the model bigger. 12 numbers split into 4 heads of 3 is still 12 numbers. You get more separate attention patterns for about the same cost.</p></figcaption>
   </figure>
 
   <h2>What different heads learn</h2>
+  <div class="say"><p>Nobody tells a head what to focus on. Training sorts it out, and some common habits appear in almost every model.</p></div>
   <figure class="fig" id="arcs">
     <div class="fig-head"><h3>Four heads, four habits</h3></div>
+    <figcaption class="say"><p>Pick a head. The arcs show where each token is looking, and thicker arcs mean more weight. These four habits show up in real models over and over.</p><p>A <b>previous-token</b> head always looks one step back. An <b>antecedent</b> head links words like "it" back to what they refer to. A <b>sink</b> head dumps most of its weight on the first token when it has nothing useful to do. A <b>broad</b> head spreads its weight out evenly, giving a general summary of the context.</p></figcaption>
   </figure>
 
   <figure class="fig" id="grid">
     <div class="fig-head"><h3>The same four heads as matrices</h3></div>
+    <figcaption class="say"><p>The same four heads drawn as weight grids, like in chapter 7. Each pattern has its own shape. The previous-token head is a line just under the diagonal. The sink head is a bright first column. The broad head is an even wash. Once you know these shapes, you can spot them in real attention maps.</p></figcaption>
   </figure>
 
   <h2>Putting heads back together</h2>
+  <div class="say"><p>Each head produces its own small output. Those have to be joined back into one vector of the original width, and the model needs to mix what the heads found.</p></div>
   <figure class="fig" id="concat">
     <div class="fig-head"><h3>Concatenate, then mix with W<sub>O</sub></h3></div>
     <div class="formula">MultiHead(x) = <em>concat</em>(head₁, …, head<sub>h</sub>) · <em>W<sub>O</sub></em></div>
+    <figcaption class="say"><p>Press play. Three heads each produce an output of width 4. They're placed end to end into one vector of width 12. That's concatenation. Then that vector is multiplied by one more learned matrix, W<sub>O</sub>, the output projection.</p><p>Why the extra matrix? Concatenating just stacks the heads next to each other. W<sub>O</sub> lets the model mix what different heads found, so information from the antecedent head and the previous-token head can be combined.</p></figcaption>
   </figure>
 
   <figure class="fig" id="cost">
     <div class="fig-head"><h3>More heads, same parameter bill</h3></div>
+    <figcaption class="say"><p>Pick a number of heads. Each of the four matrices, W<sub>Q</sub>, W<sub>K</sub>, W<sub>V</sub> and W<sub>O</sub>, is d × d whatever you choose. More heads just cuts the same matrices into more column blocks. So the parameter count stays at 4d² no matter how many heads you use. Splitting is free in parameters.</p></figcaption>
   </figure>
 
   <figure class="fig" id="gqa">
     <div class="fig-head"><h3>Heads can share keys and values</h3></div>
+    <figcaption class="say"><p>A preview of Day 2. The top row is the query heads. The bottom row is the key and value heads. With 8 of each, every query head has its own keys and values. That's standard multi-head attention.</p><p>Pick fewer K,V heads and several query heads share one set of keys and values. That's grouped-query attention, or GQA. With just 1 shared set it's called multi-query attention. Sharing makes generation much cheaper in memory, as chapter 11 shows, and modern models almost all use it.</p></figcaption>
   </figure>
 
   <h2>Exceptions and sharp edges</h2>
+  <div class="say"><p>Practical gotchas with heads.</p></div>
   <div class="edges">
-    <article class="edge redraw" id="e-div"><div class="art"></div><h4>d<sub>model</sub> must divide by h</h4><span class="fix">pick h so d_model / h is a whole number, usually 64 or 128.</span></article>
-    <article class="edge redraw" id="e-tiny"><div class="art"></div><h4>Heads that are too narrow</h4><span class="fix">keep d_head around 64 to 128 and scale heads with width.</span></article>
-    <article class="edge redraw" id="e-redund"><div class="art"></div><h4>Many heads are redundant</h4><span class="fix">useful for compression, but you still need them during training.</span></article>
-    <article class="edge redraw" id="e-sink"><div class="art"></div><h4>Attention sinks</h4><span class="fix">keep the first tokens in the cache when trimming long contexts.</span></article>
-    <article class="edge redraw" id="e-reshape"><div class="art"></div><h4>The reshape bug</h4><span class="fix">check one head's output against a single-head reference.</span></article>
+    <article class="edge redraw" id="e-div"><div class="art"></div><h4>d<sub>model</sub> must divide by h</h4><p>The width has to split evenly. A width of 768 with 12 heads gives 64 per head. 768 with 10 heads would give 76.8, which doesn't work.</p><span class="fix">pick h so d_model / h is a whole number, usually 64 or 128.</span></article>
+    <article class="edge redraw" id="e-tiny"><div class="art"></div><h4>Heads that are too narrow</h4><p>With too many heads, each slice gets so thin it can't represent much, and the scores get noisy. Most models keep each head between 64 and 128 numbers wide and add more heads as the model grows.</p><span class="fix">keep d_head around 64 to 128 and scale heads with width.</span></article>
+    <article class="edge redraw" id="e-redund"><div class="art"></div><h4>Many heads are redundant</h4><p>Researchers have removed many heads from trained models and seen almost no drop in quality. But training with fewer heads from the start usually does worse.</p><span class="fix">useful for compression, but you still need them during training.</span></article>
+    <article class="edge redraw" id="e-sink"><div class="art"></div><h4>Attention sinks</h4><p>Many heads put lots of weight on the very first token, just as a place to park attention. If you drop the first tokens to save memory on long texts, those heads break.</p><span class="fix">keep the first tokens in the cache when trimming long contexts.</span></article>
+    <article class="edge redraw" id="e-reshape"><div class="art"></div><h4>The reshape bug</h4><p>Splitting a tensor into heads means reshaping it, and one wrong axis order mixes numbers from different heads and different tokens. The code runs and the shapes look right, but the output is garbage.</p><span class="fix">check one head's output against a single-head reference.</span></article>
   </div>
 
   <Fragment slot="scripts"><script is:inline>

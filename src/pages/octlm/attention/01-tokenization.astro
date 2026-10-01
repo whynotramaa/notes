@@ -10,53 +10,67 @@ import Note from '../../../layouts/Note.astro';
     </div>
   </header>
 
+  <div class="say intro"><p>Before a language model can do anything clever, it has to get your text into a form it can do maths on. And maths means numbers. So the very first job in the whole pipeline is turning a sentence like "The cat sat" into a short list of whole numbers. That list is what the model actually reads.</p><p>The tool that does this is called a <b>tokenizer</b>. It chops text into pieces called <b>tokens</b> and gives each piece an id. This chapter walks through the most common way to do it today, byte-level BPE, which is what GPT-2, GPT-4, Llama 3 and most other models use. Everything else in these notes starts from the ids this step produces.</p></div>
+
   <h2>Text is already numbers</h2>
+  <div class="say"><p>Here is the nice part. Your computer already stores every character as numbers, using a standard called UTF-8. So we don't have to invent a way to turn text into numbers. We just have to decide how to group those numbers into useful pieces.</p></div>
 
   <figure class="fig" id="utf8">
     <div class="fig-head"><h3>Characters become bytes</h3></div>
+    <figcaption class="say"><p>Type anything into the box. The top row shows each character you typed, and the row under it shows the bytes that character turns into. A byte is just a number from 0 to 255, written here in hex, which is a short way of writing numbers using 0 to 9 and A to F.</p><p>Plain English letters take one byte each. Accented letters like ï and é take two. Emoji and many non-Latin scripts take three or four. Those multi-byte characters are the coloured boxes. The count at the bottom shows that "characters" and "bytes" are not the same thing, and the tokenizer works with bytes.</p></figcaption>
   </figure>
 
   <figure class="fig" id="cuts">
     <div class="fig-head"><h3>Four ways to cut the same word</h3></div>
+    <figcaption class="say"><p>Here is the same word, "unhappiness", cut four different ways. Each way is a different answer to "what should one token be?"</p><p><b>Whole words</b> give you one token, which is short, but you need a slot for every word that has ever existed, and any new word becomes an "unknown" token. <b>Characters</b> need a huge list too, because Unicode has around 150,000 of them. <b>Raw bytes</b> only need 256 slots and can spell anything, but the sequence gets long. <b>BPE</b> sits in the middle. It starts with the 256 bytes and adds common chunks like "un" and "ness" on top, so text stays short and nothing is ever unknown.</p></figcaption>
   </figure>
 
   <h2>Before merging: draw walls</h2>
+  <div class="say"><p>Before the tokenizer starts gluing bytes together, it first splits the text into rough chunks, like words, numbers and punctuation. Think of it as drawing walls. Later, merges are only allowed inside a wall, never across one.</p></div>
 
   <figure class="fig" id="pretok">
     <div class="fig-head"><h3>Pre-tokenization chunks</h3></div>
+    <figcaption class="say"><p>Type a sentence and watch it get split. Each chip is one chunk, and the label under it says what kind of chunk it is. The red bars are the walls.</p><p>Why bother? Without walls, BPE might learn a token like "dog." with the full stop stuck on, or glue the end of one word to the start of the next. Pre-splitting keeps tokens sensible. Notice that the space usually sticks to the front of the next word, so " cats" with its space is one chunk. That small detail matters a lot later.</p></figcaption>
   </figure>
 
   <h2>Training: learn the merges</h2>
+  <div class="say"><p>BPE stands for Byte Pair Encoding. The idea is simple enough to do by hand. Start with raw bytes. Find the two neighbours that show up together most often. Glue them into a new token. Repeat a few tens of thousands of times. The list of glue steps, in order, is the tokenizer.</p></div>
 
   <figure class="fig" id="train">
     <div class="fig-head"><h3>Watch BPE learn on a tiny corpus</h3></div>
+    <figcaption class="say"><p>Press play and watch BPE learn from a tiny made-up text full of bananas and bandanas. On the left, each distinct chunk appears with how many times it shows up (the ×3, ×2 numbers). On the right, a bar chart counts every pair of neighbouring tokens.</p><p>At each step the tallest bar wins. Those two tokens get glued into one new token, which gets the next free id (256, 257, and so on). The new merge is added to the list along the bottom, and the chunks on the left get shorter. Training stops here when no pair appears at least twice. Real tokenizers do exactly this on gigabytes of text and stop after a fixed number of merges.</p></figcaption>
   </figure>
 
   <figure class="fig" id="encode">
     <div class="fig-head"><h3>Encoding new text with the learned merges</h3></div>
+    <figcaption class="say"><p>Once training is done, how do you tokenize new text? You replay the learned merges, in the exact order they were learned. Try typing a word made of the same letters, like "bandanas".</p><p>Each row shows the tokens after one more merge is applied. The left column names the merge, the right column counts how many tokens are left. When no learned merge applies any more, you're done, and those final ids are what the model gets. The order matters. Apply the merges in a different order and you can get different tokens for the same text.</p></figcaption>
   </figure>
 
   <h2>How big should the vocabulary be?</h2>
+  <div class="say"><p>The vocabulary is the full list of tokens the model knows. Every merge you learn adds one token to it. So how many merges should you do? There's no free lunch here, and the two charts below show what you gain and what you pay.</p></div>
 
   <figure class="fig" id="vocab">
     <div class="fig-head"><h3>The vocabulary size trade-off</h3></div>
+    <figcaption class="say"><p>Drag the slider to pick a vocabulary size. The left chart shows how many bytes of text one token covers on average. A bigger vocabulary means each token covers more text, so the same document becomes fewer tokens. But the curve flattens. Going from 256 to 4,000 tokens helps a lot. Going from 64,000 to 256,000 helps only a little.</p><p>The right chart shows the cost. Every token in the vocabulary needs its own row in the model's embedding table (chapter 2), so that table grows in a straight line with vocab size. The note at the bottom ties it together. Fewer tokens per document means a smaller attention grid, which is the expensive part we meet in chapter 10. Most modern models land somewhere between 32,000 and 256,000.</p></figcaption>
   </figure>
 
   <figure class="fig" id="bpb">
     <div class="fig-head"><h3>Perplexity vs bits per byte</h3></div>
     <div class="formula">bits/byte = <em>loss per token (nats)</em> ÷ ln 2 ÷ <em>bytes per token</em> &nbsp;·&nbsp; perplexity = e<sup>loss</sup></div>
+    <figcaption class="say"><p>This one is about fairly comparing two models that use different tokenizers. The usual score, <b>perplexity</b>, is roughly "how many tokens was the model torn between at each step". Lower is better. But it's measured per token, and if one model's tokens are bigger, each of its guesses is harder, so its perplexity looks worse even if it's the better model.</p><p><b>Bits per byte</b> fixes this by measuring the surprise per byte of original text instead, which is the same for everyone. Move the sliders for model B. You'll find settings where B wins on perplexity but loses on bits per byte. When tokenizers differ, trust bits per byte.</p></figcaption>
   </figure>
 
   <h2>Exceptions and sharp edges</h2>
+  <div class="say"><p>Tokenizers are full of small surprises that bite people in real projects. Each card below is one of them, with what goes wrong and what to do about it.</p></div>
   <div class="edges">
-    <article class="edge redraw" id="e-emoji"><div class="art"></div><h4>Emoji split mid-character</h4><span class="fix">when streaming, buffer bytes until they form complete UTF-8.</span></article>
-    <article class="edge redraw" id="e-space"><div class="art"></div><h4>“ the” and “the” differ</h4><span class="fix">never strip or add spaces around prompts casually.</span></article>
-    <article class="edge redraw" id="e-num"><div class="art"></div><h4>Numbers split unevenly</h4><span class="fix">split digits one by one, or in fixed groups of three.</span></article>
-    <article class="edge redraw" id="e-lang"><div class="art"></div><h4>Some languages cost more</h4><span class="fix">train merges on a balanced multilingual corpus.</span></article>
-    <article class="edge redraw" id="e-case"><div class="art"></div><h4>Case changes everything</h4><span class="fix">nothing to fix, the model learns the link from data.</span></article>
-    <article class="edge redraw" id="e-tie"><div class="art"></div><h4>Ties in pair counts</h4><span class="fix">break ties deterministically, for example by byte order.</span></article>
-    <article class="edge redraw" id="e-special"><div class="art"></div><h4>Special tokens are not text</h4><span class="fix">add special tokens outside the merge process.</span></article>
-    <article class="edge redraw" id="e-glitch"><div class="art"></div><h4>Under-trained tokens</h4><span class="fix">train the tokenizer on data like the model's.</span></article>
+    <article class="edge redraw" id="e-emoji"><div class="art"></div><h4>Emoji split mid-character</h4><p>An emoji like 🙂 is four bytes. If a model streams its answer and a token boundary lands in the middle of those four, the screen shows broken � symbols until the rest arrives.</p><span class="fix">when streaming, buffer bytes until they form complete UTF-8.</span></article>
+    <article class="edge redraw" id="e-space"><div class="art"></div><h4>“ the” and “the” differ</h4><p>Because the space sticks to the front of a word, " the" with a space and "the" without one are two different tokens with two different ids. A stray space at the end of a prompt can change what the model does next.</p><span class="fix">never strip or add spaces around prompts casually.</span></article>
+    <article class="edge redraw" id="e-num"><div class="art"></div><h4>Numbers split unevenly</h4><p>A number like 1234567 might be split as 123, 45, 67, in chunks that don't line up with ones, tens and hundreds. That makes arithmetic harder for the model to learn.</p><span class="fix">split digits one by one, or in fixed groups of three.</span></article>
+    <article class="edge redraw" id="e-lang"><div class="art"></div><h4>Some languages cost more</h4><p>BPE learns merges from its training text. If that text is mostly English, English words become single tokens while Hindi or Thai stay split into many small pieces. The same sentence then costs more tokens, more money and more context.</p><span class="fix">train merges on a balanced multilingual corpus.</span></article>
+    <article class="edge redraw" id="e-case"><div class="art"></div><h4>Case changes everything</h4><p>"Hello", "hello" and "HELLO" usually get completely different ids. To the tokenizer they are unrelated. The model has to learn from examples that they mean the same thing.</p><span class="fix">nothing to fix, the model learns the link from data.</span></article>
+    <article class="edge redraw" id="e-tie"><div class="art"></div><h4>Ties in pair counts</h4><p>Sometimes two pairs have exactly the same count. If your code picks between them randomly, two training runs give two different tokenizers. You want the same input to always give the same tokenizer.</p><span class="fix">break ties deterministically, for example by byte order.</span></article>
+    <article class="edge redraw" id="e-special"><div class="art"></div><h4>Special tokens are not text</h4><p>Markers like &lt;|endoftext|&gt; tell the model where a document ends. They must be a single reserved id. If someone types that string as normal text, it should not turn into the real marker.</p><span class="fix">add special tokens outside the merge process.</span></article>
+    <article class="edge redraw" id="e-glitch"><div class="art"></div><h4>Under-trained tokens</h4><p>Some tokens were common in the tokenizer's training text but almost never seen by the model, like a Reddit username. The model never learned what they mean, so feeding them in can produce very strange output.</p><span class="fix">train the tokenizer on data like the model's.</span></article>
   </div>
   <Fragment slot="scripts"><script is:inline>
 const { fig, box, rect, o, arr, carr, ln, node, chip, bars, axes, smooth, cross, check, squig, clamp, map } = Ink;

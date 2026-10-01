@@ -12,21 +12,27 @@ const base = '/octlm/modern-arch/';
     </div>
   </header>
 
+  <div class="say intro"><p>Day 1 built the textbook transformer block, the version from the 2017 paper and GPT-2. It works, and it's the right thing to learn first. But nobody builds a big model that way any more. Between 2019 and 2024, a handful of improvements were tested, kept, and became the standard recipe.</p><p>Day 2 goes through those upgrades one at a time. For each one, what it replaces, why it's better, and the practical details you need to build or load a real model. By the end, the block you have is essentially the one inside Llama 3, Mistral and Qwen. You'll want Day 1's ideas fresh, especially attention, the KV cache and the decoder block.</p></div>
+
   <figure class="fig" id="beforeafter">
     <div class="fig-head"><h3>From GPT-2 to Llama, part by part</h3></div>
+    <figcaption class="say"><p>On the left, the Day 1 block, GPT-2 style. On the right, the modern block, Llama style. The numbered tags mark each part that changed and which chapter covers it. Click a tag to jump there.</p><p>The overall shape doesn't change at all. It's still a residual stream with a norm and attention, then a norm and an MLP. What changes is what's inside each box.</p></figcaption>
   </figure>
 
   <div class="pair">
     <figure class="fig" id="timeline">
       <div class="fig-head"><h3>When each idea arrived</h3></div>
-    </figure>
+      <figcaption class="say"><p>When each idea showed up. Multi-query attention and RMSNorm in 2019. SwiGLU in 2020. RoPE in 2021. FlashAttention in 2022. GQA, FlashAttention-2 and PyTorch's SDPA function in 2023. Llama 3 in 2024 combines all of them. Every one of these was a separate paper, and it took a few years for them to settle into one standard recipe.</p></figcaption>
+  </figure>
     <figure class="fig" id="buys">
       <div class="fig-head"><h3>What each upgrade buys</h3></div>
-    </figure>
+      <figcaption class="say"><p>What each upgrade is mainly for. Some make the model better at learning, like SwiGLU. Some make it faster, like FlashAttention and SDPA. Some save memory, like GQA. Some help with long texts, like RoPE. The dots show where each one's main benefit lands.</p></figcaption>
+  </figure>
   </div>
 
   <figure class="fig" id="config">
     <div class="fig-head"><h3>A real modern config, annotated</h3></div>
+    <figcaption class="say"><p>This is Llama 3 8B's real config file, the settings that describe the model, with notes on what each line means. Hidden size 4096 is the width d. 32 layers is how many blocks are stacked. 32 attention heads but only 8 key-value heads means GQA. Intermediate size 14,336 is the SwiGLU hidden width. rope_theta of 500,000 is the RoPE base. No biases anywhere. By the end of Day 2 every line here will make sense.</p></figcaption>
   </figure>
 
   <h2>Chapters</h2>

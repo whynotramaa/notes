@@ -130,6 +130,18 @@ h2 + p { color: var(--muted); text-align: center; margin-top: 16px; }
 .art { position: relative; }
 .art svg { display: block; width: 100%; height: auto; overflow: visible; }
 .fig figcaption { text-align: center; color: var(--muted); margin-top: 20px; }
+.say { width: var(--text); margin: 0 auto; text-align: left; font: 400 18px/1.85 var(--sans); color: var(--ink); text-wrap: pretty; }
+.say p { margin: 0 0 1.15em; }
+.say p:last-child { margin-bottom: 0; }
+.say b { font-weight: 600; }
+.say em { font-style: normal; color: oklch(var(--tint-ink) var(--hue)); }
+.say code { font: 0.84em var(--mono); padding: 2px 7px; border-radius: 6px; background: var(--line); white-space: nowrap; }
+.intro { margin-top: clamp(24px, 6vh, 72px); }
+.intro p:first-child { font-size: clamp(19px, 1.9vw, 22px); line-height: 1.7; }
+h2 + .say { margin-top: clamp(28px, 5vh, 48px); }
+.fig > .say { margin-top: clamp(36px, 6vh, 64px); }
+.fig > .fig-head + .say { margin-top: 0; margin-bottom: clamp(28px, 5vh, 48px); }
+.pair .say { width: auto; font-size: 17px; }
 .pair { display: grid; grid-template-columns: 1fr 1fr; gap: 0 clamp(32px, 6vw, 96px); }
 
 .ctl { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 14px 28px; margin-top: clamp(20px, 3vh, 36px); font: 14px var(--ui); color: var(--muted); }
@@ -162,7 +174,8 @@ input[type="range"]::-moz-range-thumb { width: 12px; height: 12px; border-radius
 .edges { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr)); gap: clamp(48px, 7vh, 80px) clamp(32px, 4vw, 64px); margin: clamp(56px, 9vh, 104px) 0 0; }
 .edge .art { margin-bottom: 18px; }
 .edge h4 { font: 400 25px/1.25 var(--serif); margin: 0 0 6px; }
-.edge p { margin: 0; font-size: 16px; color: var(--muted); }
+.edge p { margin: 0; font-size: 16px; line-height: 1.75; color: var(--ink); }
+.edge .fix::before { content: "the fix"; display: block; margin: 16px 0 4px; font: 11px var(--mono); letter-spacing: 0.18em; text-transform: uppercase; color: oklch(var(--tint-ink) var(--hue)); }
 .edge .fix { display: block; font-size: 16px; line-height: 1.4; color: var(--muted); }
 
 .pager { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; width: var(--wide); margin: 0 auto; padding: clamp(64px, 12vh, 140px) 0 var(--gap); border-top: 1px solid var(--line); }
@@ -287,6 +300,7 @@ html.still *, html.still *::before, html.still *::after { animation-play-state: 
   .formula, .fig .formula { white-space: normal; overflow-x: visible; }
   .ctl { gap: 12px 18px; }
   .checklist b { font-size: 16px; }
+  .say { font-size: 17px; }
   .pair { grid-template-columns: 1fr; }
   .card { grid-template-columns: 96px 1fr; column-gap: 20px; }
   .pager { grid-template-columns: 1fr; }

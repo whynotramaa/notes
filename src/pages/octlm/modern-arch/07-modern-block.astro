@@ -10,47 +10,60 @@ import Note from '../../../layouts/Note.astro';
     </div>
   </header>
 
+  <div class="say intro"><p>Each chapter today swapped out one part of the 2017-style block. RoPE replaced learned positions. RMSNorm replaced LayerNorm. SwiGLU replaced the GELU MLP. GQA cut down the keys and values. SDPA and FlashAttention replaced hand-written attention. Biases were dropped along the way.</p><p>This chapter puts them all together into one block. That block is, almost exactly, the layer inside Llama 3, Mistral and Qwen. They differ in sizes and a few small details, but the structure is the same. We'll compare it with GPT-2, follow real shapes through it, count its parameters, read the code, and finish with a checklist for loading someone else's model without silent bugs.</p></div>
+
   <h2>Before and after</h2>
+  <div class="say"><p>The full list of changes, then the same changes applied one at a time so you can see what each one does to the block.</p></div>
   <figure class="fig" id="diff">
     <div class="fig-head"><h3>The full diff</h3></div>
+    <figcaption class="say"><p>The two columns are GPT-2 (2019) and Llama 3 (2024). Each row is one design choice. Positions go from a learned table to RoPE. Normalisation goes from LayerNorm to RMSNorm, still placed before each part. Attention goes from full multi-head to grouped-query, run through SDPA and FlashAttention instead of written by hand. The MLP goes from GELU to SwiGLU. Biases go from everywhere to nowhere. The embedding stays similar but much larger. Context grows from 1,024 tokens to 8,192 and beyond.</p><p>The skeleton is the same. Residual stream, norm, attention, add, norm, MLP, add. Every change is a swap of one part, not a redesign.</p></figcaption>
   </figure>
 
   <figure class="fig" id="upgrade">
     <div class="fig-head"><h3>Apply the upgrades one at a time</h3></div>
+    <figcaption class="say"><p>Press play. The block starts as the GPT-2 version, and each step applies one upgrade. The labels on the diagram change as you go. The panel on the right tracks what each change does to the numbers, the parameters per block split into attention, MLP and norms, plus the KV cache size per token per layer.</p><p>Watch the cache figure drop sharply at the GQA step, and the MLP's share shift at the SwiGLU step. Most upgrades barely change the parameter count. They change how well the model learns, or how fast it runs.</p></figcaption>
   </figure>
 
   <h2>Inside the finished block</h2>
+  <div class="say"><p>Now the finished block in detail, using real numbers from Llama 3 8B.</p></div>
   <figure class="fig" id="flow">
     <div class="fig-head"><h3>Shapes through one Llama 3 8B block</h3></div>
+    <figcaption class="say"><p>Follow one batch of T tokens from top to bottom. x is T × 4096. RMSNorm, then q becomes T × 32 heads × 128, while k and v become T × 8 heads × 128 because of GQA. RoPE rotates q and k. The new k and v go into the cache. SDPA runs attention, sharing each KV head across 4 query heads. The output is projected back to T × 4096 and added to the residual stream.</p><p>Then the second half. RMSNorm, gate and up projections both widen to T × 14,336, SiLU and multiply, and the down projection brings it back to T × 4096. Add to the stream again. The shape going out is exactly the shape coming in, so the same block can be stacked 32 times.</p></figcaption>
   </figure>
 
   <figure class="fig" id="params">
     <div class="fig-head"><h3>Where one block's 218M parameters live</h3></div>
+    <figcaption class="say"><p>Where one block's 218 million parameters live. The q and o projections are 4096 × 4096 each, about 16.8 million. k and v are much smaller, 4.2 million each, because they only produce 8 heads instead of 32. That's GQA again. The three MLP matrices are 58.7 million each, by far the biggest bars. The norms are a rounding error at 8,000.</p><p>So in a modern block, the MLP holds about four fifths of the parameters. Attention is smaller than people expect.</p></figcaption>
   </figure>
 
   <figure class="fig" id="configs">
     <div class="fig-head"><h3>Four real configs</h3></div>
+    <figcaption class="say"><p>Four real models in one table. GPT-2 small is there as the 2019 reference. Llama 3 8B, Mistral 7B and Qwen 2.5 7B are all roughly the same size and use the same recipe. The rows show where they differ. Widths, layer counts, how many KV heads they share, MLP width, vocabulary size, and small details like whether they keep biases on q, k and v. This is the information you'd read from each model's config file.</p></figcaption>
   </figure>
 
   <figure class="fig" id="code">
     <div class="fig-head"><h3>The whole block in code</h3></div>
+    <figcaption class="say"><p>The whole block in one class, short enough to read in a minute. The constructor creates two RMSNorms, the q, k, v and o projections with no bias, and the gate, up and down projections. The forward pass is the diagram above, line for line. Normalise, project, apply RoPE, update the cache, run SDPA with GQA, add. Normalise, SwiGLU, add. Everything from today's chapters shows up in it.</p></figcaption>
   </figure>
 
   <figure class="fig" id="compute">
     <div class="fig-head"><h3>Where compute goes, per generated token</h3></div>
+    <figcaption class="say"><p>Each bar is the work per generated token for one block, split into the linear layers (all the projections and the MLP) and attention itself. Pick a context length to highlight.</p><p>At 1k or 8k tokens, the linear layers dominate and attention is a thin slice. At 128k tokens, attention grows into a big share, because each new token scores against every token in the cache. That's why long-context work focuses so much on attention, and short-context work focuses on the MLP and matrix multiplies.</p></figcaption>
   </figure>
 
   <figure class="fig" id="checklist">
     <div class="fig-head"><h3>Porting checklist</h3></div>
+    <div class="say"><p>Before you load a modern model into your own code, tick through these. Each item is a setting that can be wrong without causing an error. The model loads and runs, but gives worse answers. Most of them come straight from earlier chapters, like the RoPE base and pairing, the norm epsilon, the SwiGLU hidden size and order, the GQA grouping, causal alignment, the data type, biases and tied embeddings.</p></div>
   </figure>
 
   <h2>Exceptions and sharp edges</h2>
+  <div class="say"><p>Real models that don't quite follow the standard recipe.</p></div>
   <div class="edges">
-    <article class="edge redraw" id="e-qwen"><div class="art"></div><h4>Qwen keeps QKV biases</h4><span class="fix">do not assume bias=False everywhere.</span></article>
-    <article class="edge redraw" id="e-swa"><div class="art"></div><h4>Mistral's sliding window</h4><span class="fix">pass the window to the attention kernel and the cache.</span></article>
-    <article class="edge redraw" id="e-gemma"><div class="art"></div><h4>Gemma's extras</h4><span class="fix">read the model's reference code, not just the config.</span></article>
-    <article class="edge redraw" id="e-tied"><div class="art"></div><h4>Tied embeddings in small models</h4><span class="fix">check tie_word_embeddings.</span></article>
-    <article class="edge redraw" id="e-init"><div class="art"></div><h4>Initialisation for training from scratch</h4><span class="fix">small std (about 0.02) and scaled residual projections.</span></article>
+    <article class="edge redraw" id="e-qwen"><div class="art"></div><h4>Qwen keeps QKV biases</h4><p>Qwen models keep bias vectors on the q, k and v projections, unlike Llama. Code written for Llama will drop them and give wrong outputs.</p><span class="fix">do not assume bias=False everywhere.</span></article>
+    <article class="edge redraw" id="e-swa"><div class="art"></div><h4>Mistral's sliding window</h4><p>Mistral 7B v0.1 lets each token see only the last 4,096 tokens, a sliding window. Both the attention mask and the cache size have to respect it.</p><span class="fix">pass the window to the attention kernel and the cache.</span></article>
+    <article class="edge redraw" id="e-gemma"><div class="art"></div><h4>Gemma's extras</h4><p>Gemma scales embeddings by √d, stores its RMSNorm gain as γ − 1, and caps very large scores with a tanh soft cap. None of that is obvious from a typical config.</p><span class="fix">read the model's reference code, not just the config.</span></article>
+    <article class="edge redraw" id="e-tied"><div class="art"></div><h4>Tied embeddings in small models</h4><p>Small Llama 3.2 models, at 1B and 3B, reuse the input embedding as the output layer. The 8B model doesn't. A missing output weight usually means they're tied.</p><span class="fix">check tie_word_embeddings.</span></article>
+    <article class="edge redraw" id="e-init"><div class="art"></div><h4>Initialisation for training from scratch</h4><p>Training from scratch needs careful starting values. Random weights should be small, and the projections that write into the residual stream are often scaled down further so the stream doesn't blow up as depth grows.</p><span class="fix">small std (about 0.02) and scaled residual projections.</span></article>
   </div>
 
   <Fragment slot="scripts"><script is:inline>

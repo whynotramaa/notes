@@ -10,54 +10,68 @@ import Note from '../../../layouts/Note.astro';
     </div>
   </header>
 
+  <div class="say intro"><p>RoPE stands for Rotary Position Embedding. It's what nearly every modern model uses, including Llama, Mistral, Qwen and Gemma. It takes the clock idea from chapter 4 and uses it in a cleverer place.</p><p>Instead of adding a position vector to each token at the very start, RoPE waits until the model is about to compare two tokens inside attention. Right then, it rotates each one by an amount that depends on its position. The result is that the comparison only sees how far apart the two tokens are, which is the relative position we've been after since chapter 3. This chapter uses the words "query" and "key", which chapter 6 explains properly. For now, think of them as the two vectors attention compares.</p></div>
+
   <h2>Rotate, don't add</h2>
+  <div class="say"><p>The basic move is small. Take two numbers from a vector, treat them as a point on a flat plane, and spin that point around the centre. The further along the sentence the token is, the more you spin it.</p></div>
 
   <figure class="fig" id="spin">
     <div class="fig-head"><h3>One pair, one rotation</h3></div>
     <div class="formula">[q′₀, q′₁] = [<em>q₀ cos mθ − q₁ sin mθ</em>, <em>q₀ sin mθ + q₁ cos mθ</em>]</div>
+    <figcaption class="say"><p>The faint dashed arrow is a pair of numbers from a query before rotation. The bold arrow is the same pair after rotation. Drag the position slider. At position 0 nothing happens. At each step forward the arrow turns a bit further.</p><p>The formula above it is just the school formula for rotating a point on a circle. Rotation never changes the arrow's length, only its direction. So the token's content stays the same size, and position is stored purely as an angle.</p></figcaption>
   </figure>
 
   <figure class="fig" id="dials">
     <div class="fig-head"><h3>Every pair has its own speed</h3></div>
     <div class="formula">θ<sub>i</sub> = <em>base<sup>−2i/d</sup></em> &nbsp; with base = 10000 in the original paper</div>
+    <figcaption class="say"><p>A real query has many pairs, not one. Each pair gets its own dial and its own speed, exactly like the clock hands in chapter 4. Press play and watch the position count up. Pair 0 spins quickly, pair 3 barely turns.</p><p>Fast pairs are good at noticing small gaps, like "the next word". Slow pairs are good at big gaps, like "something a few paragraphs back". The base in the formula sets how slow the slowest pair is. This demo uses base 100 so you can actually see the slow one move. Real models use 10,000 or more.</p></figcaption>
   </figure>
 
   <h2>The trick: only the gap survives</h2>
+  <div class="say"><p>Here is why anyone bothers. When you rotate both vectors and then compare them, the absolute positions cancel out, and only the distance between them is left.</p></div>
 
   <figure class="fig" id="relative">
     <div class="fig-head"><h3>Shift both, the score stays put</h3></div>
     <div class="formula">⟨R(m)q, R(n)k⟩ = ⟨q, R(<em>n − m</em>)k⟩</div>
+    <figcaption class="say"><p>This dial shows a rotated query and a rotated key, plus the angle between them. The bar is their score, how strongly the query likes that key. Move the sliders to put them at different positions.</p><p>Now press "Shift both +5". Both arrows turn, but the angle between them stays the same, and so does the score. That's the whole trick. The score depends on n − m, the distance, not on where the two tokens sit in the text. "Two words apart" scores the same on page 1 and page 300.</p></figcaption>
   </figure>
 
   <figure class="fig" id="pipe">
     <div class="fig-head"><h3>Where RoPE sits in attention</h3></div>
+    <figcaption class="say"><p>Where does the rotation happen? Each token's vector x is turned into three things, q, k and v (chapter 6 covers these). RoPE rotates q by the query's position m, and k by the key's position n. Then they're compared with a dot product, run through softmax, and used to weight v.</p><p>Notice v is not rotated. The rotation is only there to shape the scores. The content that actually gets passed along stays untouched.</p></figcaption>
   </figure>
 
   <figure class="fig" id="matrix">
     <div class="fig-head"><h3>The rotation as a matrix</h3></div>
+    <figcaption class="say"><p>If you want to write the rotation as one matrix, this is it. It's mostly zeros, with small 2 × 2 blocks down the diagonal. Each block rotates one pair and doesn't touch the others. Drag the position slider to watch the cos and sin values change.</p><p>In real code nobody builds this matrix, because it's almost all zeros. They multiply by cos and sin directly, which gives the same answer much faster. Day 2 shows exactly how.</p></figcaption>
   </figure>
 
   <figure class="fig" id="decay">
     <div class="fig-head"><h3>Far-apart tokens get a weaker pull</h3></div>
+    <figcaption class="say"><p>A nice side effect. As two tokens get further apart, the fast pairs end up pointing in all sorts of directions, so on average they cancel out. This chart shows that average score for two identical vectors at different distances. It starts at 1 and wobbles downward.</p><p>So, all else equal, RoPE gives far-away tokens a slightly weaker pull than nearby ones. That's a sensible default for language, where nearby words usually matter more.</p></figcaption>
   </figure>
 
   <h2>Beyond the training length</h2>
+  <div class="say"><p>What happens when you want the model to read longer texts than it was trained on? RoPE has a neat escape hatch, and the figures below show it, then compare all three position methods side by side.</p></div>
 
   <figure class="fig" id="extend">
     <div class="fig-head"><h3>Position interpolation</h3></div>
+    <figcaption class="say"><p>This dial shows one slow pair. The shaded arc is the range of angles the model saw during training. Drag the sequence length past the training length and the hand swings into angles the model has never seen. That's when things break.</p><p>Turn on "Position interpolation". It divides every position by 4, so a text 4 times longer squeezes back into the familiar range. After a short bit of extra training on long texts, the model works at the new length. Day 2 covers better versions of this trick.</p></figcaption>
   </figure>
 
   <figure class="fig" id="compare">
     <div class="fig-head"><h3>Learned vs sinusoidal vs RoPE</h3></div>
+    <figcaption class="say"><p>The three position methods side by side. Learned positions add a trained table at the bottom and stop dead at the table's end. Sinusoidal positions add a formula at the bottom and need no parameters, but still break past the training length. RoPE rotates queries and keys inside every attention layer, gives you relative position for free, adds no parameters, and can be stretched with interpolation. That's why it won.</p></figcaption>
   </figure>
 
   <h2>Exceptions and sharp edges</h2>
+  <div class="say"><p>RoPE is easy to get almost right. These are the usual ways it goes wrong.</p></div>
   <div class="edges">
-    <article class="edge redraw" id="e-v"><div class="art"></div><h4>V is never rotated</h4><span class="fix">if outputs drift with absolute position, check you did not rotate v.</span></article>
-    <article class="edge redraw" id="e-pair"><div class="art"></div><h4>Which dims form a pair?</h4><span class="fix">match the convention, or permute the q/k weights.</span></article>
-    <article class="edge redraw" id="e-cache"><div class="art"></div><h4>Rotated keys in the cache</h4><span class="fix">pass the cache length as the position offset.</span></article>
-    <article class="edge redraw" id="e-partial"><div class="art"></div><h4>Partial rotary</h4><span class="fix">read the config's rotary fraction before porting.</span></article>
-    <article class="edge redraw" id="e-fp"><div class="art"></div><h4>Precision of the angles</h4><span class="fix">precompute cos and sin tables in fp32.</span></article>
+    <article class="edge redraw" id="e-v"><div class="art"></div><h4>V is never rotated</h4><p>Only queries and keys get rotated. If v gets rotated too, the content passed between tokens depends on absolute position, and output quality drops in confusing ways.</p><span class="fix">if outputs drift with absolute position, check you did not rotate v.</span></article>
+    <article class="edge redraw" id="e-pair"><div class="art"></div><h4>Which dims form a pair?</h4><p>Which two numbers form a pair? Some code pairs neighbours (0 with 1, 2 with 3). Other code pairs the first half with the second half (0 with 64). Both work, but weights trained one way give garbage in code written the other way.</p><span class="fix">match the convention, or permute the q/k weights.</span></article>
+    <article class="edge redraw" id="e-cache"><div class="art"></div><h4>Rotated keys in the cache</h4><p>During generation, old keys are stored already rotated (chapter 11). The new token must be rotated using its true position, which is the number of tokens already stored, not 0.</p><span class="fix">pass the cache length as the position offset.</span></article>
+    <article class="edge redraw" id="e-partial"><div class="art"></div><h4>Partial rotary</h4><p>Some models only rotate part of each head, say the first 25% of numbers, and leave the rest alone. If you rotate everything, the model breaks.</p><span class="fix">read the config's rotary fraction before porting.</span></article>
+    <article class="edge redraw" id="e-fp"><div class="art"></div><h4>Precision of the angles</h4><p>The angles get large at long positions. Computing cos and sin in half precision loses accuracy right where you need it.</p><span class="fix">precompute cos and sin tables in fp32.</span></article>
   </div>
 
   <Fragment slot="scripts"><script is:inline>

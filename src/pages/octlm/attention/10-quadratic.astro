@@ -10,44 +10,57 @@ import Note from '../../../layouts/Note.astro';
     </div>
   </header>
 
+  <div class="say intro"><p>In attention, every token scores against every other token. With 10 tokens that's 100 scores. With 1,000 tokens it's a million. With 100,000 tokens it's ten billion, and that's for one head in one layer. This growth with the square of the length is called <b>quadratic</b> cost, and it's the main reason long contexts are hard and expensive.</p><p>This chapter makes the square visible, works out when it actually becomes the bottleneck, and shows the two main ways real systems deal with it. Either compute it cleverly, which is FlashAttention, or compute fewer scores, which is sparse attention.</p></div>
+
   <h2>Seeing the square</h2>
+  <div class="say"><p>The score grid from chapter 7 has one row and one column per token. That's the whole problem in one sentence.</p></div>
   <figure class="fig" id="grow">
     <div class="fig-head"><h3>Add tokens, watch the grid explode</h3></div>
+    <figcaption class="say"><p>Drag the token slider. On the left, the tokens grow in a line. On the right, the score grid grows in both directions at once. Ten times more tokens means a hundred times more scores. Watch how fast the right side fills up compared to the left.</p></figcaption>
   </figure>
 
   <figure class="fig" id="double">
     <div class="fig-head"><h3>Doubling is quadrupling</h3></div>
+    <figcaption class="say"><p>Press play. Each square has double the side of the one before. So each one has four times as many cells. Going from 4k context to 8k doesn't double the attention work, it quadruples it. Going to 128k from 4k means 1,024 times more scores.</p></figcaption>
   </figure>
 
   <h2>Compute and memory</h2>
+  <div class="say"><p>The square costs us twice. It costs arithmetic, to compute all the scores, and memory, to store them. Let's see when each one starts to hurt.</p></div>
   <figure class="fig" id="flops">
     <div class="fig-head"><h3>When does attention dominate?</h3></div>
+    <figcaption class="say"><p>Attention isn't the only work in a layer. There are also the big matrix multiplies, the Q, K, V and output projections, and the MLP. Their cost grows in a straight line with length. The attention grid grows as a square.</p><p>Pick a model width d. The two curves cross where the length T is about 6 times the width. Below that, the straight-line parts cost more and attention isn't the bottleneck. Above it, attention takes over. For a model with d = 4096, that crossover is around 24,000 tokens. Bigger models stay in the "attention is cheap" zone for longer.</p></figcaption>
   </figure>
 
   <figure class="fig" id="memory">
     <div class="fig-head"><h3>Memory to store the full score matrix</h3></div>
+    <figcaption class="say"><p>This chart shows the memory needed just to store the full score grid for one layer, for different lengths and head counts. It's a log scale, so each step up is ten times more. The dashed line is 80 GB, the memory of one big data centre GPU.</p><p>At long lengths, one layer's grid alone won't fit on the GPU. Simple attention code that builds the whole grid just fails there. That's why the next figure exists.</p></figcaption>
   </figure>
 
   <h2>How real systems cope</h2>
+  <div class="say"><p>Two ways out. Keep the exact same maths but never store the full grid, or skip most of the grid on purpose.</p></div>
   <figure class="fig" id="tiles">
     <div class="fig-head"><h3>FlashAttention: never build the whole square</h3></div>
+    <figcaption class="say"><p>Press play. FlashAttention cuts the score grid into tiles and handles one tile at a time. Each tile is loaded into a small, very fast memory on the chip, used, and thrown away. The full grid is never stored anywhere.</p><p>The tiles above the diagonal are skipped completely, because the causal mask would hide them anyway. The numbers on the side are running totals the method keeps as it goes. The next figure explains them. The answer at the end is exactly the same as normal attention, not an approximation.</p></figcaption>
   </figure>
 
   <figure class="fig" id="online">
     <div class="fig-head"><h3>The online softmax trick behind it</h3></div>
+    <figcaption class="say"><p>How can you do softmax tile by tile when softmax needs the biggest score and the total across the whole row? Press play. The scores arrive in chunks. After each chunk we keep two numbers, the biggest score so far and a running total.</p><p>When a new chunk has a bigger score, the old total is rescaled to match the new max. That's the clever bit. At the end, the running total is exactly what you'd get from doing the whole row at once. This is called <b>online softmax</b>. Day 2 has a full chapter on it.</p></figcaption>
   </figure>
 
   <figure class="fig" id="sparse">
     <div class="fig-head"><h3>Or compute fewer scores</h3></div>
+    <figcaption class="say"><p>The other approach is to just not compute most scores. Pick a pattern. <b>Sliding window</b> lets each token see only its nearest neighbours. <b>Strided</b> adds a few long-distance jumps. Other patterns mix local and global spots. The bar compares how many cells get computed against full causal attention.</p><p>This saves a lot of work, but it's not exact. Some tokens can no longer see each other directly, and quality can drop. Several big models mix sparse layers with a few full ones.</p></figcaption>
   </figure>
 
   <h2>Exceptions and sharp edges</h2>
+  <div class="say"><p>Things people get wrong when thinking about attention cost.</p></div>
   <div class="edges">
-    <article class="edge redraw" id="e-short"><div class="art"></div><h4>Short prompts: blame the MLP</h4><span class="fix">profile before optimising.</span></article>
-    <article class="edge redraw" id="e-flash"><div class="art"></div><h4>FlashAttention is exact</h4><span class="fix">use it by default, it is not an approximation.</span></article>
-    <article class="edge redraw" id="e-padwaste"><div class="art"></div><h4>Padding wastes squares</h4><span class="fix">sort by length, pack sequences, or use variable-length kernels.</span></article>
-    <article class="edge redraw" id="e-decode"><div class="art"></div><h4>Decode is linear per token</h4><span class="fix">see chapter 11.</span></article>
-    <article class="edge redraw" id="e-linear"><div class="art"></div><h4>Linear attention trades quality</h4><span class="fix">hybrids mix a few full-attention layers back in.</span></article>
+    <article class="edge redraw" id="e-short"><div class="art"></div><h4>Short prompts: blame the MLP</h4><p>For short prompts, like a few hundred tokens, attention is a small share of the work. The big matrix multiplies and the MLP dominate. Measure before you optimise attention.</p><span class="fix">profile before optimising.</span></article>
+    <article class="edge redraw" id="e-flash"><div class="art"></div><h4>FlashAttention is exact</h4><p>People sometimes avoid FlashAttention thinking it trades accuracy for speed. It doesn't. It computes the same answer, just in a smarter order.</p><span class="fix">use it by default, it is not an approximation.</span></article>
+    <article class="edge redraw" id="e-padwaste"><div class="art"></div><h4>Padding wastes squares</h4><p>If one sentence in a batch is 2,000 tokens and the rest are 100, everyone gets padded to 2,000, and you compute a huge grid that's mostly padding.</p><span class="fix">sort by length, pack sequences, or use variable-length kernels.</span></article>
+    <article class="edge redraw" id="e-decode"><div class="art"></div><h4>Decode is linear per token</h4><p>When generating one token at a time, the new token only scores against existing tokens. That's one row, not the whole grid, so the cost of each step grows in a straight line with length.</p><span class="fix">see chapter 11.</span></article>
+    <article class="edge redraw" id="e-linear"><div class="art"></div><h4>Linear attention trades quality</h4><p>Some methods replace softmax attention with something that grows in a straight line with length. They're much cheaper, but they usually remember long-range details less well.</p><span class="fix">hybrids mix a few full-attention layers back in.</span></article>
   </div>
 
   <Fragment slot="scripts"><script is:inline>

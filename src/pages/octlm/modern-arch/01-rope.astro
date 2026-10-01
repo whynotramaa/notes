@@ -10,54 +10,70 @@ import Note from '../../../layouts/Note.astro';
     </div>
   </header>
 
+  <div class="say intro"><p>Day 1, chapter 5, explained the idea of RoPE. Each query and key gets spun by an angle that depends on its position, and when you compare them, only the distance between them matters. That's enough to understand why it works. It's not enough to write it, load someone else's weights, or stretch a model to longer texts.</p><p>This chapter is the practical version. Where exactly RoPE sits in the code, how the rotation speeds are chosen, the two ways code arranges the numbers, how positions work while generating, and how models get stretched from 8,000 tokens to 128,000. If you're only here for the intuition, Day 1 covers it. If you want to build or port a model, this is the part that bites.</p></div>
+
   <h2>Where it lives</h2>
+  <div class="say"><p>First, a map of one attention layer with the shape of every tensor written in, so you can see exactly where the rotation happens.</p></div>
   <figure class="fig" id="where">
     <div class="fig-head"><h3>RoPE inside one attention layer, with shapes</h3></div>
+    <figcaption class="say"><p>Follow the data from top to bottom. The input x has shape B × T × d, meaning batch size, number of tokens and model width. It's projected into q, k and v, then reshaped so each head gets its own slice, B × heads × T × head_dim.</p><p>Then q and k, and only those two, go through "apply RoPE", using precomputed cos and sin tables. The rotated k and the plain v are saved in the KV cache. Finally everything meets in SDPA, the attention function in chapter 5. RoPE is one small step, but it has to happen in exactly this spot.</p></figcaption>
   </figure>
 
   <h2>The frequency table</h2>
+  <div class="say"><p>Every pair of numbers in a head spins at its own speed. Those speeds come from one number in the config, the <b>base</b>, also called rope_theta. Choosing it is one of the main decisions for long-context models.</p></div>
   <figure class="fig" id="freqs">
     <div class="fig-head"><h3>One frequency per pair, set by the base</h3></div>
     <div class="formula">inv_freq = 1 / <em>base</em> ** (arange(0, d_h, 2) / d_h) &nbsp; &nbsp; wavelength<sub>i</sub> = 2π / θ<sub>i</sub></div>
+    <figcaption class="say"><p>Each bar is one rotation pair, and its height is how many tokens that pair takes to make one full turn. It's a log scale, so each line up is ten times more. The dashed line is the context length.</p><p>Pick a base and a context. Pairs with bars above the dashed line never make a full turn inside the context. They act like a slow, smooth "how far apart" signal. Raising the base pushes more pairs into that slow group. That's why Llama 3 moved from 10,000 to 500,000. Slower pairs help the model judge distances across very long texts.</p></figcaption>
   </figure>
 
   <figure class="fig" id="table">
     <div class="fig-head"><h3>Build cos and sin once, look them up forever</h3></div>
+    <figcaption class="say"><p>The rotation angle for a position only depends on that position and the pair, never on the text. So code computes cos and sin for every position once, at startup, and stores them as two tables. During the forward pass it just looks up the row it needs.</p><p>The card on the left is the few lines of code that build them. The two heatmaps are the tables, one row per position, one column per pair. Drag the position slider to highlight the row that a token at that position would use.</p></figcaption>
   </figure>
 
   <h2>Pairing and rotate_half</h2>
+  <div class="say"><p>RoPE rotates numbers in pairs. But which numbers count as a pair? Two conventions exist, and mixing them up is one of the most common bugs when porting a model.</p></div>
   <figure class="fig" id="pairing">
     <div class="fig-head"><h3>Two ways to choose the pairs</h3></div>
+    <figcaption class="say"><p>Here are the eight numbers of a tiny head, with arcs joining the ones that rotate together. <b>Interleaved</b> pairs neighbours, 0 with 1, 2 with 3, and so on. That's how the original paper and Meta's own Llama code do it. <b>Half-split</b> pairs number i with number i + 4, the first half with the second half. That's what Hugging Face code does.</p><p>Both give an equally good model. The problem is that weights trained with one convention give nonsense in code that uses the other. Conversion scripts shuffle the weights to fix this.</p></figcaption>
   </figure>
 
   <figure class="fig" id="rotatehalf">
     <div class="fig-head"><h3>rotate_half, step by step</h3></div>
     <div class="formula">rotate_half([x₁, x₂]) = [<em>−x₂</em>, x₁] &nbsp; &nbsp; q′ = q · cos + rotate_half(q) · sin</div>
+    <figcaption class="say"><p>Press play to go through the half-split version one row at a time. Start with the query. Look up the cos and sin rows for its position. Build rotate_half(q), which swaps the two halves and flips the sign of one. Multiply q by cos, multiply rotate_half(q) by sin, and add.</p><p>The last row checks the result against a plain rotation done pair by pair. They match. This is the actual line found in most model code, and it does the exact same thing as the rotation matrix from Day 1, just without building a mostly-empty matrix.</p></figcaption>
   </figure>
 
   <h2>Positions at decode time</h2>
+  <div class="say"><p>During generation (Day 1, chapter 11), tokens arrive one at a time and old keys sit in the cache. Each new token has to be rotated by its true position in the whole text.</p></div>
   <figure class="fig" id="decode">
     <div class="fig-head"><h3>The new token starts where the cache ends</h3></div>
     <div class="formula">position_ids = <em>cache_len</em> + arange(new_tokens)</div>
+    <figcaption class="say"><p>Press play. First the prompt is processed, and its keys are rotated for positions 0 to 4 and stored in the cache. Each little dial shows a key's angle. Then each generation step adds one token. Its position is the cache length, 5, then 6, then 7.</p><p>If code forgets this and rotates every new token as if it were at position 0, the model sees every new word as the very first word. Output falls apart quickly. The formula below the title is the one-line fix.</p></figcaption>
   </figure>
 
   <figure class="fig" id="toeplitz">
     <div class="fig-head"><h3>Proof by picture: scores depend only on distance</h3></div>
+    <figcaption class="say"><p>This grid is a little experiment. The same content sits at every position, and we compute every score. Switch between RoPE and learned absolute positions.</p><p>With RoPE, every diagonal line, top-left to bottom-right, is one solid colour. Every pair of tokens the same distance apart gets exactly the same score. That's the "only distance matters" promise, shown directly. With learned positions, the colours change along each diagonal, because the score also depends on where the tokens sit.</p></figcaption>
   </figure>
 
   <h2>Stretching to longer contexts</h2>
+  <div class="say"><p>A model trained on 8,000 tokens hasn't seen the angles that appear at 32,000. There are three popular ways to adjust the rotation speeds so longer texts look familiar.</p></div>
   <figure class="fig" id="scaling">
     <div class="fig-head"><h3>Interpolation, NTK-aware, YaRN</h3></div>
+    <figcaption class="say"><p>This chart shows how much each pair gets slowed down, from the fast pairs on the left to the slow pairs on the right. Pick a method and how much to stretch.</p><p><b>Linear interpolation</b> slows every pair by the same amount. Simple, but it blurs the fast pairs that track nearby words. <b>NTK-aware scaling</b> raises the base instead, so fast pairs barely change and slow pairs stretch the most. <b>YaRN</b> leaves fast pairs alone, fully stretches slow ones, and blends in between. It's the most common choice today. All three usually need a short round of extra training on long texts.</p></figcaption>
   </figure>
 
   <h2>Exceptions and sharp edges</h2>
+  <div class="say"><p>These are the RoPE bugs people actually hit when building or porting models.</p></div>
   <div class="edges">
-    <article class="edge redraw" id="e-v"><div class="art"></div><h4>Rotating v</h4><span class="fix">rotate exactly q and k.</span></article>
-    <article class="edge redraw" id="e-base"><div class="art"></div><h4>Wrong base at inference</h4><span class="fix">read rope_theta from the config, never hardcode it.</span></article>
-    <article class="edge redraw" id="e-perm"><div class="art"></div><h4>Converted checkpoints</h4><span class="fix">use the conversion script that ships with the model.</span></article>
-    <article class="edge redraw" id="e-pad"><div class="art"></div><h4>Left padding</h4><span class="fix">derive position_ids from the attention mask.</span></article>
-    <article class="edge redraw" id="e-dtype"><div class="art"></div><h4>Low-precision tables</h4><span class="fix">build inv_freq and angles in fp32, cast cos and sin at the end.</span></article>
-    <article class="edge redraw" id="e-partial"><div class="art"></div><h4>Partial rotary</h4><span class="fix">check for a rotary fraction or rotary_dim in the config.</span></article>
+    <article class="edge redraw" id="e-v"><div class="art"></div><h4>Rotating v</h4><p>Rotating v as well as q and k makes the content passed between tokens depend on position. The model runs but quality quietly drops.</p><span class="fix">rotate exactly q and k.</span></article>
+    <article class="edge redraw" id="e-base"><div class="art"></div><h4>Wrong base at inference</h4><p>If a model was trained with base 500,000 and you run it with 10,000, every rotation speed is wrong. Output looks fine for short texts and falls apart on long ones.</p><span class="fix">read rope_theta from the config, never hardcode it.</span></article>
+    <article class="edge redraw" id="e-perm"><div class="art"></div><h4>Converted checkpoints</h4><p>When weights move between Meta's format and Hugging Face's, the q and k weights get shuffled to switch pairing conventions. Skip that and the model talks nonsense.</p><span class="fix">use the conversion script that ships with the model.</span></article>
+    <article class="edge redraw" id="e-pad"><div class="art"></div><h4>Left padding</h4><p>With padding on the left, the first real word isn't at position 0. If positions are taken from the raw index, every real token is rotated by the wrong amount.</p><span class="fix">derive position_ids from the attention mask.</span></article>
+    <article class="edge redraw" id="e-dtype"><div class="art"></div><h4>Low-precision tables</h4><p>Angles for far positions are big numbers. Computing them in half precision loses the small differences between neighbouring positions.</p><span class="fix">build inv_freq and angles in fp32, cast cos and sin at the end.</span></article>
+    <article class="edge redraw" id="e-partial"><div class="art"></div><h4>Partial rotary</h4><p>Some models, like GPT-NeoX and Phi, only rotate part of each head and leave the rest alone. Rotating the whole head breaks them.</p><span class="fix">check for a rotary fraction or rotary_dim in the config.</span></article>
   </div>
 
   <Fragment slot="scripts"><script is:inline>

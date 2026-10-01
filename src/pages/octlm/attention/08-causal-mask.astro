@@ -10,45 +10,58 @@ import Note from '../../../layouts/Note.astro';
     </div>
   </header>
 
+  <div class="say intro"><p>A language model learns one simple game. Given the words so far, guess the next one. During training, though, we feed it whole sentences at once, because that's much faster. That creates a problem. If every token can see every other token, then when the model is guessing the word after "cat", it can just look ahead and read "sat". It would ace training and learn nothing.</p><p>The causal mask is the fix. It hides the future. Each token can only look at itself and the tokens before it. "Causal" just means causes come before effects, so the past can affect the present but the future can't.</p></div>
+
   <h2>Why hide the future</h2>
+  <div class="say"><p>First the problem, then the reason training on whole sentences is worth the trouble.</p></div>
   <figure class="fig" id="cheat">
     <div class="fig-head"><h3>The cheating problem</h3></div>
+    <figcaption class="say"><p>The token "cat" is supposed to predict the next word, "sat". Without a mask, its attention can reach forward and grab "sat" directly. The answer is right there. Training loss would drop to nearly zero, and then the model would be useless when generating, because at that point the future doesn't exist yet.</p></figcaption>
   </figure>
 
   <figure class="fig" id="teacher">
     <div class="fig-head"><h3>Seven lessons from one forward pass</h3></div>
+    <figcaption class="say"><p>Press play. The top row is the input. The bottom row is the same sentence shifted one place to the left. Those are the targets, the word each position has to predict. At each position, the highlighted tokens are what it's allowed to see, and the highlighted target is what it must guess.</p><p>With the mask in place, one pass over a 7 token sentence gives 7 separate guessing exercises at once, all at the same cost. This is called <b>teacher forcing</b>, and it's a big part of why transformers train so fast.</p></figcaption>
   </figure>
 
   <h2>The mask itself</h2>
+  <div class="say"><p>The mask is a grid the same size as the score grid from chapter 7. It has zeros where looking is allowed and minus infinity where it isn't. Add it to the scores, and softmax turns every minus infinity into a weight of exactly zero.</p></div>
   <figure class="fig" id="fill">
     <div class="fig-head"><h3>Building the triangle row by row</h3></div>
     <div class="formula">mask[i, j] = <em>0</em> if j ≤ i, &nbsp; <em>−∞</em> if j &gt; i &nbsp; &nbsp; scores ← scores + mask</div>
+    <figcaption class="say"><p>Press play to build the mask one row at a time. Each row is a query, a token asking. Each column is a key, a token being looked at. A row can see its own column and everything to the left. Everything to the right gets minus infinity.</p><p>Fill in all the rows and you get a triangle. That's why people call it the causal triangle or a lower-triangular mask.</p></figcaption>
   </figure>
 
   <figure class="fig" id="order">
     <div class="fig-head"><h3>Mask before softmax, not after</h3></div>
+    <figcaption class="say"><p>The order matters. Switch between the two options. The right way puts the mask on the scores first and then runs softmax. The weights for "sat" spread over the three tokens it can see and add up to 1.</p><p>The wrong way runs softmax over everything and then zeroes out the future. Now the weights add up to less than 1, because some of the weight was spent on tokens you then threw away. The output shrinks and the model learns from distorted numbers.</p></figcaption>
   </figure>
 
   <figure class="fig" id="test">
     <div class="fig-head"><h3>A live causality test</h3></div>
+    <figcaption class="say"><p>A handy way to check your mask works. Change the last word of the sentence with the buttons. If the mask is right, the outputs for every earlier token stay exactly the same, shown by the ticks. Only the last row changes.</p><p>That's the definition of causal. Changing the future must not change the past. If an earlier row changes when you edit a later word, your model is cheating somewhere.</p></figcaption>
   </figure>
 
   <h2>More masks</h2>
+  <div class="say"><p>The causal triangle isn't the only mask. Real batches also need to hide padding, and different kinds of model use different shapes.</p></div>
   <figure class="fig" id="pad">
     <div class="fig-head"><h3>Causal + padding = combined mask</h3></div>
+    <figcaption class="say"><p>When you batch sentences of different lengths, the short ones get filled up with padding tokens. Those aren't real text, so nobody should look at them. The middle grid is a padding mask that hides the last two columns.</p><p>Combine the two masks and a cell is allowed only if both say it's allowed. That's the grid on the right. In real code you almost always need this combined version.</p></figcaption>
   </figure>
 
   <figure class="fig" id="shapes">
     <div class="fig-head"><h3>Three mask shapes, three model families</h3></div>
+    <figcaption class="say"><p>Three shapes for three kinds of model. <b>Encoders</b> like BERT see everything, so their mask is a full square. That's fine because they classify or understand text rather than generate it. <b>Decoders</b> like GPT use the triangle. <b>Prefix language models</b> let the prompt see itself fully, then use a triangle for the part being generated.</p></figcaption>
   </figure>
 
   <h2>Exceptions and sharp edges</h2>
+  <div class="say"><p>Masks are a common source of quiet bugs. Here are the usual ones.</p></div>
   <div class="edges">
-    <article class="edge redraw" id="e-diag"><div class="art"></div><h4>Off by one on the diagonal</h4><span class="fix">use torch.triu(…, diagonal=1) for the masked part.</span></article>
-    <article class="edge redraw" id="e-tooGood"><div class="art"></div><h4>Suspiciously low loss</h4><span class="fix">run the causality test from fig 8.5 on your model.</span></article>
-    <article class="edge redraw" id="e-padrow"><div class="art"></div><h4>Pad rows with nothing to see</h4><span class="fix">let pad rows see something, and mask them out of the loss.</span></article>
-    <article class="edge redraw" id="e-gen"><div class="art"></div><h4>Generation needs no triangle</h4><span class="fix">pass the right mask for prefill vs decode, see chapter 11.</span></article>
-    <article class="edge redraw" id="e-window"><div class="art"></div><h4>Sliding windows</h4><span class="fix">combine masks by AND, never by overwriting.</span></article>
+    <article class="edge redraw" id="e-diag"><div class="art"></div><h4>Off by one on the diagonal</h4><p>The diagonal is the token looking at itself, and that has to be allowed. If you mask the diagonal too, the first token can see nothing at all. Leave it open and it's fine.</p><span class="fix">use torch.triu(…, diagonal=1) for the masked part.</span></article>
+    <article class="edge redraw" id="e-tooGood"><div class="art"></div><h4>Suspiciously low loss</h4><p>If your training loss drops much faster than anyone else's, check the mask first. A leak that lets tokens see the future is the most common cause.</p><span class="fix">run the causality test from fig 8.5 on your model.</span></article>
+    <article class="edge redraw" id="e-padrow"><div class="art"></div><h4>Pad rows with nothing to see</h4><p>A padding token's own row may have nothing it's allowed to look at, which gives NaN. Let it see something harmless, then make sure padding positions don't count toward the loss.</p><span class="fix">let pad rows see something, and mask them out of the loss.</span></article>
+    <article class="edge redraw" id="e-gen"><div class="art"></div><h4>Generation needs no triangle</h4><p>When generating one new token at a time, that token is the last one, so it's allowed to see everything before it. There's nothing to hide. Applying the triangle wrongly at this step is a common bug.</p><span class="fix">pass the right mask for prefill vs decode, see chapter 11.</span></article>
+    <article class="edge redraw" id="e-window"><div class="art"></div><h4>Sliding windows</h4><p>Some models only let each token see the last few thousand tokens. That's another mask. Combine it with the causal mask so a cell must pass both. Don't let one replace the other.</p><span class="fix">combine masks by AND, never by overwriting.</span></article>
   </div>
 
   <Fragment slot="scripts"><script is:inline>

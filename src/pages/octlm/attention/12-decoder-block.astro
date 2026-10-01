@@ -10,49 +10,63 @@ import Note from '../../../layouts/Note.astro';
     </div>
   </header>
 
+  <div class="say intro"><p>We now have every piece of attention. But attention alone isn't a model. Attention lets tokens share information with each other. A model also needs a step where each token thinks about what it just collected. That's the job of the <b>MLP</b>, a small neural network applied to each token on its own.</p><p>A <b>decoder block</b> wraps those two together, with a couple of helpers called normalisation and residual connections to keep everything stable. Then you stack the same block 12, 32 or 80 times. That stack is GPT, Llama, or almost any modern language model. This chapter puts all of it together, all the way to the predicted next word.</p></div>
+
   <h2>Inside one block</h2>
+  <div class="say"><p>One block, from input to output, and the two ideas that hold it together, the residual stream and where the normalisation goes.</p></div>
   <figure class="fig" id="anatomy">
     <div class="fig-head"><h3>One trip through a pre-norm block</h3></div>
     <div class="formula">h = x + <em>Attn</em>(Norm(x)) &nbsp; &nbsp; out = h + <em>MLP</em>(Norm(h))</div>
+    <figcaption class="say"><p>Press play to follow one token's vector through the block. It starts at x at the bottom and travels straight up a main line, the <b>residual stream</b>. On the way, it takes two side trips.</p><p>First side trip. Normalise a copy, run attention on it, and add the result back onto the main line at the first plus sign. Second side trip. Normalise again, run it through the MLP, and add that back at the second plus. The formula below the title says the same thing. Each part adds to the vector rather than replacing it.</p></figcaption>
   </figure>
 
   <figure class="fig" id="stream">
     <div class="fig-head"><h3>The residual stream is a shared notebook</h3></div>
+    <figcaption class="say"><p>Press play to step through the layers. Each row is the same token's vector after another layer. Every layer reads the current vector, works something out, and adds a small change. The column on the right shows how big each layer's change was.</p><p>So think of the residual stream as a shared notebook. Each layer reads it and writes a short note at the bottom. Nothing gets erased. This is also why deep models train well. The main line gives gradients a direct path all the way down.</p></figcaption>
   </figure>
 
   <figure class="fig" id="prepost">
     <div class="fig-head"><h3>Pre-norm vs post-norm</h3></div>
+    <figcaption class="say"><p>Where should normalisation go? The original 2017 transformer put it on the main line, after each add. That's <b>post-norm</b>. Every layer's output gets squashed before moving on, and deep stacks were hard to train without careful tricks.</p><p>Almost every model since GPT-2 uses <b>pre-norm</b>. Normalisation goes on the side trip, before attention or the MLP. The main line, highlighted, stays a clean path from bottom to top with nothing in the way. Deep models train much more reliably that way.</p></figcaption>
   </figure>
 
   <h2>The pieces</h2>
+  <div class="say"><p>A closer look at each part inside the block.</p></div>
   <figure class="fig" id="norm">
     <div class="fig-head"><h3>LayerNorm and RMSNorm</h3></div>
+    <figcaption class="say"><p>Normalisation keeps the numbers in a vector at a steady size, so they don't blow up or shrink as they pass through dozens of layers. Move the offset and scale sliders to push the input around. The output on the right barely changes.</p><p><b>LayerNorm</b> does two things. It shifts the numbers so their average is zero, then scales them so their size is one. <b>RMSNorm</b> skips the shifting and only rescales. It's slightly cheaper and works just as well, so modern models use it. Day 2 has a whole chapter on it.</p></figcaption>
   </figure>
 
   <figure class="fig" id="mlp">
     <div class="fig-head"><h3>The MLP: widen, bend, narrow</h3></div>
+    <figcaption class="say"><p>The MLP is three steps. Widen the vector, usually to 4 times its size. Pass every number through a bendy function called an activation. Shrink it back to the original width. Pick an activation to see its curve.</p><p>Without the bend in the middle, widening and shrinking would collapse into one plain multiply and the network could only learn straight-line relationships. The bend is what lets it learn complicated ones. Researchers think the MLP is where much of a model's stored knowledge lives.</p></figcaption>
   </figure>
 
   <figure class="fig" id="mixing">
     <div class="fig-head"><h3>Attention mixes across tokens, the MLP within a token</h3></div>
+    <figcaption class="say"><p>This is the clearest way to see what each half of the block does. Each column is one token, and each row is one feature. Switch between the two modes.</p><p>In attention mode, arrows cross between columns. Tokens share information with each other. In MLP mode, arrows stay inside each column. Each token works on its own information, with no idea what the others are doing. A block alternates between the two. Share, then think. Share, then think.</p></figcaption>
   </figure>
 
   <h2>The whole model</h2>
+  <div class="say"><p>Stack the blocks, add a final step to turn vectors into word predictions, and you have a whole language model.</p></div>
   <figure class="fig" id="stack">
     <div class="fig-head"><h3>From the last block to the next word</h3></div>
+    <figcaption class="say"><p>After the last block, there's one more normalisation, and then the <b>unembedding</b>. That's a matrix that turns the final vector into one score for every token in the vocabulary. These raw scores are called <b>logits</b>. Softmax turns them into probabilities, and the bar chart shows the top candidates for the next word.</p><p>Drag the temperature slider. Low temperature makes the top choice dominate, so output is safe and repetitive. High temperature flattens the bars, so output is more varied and more random. Temperature is the setting you see in chatbot settings, and this is exactly what it does.</p></figcaption>
   </figure>
 
   <figure class="fig" id="params">
     <div class="fig-head"><h3>Where the parameters live</h3></div>
+    <figcaption class="say"><p>Drag the width and the number of blocks to see where the model's parameters live. Attention takes about 4d² per block, for the Q, K, V and output matrices. The MLP takes about 8d², because it widens to 4d and back. So the MLP is about two thirds of each block. Embeddings are a separate slice that matters most in small models.</p><p>Make the width and depth larger and the blocks swamp everything else. That's how you get from a few hundred million parameters to tens of billions.</p></figcaption>
   </figure>
 
   <h2>Exceptions and sharp edges</h2>
+  <div class="say"><p>Things that go wrong when building or loading a block.</p></div>
   <div class="edges">
-    <article class="edge redraw" id="e-final"><div class="art"></div><h4>Forgetting the final norm</h4><span class="fix">norm → unembed, always.</span></article>
-    <article class="edge redraw" id="e-grow"><div class="art"></div><h4>The stream grows with depth</h4><span class="fix">scale residual-branch init by 1/√(2N), as GPT-2 does.</span></article>
-    <article class="edge redraw" id="e-swiglu"><div class="art"></div><h4>SwiGLU has three matrices</h4><span class="fix">read hidden size from the config, never assume 4d.</span></article>
-    <article class="edge redraw" id="e-eps"><div class="art"></div><h4>Norm epsilon</h4><span class="fix">compute norms in fp32, keep ε around 1e-5 or 1e-6.</span></article>
-    <article class="edge redraw" id="e-drop"><div class="art"></div><h4>Dropout placement</h4><span class="fix">most large LLMs use no dropout in pretraining at all.</span></article>
+    <article class="edge redraw" id="e-final"><div class="art"></div><h4>Forgetting the final norm</h4><p>With pre-norm, the main line is never normalised inside the blocks. So you need one last norm before the unembedding. Leave it out and the scores come out at a wild scale.</p><span class="fix">norm → unembed, always.</span></article>
+    <article class="edge redraw" id="e-grow"><div class="art"></div><h4>The stream grows with depth</h4><p>Every layer adds to the stream, so the vector tends to get bigger the deeper you go. Without care at the start of training, the last layers see huge numbers.</p><span class="fix">scale residual-branch init by 1/√(2N), as GPT-2 does.</span></article>
+    <article class="edge redraw" id="e-swiglu"><div class="art"></div><h4>SwiGLU has three matrices</h4><p>Modern MLPs often use SwiGLU, which has three matrices instead of two and a hidden width around 8/3 of d, not 4 times. Day 2 covers it.</p><span class="fix">read hidden size from the config, never assume 4d.</span></article>
+    <article class="edge redraw" id="e-eps"><div class="art"></div><h4>Norm epsilon</h4><p>Normalisation divides by the vector's size. A tiny number called epsilon is added so you never divide by zero. Too small, or computed in half precision, and you get blow-ups.</p><span class="fix">compute norms in fp32, keep ε around 1e-5 or 1e-6.</span></article>
+    <article class="edge redraw" id="e-drop"><div class="art"></div><h4>Dropout placement</h4><p>Dropout randomly switches off parts of the network during training to stop overfitting. It goes in specific places in the block. Big models trained on huge data usually skip it entirely.</p><span class="fix">most large LLMs use no dropout in pretraining at all.</span></article>
   </div>
 
   <Fragment slot="scripts"><script is:inline>

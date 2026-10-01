@@ -4,7 +4,8 @@ This workspace holds visual teaching notes for sharing on X. The rules below app
 
 ## Direction
 
-- Minimal text, maximal visuals. A page is a large title, one short lede, and diagrams. Each diagram gets one short italic title and nothing else.
+- Visuals first, with full plain-language explanations. A page is a large title, a short lede, an intro (`.say.intro`) on where the chapter fits, and diagrams. Every `h2` gets a short `.say` lead-in, every diagram a `figcaption.say` saying what it shows, what to try and how it fits the whole model, and every edge card a `<p>` on what goes wrong.
+- Write explanations conversationally, as a person would explain it to a friend. Easy words, jargon explained the first time it appears, enough context and no more. Skip what is already obvious.
 - No frames. Diagrams sit directly on the page with no border, card, background or dot grid.
 - Spacious and cinematic. Heroes fill the first screen and rise in on load, sections sit a full `--gap` apart.
 - Hand-drawn style lives only inside diagrams: SVG ink strokes, wobble filter, Gaegu labels. Type, navigation, buttons and controls stay clean and crisp.

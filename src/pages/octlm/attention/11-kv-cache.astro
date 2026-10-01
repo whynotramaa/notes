@@ -10,46 +10,59 @@ import Note from '../../../layouts/Note.astro';
     </div>
   </header>
 
+  <div class="say intro"><p>When a model writes an answer, it writes one token at a time. It predicts a word, adds it to the text, then runs again to predict the next one. If you do that naively, every new word means re-processing the entire text from scratch, including everything it already processed a moment ago. That's a huge waste.</p><p>The <b>KV cache</b> fixes it. The keys and values for old tokens never change, thanks to the causal mask from chapter 8, so we save them and reuse them. Each new token only computes its own query, key and value. This is the single biggest reason chatbots answer at a usable speed. The catch is that the cache takes up a lot of memory, and that shapes the design of modern models.</p></div>
+
   <h2>Without and with a cache</h2>
+  <div class="say"><p>The same generation, done the slow way and then the cached way.</p></div>
   <figure class="fig" id="nocache">
     <div class="fig-head"><h3>No cache: redo everything, every step</h3></div>
+    <figcaption class="say"><p>Press play. Each row is one generation step, and each cell is the work of computing a key and value for one token. Without a cache, step 5 recomputes tokens 1 to 4 that were already done in step 4. The coloured cells are that wasted repeat work. Watch the triangle of waste grow with every step.</p></figcaption>
   </figure>
 
   <figure class="fig" id="cache">
     <div class="fig-head"><h3>With a cache: compute one row, append, look up the rest</h3></div>
+    <figcaption class="say"><p>Press play. Now there's a shelf of saved key and value boxes. At each step the new token computes its own q, k and v. It puts its k and v on the shelf, then uses its q to score against everything on the shelf. Nothing old gets recomputed. The shelf just grows by one box per step.</p></figcaption>
   </figure>
 
   <figure class="fig" id="work">
     <div class="fig-head"><h3>Work saved</h3></div>
+    <figcaption class="say"><p>Drag the token slider. This counts the total key and value calculations needed to generate T tokens. Without a cache, the curve bends upward like a square, because each step redoes everything. With a cache it's a straight line, one new calculation per token. At a few thousand tokens the difference is enormous.</p></figcaption>
   </figure>
 
   <h2>Why K and V, but not Q</h2>
+  <div class="say"><p>If caching keys and values helps, why not cache queries too? Because nobody ever needs an old query again.</p></div>
   <figure class="fig" id="whynotq">
     <div class="fig-head"><h3>Old queries are never asked again</h3></div>
+    <figcaption class="say"><p>This is the attention weight grid from chapter 7, during generation. The last row is the new token. It needs its own query and the keys and values of every token, old and new. The grey rows above belong to old queries. They were used once, when those tokens were new, and they'll never be asked again.</p><p>So keys and values are reused at every future step, and queries aren't. That's why it's called a KV cache and not a QKV cache.</p></figcaption>
   </figure>
 
   <h2>The cost: memory</h2>
+  <div class="say"><p>Speed isn't free. The cache has to hold a key and a value for every token, in every layer, for every head. That adds up fast, and for long chats it can be bigger than the model itself.</p></div>
   <figure class="fig" id="size">
     <div class="fig-head"><h3>KV cache size calculator</h3></div>
     <div class="formula">bytes = <em>2</em> × layers × kv_heads × head_dim × <em>tokens</em> × batch × bytes_per_value</div>
+    <figcaption class="say"><p>Play with the sliders. The formula is just counting. Two things, a key and a value, for every layer, for every KV head, each head_dim numbers long, for every token, for every sequence in the batch, times the bytes each number takes.</p><p>Try a 32-layer model with 8 KV heads, a 128,000 token context and a batch of 8. The bar shoots past the 80 GB line, the memory of one big GPU. This number is often what limits how many users a server can handle at once, or how long the context can be.</p></figcaption>
   </figure>
 
   <figure class="fig" id="gqa">
     <div class="fig-head"><h3>Sharing K and V shrinks the cache</h3></div>
+    <figcaption class="say"><p>Look at the formula again. The cache grows with the number of KV heads. With grouped-query attention, which chapter 9 previewed, many query heads share one set of keys and values. Going from 32 KV heads to 8 cuts the cache to a quarter. Going to 1 cuts it to a thirty-second. That's why nearly every modern model uses GQA. Day 2 covers it in detail.</p></figcaption>
   </figure>
 
   <figure class="fig" id="phases">
     <div class="fig-head"><h3>Prefill, then decode</h3></div>
+    <figcaption class="say"><p>Generation has two very different phases. First, <b>prefill</b>. The whole prompt is processed in one go, all tokens in parallel, filling the cache. That's the wide block. GPUs love this. It's limited by how fast they can do maths.</p><p>Then <b>decode</b>, the narrow blocks. One token at a time, each reading the whole cache and all the model's weights from memory. Here the GPU spends most of its time waiting for memory, not doing maths. That's why making the cache smaller makes generation faster, not just cheaper.</p></figcaption>
   </figure>
 
   <h2>Exceptions and sharp edges</h2>
+  <div class="say"><p>Real systems run into these.</p></div>
   <div class="edges">
-    <article class="edge redraw" id="e-edit"><div class="art"></div><h4>Editing an earlier token</h4><span class="fix">truncate the cache at the edit and recompute from there.</span></article>
-    <article class="edge redraw" id="e-pos"><div class="art"></div><h4>Position offset</h4><span class="fix">pass cache length as the position offset.</span></article>
-    <article class="edge redraw" id="e-batch"><div class="art"></div><h4>Ragged batches</h4><span class="fix">paged attention stores the cache in fixed-size blocks.</span></article>
-    <article class="edge redraw" id="e-evict"><div class="art"></div><h4>Evicting old entries</h4><span class="fix">keep the first few tokens plus a recent window.</span></article>
-    <article class="edge redraw" id="e-quant"><div class="art"></div><h4>Quantised caches</h4><span class="fix">measure on long-context tasks before shipping.</span></article>
-    <article class="edge redraw" id="e-prefix"><div class="art"></div><h4>Shared prefixes</h4><span class="fix">prompt caching reuses the prefix's KV blocks.</span></article>
+    <article class="edge redraw" id="e-edit"><div class="art"></div><h4>Editing an earlier token</h4><p>The cache assumes the past never changes. If a user edits a word in the middle of the conversation, every cached key and value after that point is now wrong.</p><span class="fix">truncate the cache at the edit and recompute from there.</span></article>
+    <article class="edge redraw" id="e-pos"><div class="art"></div><h4>Position offset</h4><p>A new token's position is the number of tokens already in the cache, not 0. If you get this wrong with RoPE, the new token is rotated as if it were at the start.</p><span class="fix">pass cache length as the position offset.</span></article>
+    <article class="edge redraw" id="e-batch"><div class="art"></div><h4>Ragged batches</h4><p>In a batch, different conversations have different lengths. Giving everyone a cache sized for the longest one wastes a lot of memory.</p><span class="fix">paged attention stores the cache in fixed-size blocks.</span></article>
+    <article class="edge redraw" id="e-evict"><div class="art"></div><h4>Evicting old entries</h4><p>To cap memory on very long chats, you can drop old cache entries. But dropping the first few tokens breaks the attention sink heads from chapter 9.</p><span class="fix">keep the first few tokens plus a recent window.</span></article>
+    <article class="edge redraw" id="e-quant"><div class="art"></div><h4>Quantised caches</h4><p>Storing the cache in 8-bit or 4-bit numbers saves a lot of memory. The quality loss is usually small, but it tends to show up on long texts first.</p><span class="fix">measure on long-context tasks before shipping.</span></article>
+    <article class="edge redraw" id="e-prefix"><div class="art"></div><h4>Shared prefixes</h4><p>Many requests share the same start, like a long system prompt. Its cache can be computed once and reused for every request that starts the same way.</p><span class="fix">prompt caching reuses the prefix's KV blocks.</span></article>
   </div>
 
   <Fragment slot="scripts"><script is:inline>

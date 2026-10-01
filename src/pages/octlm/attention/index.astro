@@ -12,21 +12,27 @@ const base = '/octlm/attention/';
     </div>
   </header>
 
+  <div class="say intro"><p>This is Day 1 of octlm, a set of notes on how language models like GPT and Llama actually work inside. We follow one short sentence the whole way. It starts as plain text, becomes numbers, flows through the model, and comes out the other end as a guess for the next word.</p><p>You don't need a maths background. Every chapter is mostly drawings, many of them interactive, with plain-language explanations underneath. Read in order if you're new, since each chapter builds on the one before. Or jump straight to whatever you're curious about using the map below.</p></div>
+
   <figure class="fig" id="pipeline">
     <div class="fig-head"><h3>The whole trip, one sentence long</h3></div>
+    <figcaption class="say"><p>This is the whole journey on one line. Text gets broken into bytes, then into tokens with ids (chapter 1). Each id becomes a vector, and position information is added (chapters 2 to 5). The vectors pass through a stack of decoder blocks, each with attention and an MLP (chapters 6 to 12). At the end, the model produces a score for every possible next token, called logits, and picks one.</p><p>The arrow running back underneath is training (chapter 13). The loss at the end sends corrections back to every stage so the whole thing improves. Click any stage to jump to its chapter.</p></figcaption>
   </figure>
 
   <div class="pair">
     <figure class="fig" id="story">
       <div class="fig-head"><h3>Our running example</h3></div>
-    </figure>
+      <figcaption class="say"><p>This is the sentence we use almost everywhere, "The cat sat because it was tired". It's short enough to draw, and it has one interesting puzzle in it. What does "it" refer to? You know it's the cat. The model has to work that out, and attention is how it does.</p></figcaption>
+  </figure>
     <figure class="fig" id="legend">
       <div class="fig-head"><h3>How to read the drawings</h3></div>
-    </figure>
+      <figcaption class="say"><p>A quick key to the drawings. The coloured fill marks the part that matters most in each picture. Ink lines show structure. Monospaced numbers are real data. A play button means the drawing animates. A slider means you can change it. Red means something went wrong, or an exception to the rule.</p></figcaption>
+  </figure>
   </div>
 
   <figure class="fig" id="shapes">
     <div class="fig-head"><h3>Shapes along the way</h3></div>
+    <figcaption class="say"><p>It helps to track the shape of the data as it moves through the model. Text becomes T token ids, one per token. The embedding turns them into a grid of T rows by d numbers. That T × d shape then stays the same through every single block, which is why blocks can be stacked as many times as you like. At the end it becomes T × V, a score for each of the V vocabulary tokens at each position. For generation we only need the last row, a probability for every possible next token.</p></figcaption>
   </figure>
 
   <h2>Chapters</h2>

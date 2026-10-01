@@ -10,52 +10,66 @@ import Note from '../../../layouts/Note.astro';
     </div>
   </header>
 
+  <div class="say intro"><p>This is where attention really starts. So far each token has its own vector, with its meaning and position mixed in, but tokens can't see each other. Take "The cat sat because it was tired". To understand "it", the model has to find "cat" and pull in what it knows about cats. Attention is the mechanism that does that.</p><p>To make it work, every token makes three vectors from its own vector. A <b>query</b> (Q) says "here's what I'm looking for". A <b>key</b> (K) says "here's what I have". A <b>value</b> (V) is "here's what I'll hand over if you pick me". This chapter builds up those three roles. The next chapter turns them into the actual formula.</p></div>
+
   <h2>The intuition</h2>
+  <div class="say"><p>The names come from searching a library or a database, so let's start there.</p></div>
   <figure class="fig" id="library">
     <div class="fig-head"><h3>A library, very quickly</h3></div>
+    <figcaption class="say"><p>Picture a library. You walk in with a question on a slip of paper, "who is it?". That's your <b>query</b>. Every book has a label on its spine, like "cat" or "tired". Those are the <b>keys</b>. You compare your question to the spines and find the best match. Then you open that book and read what's inside. That's the <b>value</b>.</p><p>The big difference from a real library is that attention doesn't pick just one book. It reads a little from every book, more from the good matches and less from the poor ones.</p></figcaption>
   </figure>
 
   <h2>Making Q, K and V</h2>
+  <div class="say"><p>Where do the three vectors come from? Each one is the token's vector multiplied by a different learned weight matrix. Same input, three different views of it.</p></div>
 
   <figure class="fig" id="proj">
     <div class="fig-head"><h3>Same x, three lenses</h3></div>
     <div class="formula">Q = x W<sub>Q</sub> &nbsp; K = x W<sub>K</sub> &nbsp; V = x W<sub>V</sub> &nbsp; &nbsp; [T × d] · [d × d<sub>k</sub>] = <em>[T × d<sub>k</sub>]</em></div>
+    <figcaption class="say"><p>Press play. The input x is a grid with one row per token (T rows) and d numbers per row. It gets multiplied by three different weight matrices, W<sub>Q</sub>, W<sub>K</sub> and W<sub>V</sub>, one at a time. Out come Q, K and V, each with one row per token.</p><p>These three matrices are learned during training. That's how the model learns what to look for, what to advertise, and what to pass along. The shape line under the title says the same thing in numbers. T tokens of width d come in, T tokens of width d<sub>k</sub> come out.</p></figcaption>
   </figure>
 
   <figure class="fig" id="fan">
     <div class="fig-head"><h3>Every token gets all three</h3></div>
+    <figcaption class="say"><p>Press play and watch each token in the sentence produce its own q, k and v. This is the point people miss at first. Every token plays all three roles at once. "It" asks a question with its query, but it also offers its key and value to every other token that might be asking about it.</p></figcaption>
   </figure>
 
   <h2>Matching and mixing</h2>
+  <div class="say"><p>Now we use them. Each query is compared against every key to get a score. The scores become weights, and the weights decide how much of each value to blend into the output.</p></div>
 
   <figure class="fig" id="match">
     <div class="fig-head"><h3>“it” looks for its antecedent</h3></div>
+    <figcaption class="say"><p>Pick a token to be the one asking. The left chart is the raw score between its query and every key, a dot product (multiply matching numbers, add them up). Bigger means a better match. The right chart turns those scores into weights with softmax, which makes them all positive and makes them add up to 1. Chapter 7 shows how.</p><p>Pick "it". The tallest bar is "cat". The model has learned that "it" here refers back to the cat. That link is what attention adds to the model.</p></figcaption>
   </figure>
 
   <figure class="fig" id="mix">
     <div class="fig-head"><h3>Mixing the values</h3></div>
     <div class="formula">out<sub>i</sub> = Σ<sub>j</sub> <em>w<sub>ij</sub></em> · v<sub>j</sub></div>
+    <figcaption class="say"><p>Now we use the weights. Each token's value vector is scaled by its weight, so cat's value stays big and the others shrink. Then they're all added up into one output vector for the asking token.</p><p>So the new vector for "it" is mostly cat's value, with a little of everything else mixed in. After this step, "it" carries information about the cat. That's the formula below the title, a weighted sum of values.</p></figcaption>
   </figure>
 
   <figure class="fig" id="whyk">
     <div class="fig-head"><h3>Why keys and values are separate</h3></div>
+    <figcaption class="say"><p>Why have both a key and a value? Couldn't one vector do both jobs? Look at the box for "cat". The label outside, the key, says "singular animal noun". That's what helps others find it. The stuff inside, the value, is "furry, purrs, subject of sat". That's what's useful once you've found it.</p><p>What makes you findable and what you have to offer are different things. Two separate vectors let the model learn each one without compromise.</p></figcaption>
   </figure>
 
   <figure class="fig" id="shapes">
     <div class="fig-head"><h3>Shapes cheat sheet</h3></div>
+    <figcaption class="say"><p>Here are the shapes, drawn to scale. Q is T × d<sub>k</sub>. K flipped on its side is d<sub>k</sub> × T. Multiplying them gives a T × T grid, one score for every pair of tokens. That grid times V (T × d<sub>v</sub>) gives the output, one row per token again.</p><p>Note that T × T grid. It grows with the square of the text length, and it's the reason long texts are expensive. Chapter 10 is all about it.</p></figcaption>
   </figure>
 
   <figure class="fig" id="cross">
     <div class="fig-head"><h3>Self-attention vs cross-attention</h3></div>
+    <figcaption class="say"><p>In <b>self-attention</b>, the version in GPT-style models, Q, K and V all come from the same sentence. The text looks at itself. In <b>cross-attention</b>, the queries come from one sequence and the keys and values from another. Translation models use this. The sentence being written asks questions of the sentence being translated. These notes focus on self-attention.</p></figcaption>
   </figure>
 
   <h2>Exceptions and sharp edges</h2>
+  <div class="say"><p>Things worth knowing before you read attention maps or write attention code.</p></div>
   <div class="edges">
-    <article class="edge redraw" id="e-asym"><div class="art"></div><h4>Scores are not symmetric</h4><span class="fix">read attention maps row by row: one row is one query.</span></article>
-    <article class="edge redraw" id="e-self"><div class="art"></div><h4>Tokens attend to themselves</h4><span class="fix">nothing to fix, the residual connection relies on it too.</span></article>
-    <article class="edge redraw" id="e-dk"><div class="art"></div><h4>d<sub>k</sub> must match</h4><span class="fix">assert q.shape[-1] == k.shape[-1].</span></article>
-    <article class="edge redraw" id="e-explain"><div class="art"></div><h4>Weights are not explanations</h4><span class="fix">treat attention maps as hints, not proof.</span></article>
-    <article class="edge redraw" id="e-bias"><div class="art"></div><h4>Bias or no bias</h4><span class="fix">check the config before loading weights.</span></article>
+    <article class="edge redraw" id="e-asym"><div class="art"></div><h4>Scores are not symmetric</h4><p>How much "it" attends to "cat" is not the same as how much "cat" attends to "it". Different queries, different keys. Each row of an attention map is one token's view.</p><span class="fix">read attention maps row by row: one row is one query.</span></article>
+    <article class="edge redraw" id="e-self"><div class="art"></div><h4>Tokens attend to themselves</h4><p>A token's query also scores against its own key, so tokens often give themselves a large weight. That's normal and useful.</p><span class="fix">nothing to fix, the residual connection relies on it too.</span></article>
+    <article class="edge redraw" id="e-dk"><div class="art"></div><h4>d<sub>k</sub> must match</h4><p>A query and a key can only be compared if they're the same length. Values can be a different length, but queries and keys must match.</p><span class="fix">assert q.shape[-1] == k.shape[-1].</span></article>
+    <article class="edge redraw" id="e-explain"><div class="art"></div><h4>Weights are not explanations</h4><p>A big attention weight doesn't prove the model "used" that token for its answer. Many other parts of the model change the result too. Attention maps are a clue, not proof.</p><span class="fix">treat attention maps as hints, not proof.</span></article>
+    <article class="edge redraw" id="e-bias"><div class="art"></div><h4>Bias or no bias</h4><p>Some models add a small bias vector after each projection, most don't. Loading weights into code that expects the other option either crashes or silently gives wrong answers.</p><span class="fix">check the config before loading weights.</span></article>
   </div>
 
   <Fragment slot="scripts"><script is:inline>
