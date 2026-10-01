@@ -53,7 +53,7 @@
 }
 
 * { box-sizing: border-box; --hue: calc(var(--h) + var(--hs)); }
-html { scroll-behavior: smooth; scroll-padding-top: 96px; }
+html { scroll-behavior: smooth; scroll-padding-top: 96px; scrollbar-width: thin; scrollbar-color: var(--line-2) transparent; }
 body { margin: 0; background: var(--bg); color: var(--ink); font: 17px/1.8 var(--sans); overflow-wrap: break-word; -webkit-font-smoothing: antialiased; transition: background-color 0.4s var(--ease), color 0.4s var(--ease); }
 a { color: inherit; text-underline-offset: 4px; }
 button, input, select { font: inherit; color: inherit; }
