@@ -22,6 +22,7 @@ const CH = chapters.map(c => ({ ...c, href: base + c.slug }));
   <title>{title}</title>
   <meta name="description" content={description}>
   <link rel="preload" href="/fonts/BehindTheNineties.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="/ink.css">
   <script is:inline>try { const t = localStorage.getItem('ink-theme'); if (t) document.documentElement.dataset.theme = t; } catch {}</script>
 </head>
