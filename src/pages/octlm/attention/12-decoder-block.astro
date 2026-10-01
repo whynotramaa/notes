@@ -1,0 +1,247 @@
+---
+import Note from '../../../layouts/Note.astro';
+---
+<Note ch={12} description="The decoder block drawn: residual stream, pre-norm versus post-norm, LayerNorm and RMSNorm, the MLP and its activation, token mixing versus channel mixing, the full stack to next-token probabilities, and parameter counts.">
+  <header class="hero">
+    <div>
+      <p class="kicker">chapter 12</p>
+      <h1><span>The decoder block</span></h1>
+      <p class="lede">Attention lets tokens talk to each other.</p>
+    </div>
+  </header>
+
+  <h2>Inside one block</h2>
+  <figure class="fig" id="anatomy">
+    <div class="fig-head"><h3>One trip through a pre-norm block</h3></div>
+    <div class="formula">h = x + <em>Attn</em>(Norm(x)) &nbsp; &nbsp; out = h + <em>MLP</em>(Norm(h))</div>
+  </figure>
+
+  <figure class="fig" id="stream">
+    <div class="fig-head"><h3>The residual stream is a shared notebook</h3></div>
+  </figure>
+
+  <figure class="fig" id="prepost">
+    <div class="fig-head"><h3>Pre-norm vs post-norm</h3></div>
+  </figure>
+
+  <h2>The pieces</h2>
+  <figure class="fig" id="norm">
+    <div class="fig-head"><h3>LayerNorm and RMSNorm</h3></div>
+  </figure>
+
+  <figure class="fig" id="mlp">
+    <div class="fig-head"><h3>The MLP: widen, bend, narrow</h3></div>
+  </figure>
+
+  <figure class="fig" id="mixing">
+    <div class="fig-head"><h3>Attention mixes across tokens, the MLP within a token</h3></div>
+  </figure>
+
+  <h2>The whole model</h2>
+  <figure class="fig" id="stack">
+    <div class="fig-head"><h3>From the last block to the next word</h3></div>
+  </figure>
+
+  <figure class="fig" id="params">
+    <div class="fig-head"><h3>Where the parameters live</h3></div>
+  </figure>
+
+  <h2>Exceptions and sharp edges</h2>
+  <div class="edges">
+    <article class="edge redraw" id="e-final"><div class="art"></div><h4>Forgetting the final norm</h4><span class="fix">norm → unembed, always.</span></article>
+    <article class="edge redraw" id="e-grow"><div class="art"></div><h4>The stream grows with depth</h4><span class="fix">scale residual-branch init by 1/√(2N), as GPT-2 does.</span></article>
+    <article class="edge redraw" id="e-swiglu"><div class="art"></div><h4>SwiGLU has three matrices</h4><span class="fix">read hidden size from the config, never assume 4d.</span></article>
+    <article class="edge redraw" id="e-eps"><div class="art"></div><h4>Norm epsilon</h4><span class="fix">compute norms in fp32, keep ε around 1e-5 or 1e-6.</span></article>
+    <article class="edge redraw" id="e-drop"><div class="art"></div><h4>Dropout placement</h4><span class="fix">most large LLMs use no dropout in pretraining at all.</span></article>
+  </div>
+
+  <Fragment slot="scripts"><script is:inline>
+const { fig, box, rect, o, arr, carr, ln, node, chip, heat, vec, bars, axes, smooth, cross, check, squig, clamp, map, gauss, softmax, mean, std, fmtN } = Ink;
+
+const stages = ['x enters the stream', 'Norm(x)', 'causal multi-head attention', 'add: h = x + attn', 'Norm(h)', 'MLP', 'add: out = h + mlp', 'out → next block'];
+fig('anatomy', {
+  view: '0 0 960 470', hue: 150,
+  label: 'Pre-norm decoder block. A vertical residual stream runs from x at the bottom to out at the top. Side branches go through Norm and attention, added back at a plus node, then Norm and MLP, added back at a second plus node.',
+  draw(sk, st) {
+    const s = st.step, X = 300, on = i => s === i;
+    sk.ink(arr(X, 440, X, 30));
+    sk.mover(`M${X} 440V30`, { dur: 5 });
+    node(sk, X - 50, 420, 100, 36, 'x', { font: 'serif', fill: on(0) ? 'accent' : 'paper' });
+    sk.ink(`M${X} 380H${X + 90}`); sk.ink(arr(X + 140, 380, X + 140, 360));
+    node(sk, X + 90, 320, 100, 38, 'Norm', { font: 'mono', s: 13, fill: on(1) ? 'accent' : 'paper' });
+    sk.ink(arr(X + 140, 318, X + 140, 300));
+    node(sk, X + 60, 250, 160, 48, 'attention', { s: 22, fill: on(2) ? 'accent' : 'paper', sub: 'causal, multi-head' });
+    sk.ink(carr(X + 140, 248, X + 20, 216, 20));
+    sk.paper(o(X, 210, 16)); if (on(3)) sk.accent(o(X, 210, 16)); sk.ink(o(X, 210, 16)); sk.hand(X, 218, '+', 26);
+    sk.ink(`M${X} 180H${X + 90}`); sk.ink(arr(X + 140, 180, X + 140, 160));
+    node(sk, X + 90, 120, 100, 38, 'Norm', { font: 'mono', s: 13, fill: on(4) ? 'accent' : 'paper' });
+    sk.ink(arr(X + 140, 118, X + 140, 100));
+    node(sk, X + 60, 52, 160, 46, 'MLP', { s: 24, fill: on(5) ? 'accent' : 'paper', sub: 'd → 4d → d' });
+    sk.ink(carr(X + 140, 50, X + 20, 34, 16));
+    sk.paper(o(X, 40, 14)); if (on(6)) sk.accent(o(X, 40, 14)); sk.ink(o(X, 40, 14)); sk.hand(X, 47, '+', 24);
+    sk.hand(X - 110, 240, 'residual', 22, -80, { c: 'tint' });
+    sk.hand(X - 80, 30, on(7) ? 'out →' : 'out', 22, -3);
+    sk.paper(box(640, 170, 290, 120, 3)); sk.ink(box(640, 170, 290, 120, 3));
+    sk.mono(660, 196, `step ${s + 1} / ${stages.length}`, { a: 'start', s: 11, c: 'muted' });
+    sk.hand(785, 240, stages[s], 22, -2);
+    sk.mono(785, 272, ['[T, d]', '[T, d], unit scale', 'tokens talk', 'skip path kept', '[T, d]', 'each token alone', 'skip path kept', 'same shape: [T, d]'][s], { s: 12 });
+  },
+  controls: c => c.player('step', stages.length, { ms: 1200, name: 'step' })
+});
+
+const L = 6, D = 10;
+const writes = Array.from({ length: L + 1 }, (_, l) => Array.from({ length: D }, (_, j) => (l === 0 ? gauss(3, j) * 0.5 : gauss(l + 20, j + 4) * 0.25)));
+fig('stream', {
+  view: '0 0 960 400', hue: 150,
+  label: 'The residual stream vector for one token after each layer. Each row adds a small write to the previous row. A side column shows the size of each layer write.',
+  draw(sk, st) {
+    let acc = Array(D).fill(0);
+    for (let l = 0; l <= st.step; l++) {
+      acc = acc.map((v, j) => v + writes[l][j]);
+      const y = 340 - l * 46;
+      sk.mono(150, y + 20, l === 0 ? 'embedding' : `after layer ${l}`, { a: 'end', s: 11 });
+      vec(sk, acc.slice(), 170, y, 40, 30, { max: 1.6 });
+      if (l) { sk.ink(arr(370, y + 44, 370, y + 34)); sk.mono(600, y + 20, `+ write${l}`, { a: 'start', s: 11 }); vec(sk, writes[l], 680, y + 4, 20, 22, { max: 1.6 }); }
+    }
+    sk.pop(box(166, 340 - st.step * 46 - 4, 408, 38, 2));
+    sk.hand(780, 40, '“it” → “cat-ish thing that is tired”', 18, -3, { c: 'tint' });
+  },
+  controls: c => c.player('step', L + 1, { ms: 900, name: 'layer' })
+});
+
+fig('prepost', {
+  view: '0 0 960 360', hue: 150,
+  label: 'Two block diagrams. Post-norm: sublayer, add, then norm on the main path. Pre-norm: norm on the branch, sublayer, then add, leaving the main path as a clean identity line highlighted in accent.',
+  draw(sk) {
+    sk.hand(240, 36, 'post-norm (2017)', 22, -2); sk.hand(720, 36, 'pre-norm (modern)', 22, -2);
+    const X1 = 180;
+    sk.ink(arr(X1, 330, X1, 60));
+    node(sk, X1 + 50, 200, 110, 40, 'sublayer', { font: 'mono', s: 12 });
+    sk.ink(`M${X1} 290H${X1 + 105}V244`); sk.ink(carr(X1 + 105, 198, X1 + 14, 160, 20));
+    sk.paper(o(X1, 156, 14)); sk.ink(o(X1, 156, 14)); sk.hand(X1, 163, '+', 22);
+    node(sk, X1 - 40, 96, 80, 34, 'Norm', { font: 'mono', s: 12, fill: 'accent' });
+    sk.hand(X1 - 70, 120, 'toll booth', 18, -8, { c: 'redt', a: 'end' });
+    const X2 = 660;
+    sk.pop(`M${X2} 330V60`); sk.ink(arr(X2, 70, X2, 60));
+    node(sk, X2 + 50, 260, 110, 34, 'Norm', { font: 'mono', s: 12 });
+    node(sk, X2 + 50, 190, 110, 40, 'sublayer', { font: 'mono', s: 12 });
+    sk.ink(`M${X2} 300H${X2 + 105}V296`); sk.ink(arr(X2 + 105, 258, X2 + 105, 232)); sk.ink(carr(X2 + 105, 188, X2 + 14, 150, 20));
+    sk.paper(o(X2, 146, 14)); sk.ink(o(X2, 146, 14)); sk.hand(X2, 153, '+', 22);
+    sk.hand(X2 - 30, 320, 'clean highway', 20, -80, { c: 'tint' });
+  }
+});
+
+const raw = [0.4, -1.2, 2.1, 0.3, -0.5, 1.6, -0.9, 0.8];
+fig('norm', {
+  view: '0 0 960 340', hue: 150, state: { shift: 1.5, scale: 2, kind: 'LayerNorm' },
+  label: 'Two bar charts: the input vector, which can be shifted and scaled, and its normalised output, which stays centred near zero with unit size.',
+  draw(sk, st) {
+    const x = raw.map(v => v * st.scale + st.shift);
+    const m = mean(x), s = std(x), rms = Math.sqrt(mean(x.map(v => v * v)));
+    const y = st.kind === 'LayerNorm' ? x.map(v => (v - m) / (s + 1e-5)) : x.map(v => v / (rms + 1e-5));
+    const draw = (v, x0, t) => {
+      const Y = q => map(q, -8, 8, 280, 40);
+      sk.thin(`M${x0 - 10} ${Y(0)}H${x0 + 360}`);
+      v.forEach((q, i) => { const bx = x0 + i * 44, y0 = Y(0), y1 = Y(clamp(q, -8, 8)); const p = `M${bx} ${Math.min(y0, y1)}H${bx + 34}V${Math.max(y0, y1)}H${bx}Z`; sk.cell(p, 0.7, q < 0); sk.ink(p); });
+      sk.hand(x0 + 170, 30, t, 22, -2);
+    };
+    draw(x, 60, 'input');
+    sk.ink(arr(436, 160, 500, 160)); sk.mono(468, 146, st.kind, { s: 11 });
+    draw(y, 530, 'output');
+    sk.mono(240, 318, `mean ${m.toFixed(2)} · std ${s.toFixed(2)} · rms ${rms.toFixed(2)}`, { s: 12 });
+    sk.mono(710, 318, `mean ${mean(y).toFixed(2)} · std ${std(y).toFixed(2)} · rms ${Math.sqrt(mean(y.map(v => v * v))).toFixed(2)}`, { s: 12 });
+  },
+  controls: c => c.slider('shift', 'Offset', -4, 4, 0.1, v => v.toFixed(1)).slider('scale', 'Scale', 0.2, 4, 0.1, v => v.toFixed(1)).choice('kind', 'Norm', [['LayerNorm', 'LayerNorm'], ['RMSNorm', 'RMSNorm']])
+});
+
+const acts = { ReLU: x => Math.max(0, x), GELU: x => 0.5 * x * (1 + Math.tanh(Math.sqrt(2 / Math.PI) * (x + 0.044715 * x ** 3))), SiLU: x => x / (1 + Math.exp(-x)) };
+fig('mlp', {
+  view: '0 0 960 340', hue: 150, state: { a: 'GELU' },
+  label: 'An MLP diagram widening from 4 nodes to 16 then narrowing back to 4, next to a plot of the chosen activation function.',
+  draw(sk, st) {
+    const col = (n, x, h) => Array.from({ length: n }, (_, i) => [x, 170 + (i - (n - 1) / 2) * h]);
+    const a = col(4, 70, 40), b = col(16, 250, 17), c = col(4, 430, 40);
+    a.forEach(p => b.forEach(q => sk.thin(`M${p[0]} ${p[1]}L${q[0]} ${q[1]}`)));
+    b.forEach(p => c.forEach(q => sk.thin(`M${p[0]} ${p[1]}L${q[0]} ${q[1]}`)));
+    a.concat(c).forEach(([x, y]) => { sk.paper(o(x, y, 9)); sk.ink(o(x, y, 9)); });
+    b.forEach(([x, y]) => { sk.accent(o(x, y, 6)); sk.ink(o(x, y, 6)); });
+    sk.mono(70, 310, 'd', { s: 13 }); sk.mono(250, 316, '4d', { s: 13 }); sk.mono(430, 310, 'd', { s: 13 });
+    sk.hand(250, 30, st.a + ' here', 20, -3, { c: 'tint' });
+    axes(sk, 560, 50, 360, 230, { xl: 'x', yl: st.a + '(x)' });
+    const X = v => map(v, -4, 4, 560, 920), Y = v => map(v, -1, 4, 280, 50);
+    sk.dash(`M${X(0)} 50V280`); sk.thin(`M560 ${Y(0)}H920`);
+    const pts = []; for (let v = -4; v <= 4; v += 0.1) pts.push([X(v), Y(acts[st.a](v))]);
+    sk.plot(smooth(pts), 'pop');
+  },
+  controls: c => c.choice('a', 'Activation', Object.keys(acts).map(k => [k, k]))
+});
+
+fig('mixing', {
+  view: '0 0 960 330', hue: 150, state: { mode: 'attention' },
+  label: 'A grid with one column per token and rows of features. In attention mode, arrows cross between columns. In MLP mode, arrows stay inside each column.',
+  draw(sk, st) {
+    const toks = ['The', 'cat', 'sat', 'because', 'it'], cw = 110, x0 = 150;
+    toks.forEach((t, i) => {
+      const x = x0 + i * 140;
+      for (let r = 0; r < 6; r++) sk.cell(rect(x, 50 + r * 34, cw, 30), 0.15 + Math.abs(gauss(i, r)) * 0.3);
+      sk.ink(box(x, 50, cw, 204, i));
+      sk.mono(x + cw / 2, 280, t, { s: 13 });
+    });
+    if (st.mode === 'attention') {
+      [[4, 1], [2, 1], [3, 2], [1, 0]].forEach(([i, j], k) => sk.pop(carr(x0 + i * 140 + 20, 120 + k * 20, x0 + j * 140 + cw - 10, 120 + k * 20, -30 - k * 6)));
+      sk.hand(480, 316, 'information moves between tokens', 21, -2, { c: 'tint' });
+    } else {
+      toks.forEach((_, i) => { const x = x0 + i * 140 + cw / 2; sk.pop(carr(x - 20, 230, x - 20, 70, 26)); });
+      sk.hand(480, 316, 'same MLP weights applied to each token separately', 21, -2, { c: 'tint' });
+    }
+  },
+  controls: c => c.choice('mode', 'Show', [['attention', 'Attention'], ['mlp', 'MLP']])
+});
+
+const cands = ['tired', 'hungry', 'sleepy', 'happy', 'asleep', 'there', 'not'], logits = [3.1, 2.2, 2.0, 1.2, 0.9, 0.4, -0.2];
+fig('stack', {
+  view: '0 0 960 380', hue: 150, state: { t: 1 },
+  label: 'The full model: embeddings, a stack of N blocks, final norm, unembedding to logits, then a bar chart of next-token probabilities for seven candidates under the chosen temperature.',
+  draw(sk, st) {
+    node(sk, 110, 320, 180, 40, 'embed + pos', { font: 'mono', s: 12 });
+    for (let i = 0; i < 4; i++) { const y = 250 - i * 40; node(sk, 110, y, 180, 32, i === 3 ? 'block N' : i === 2 ? '⋮' : `block ${i + 1}`, { font: 'mono', s: 12 }); }
+    sk.ink(arr(200, 318, 200, 284));
+    node(sk, 110, 80, 180, 34, 'final norm', { font: 'mono', s: 12 });
+    node(sk, 110, 28, 180, 40, 'unembed → logits', { font: 'mono', s: 12, fill: 'accent' });
+    sk.ink(arr(200, 132, 200, 116)); sk.ink(arr(200, 78, 200, 70));
+    sk.ink(carr(294, 48, 380, 120, -20));
+    const p = softmax(logits.map(z => z / st.t));
+    bars(sk, p, 400, 70, 500, 220, { labels: cands, vals: true, max: 1, hi: 0, labS: 12 });
+    sk.hand(650, 50, '“The cat sat because it was ___”', 20, -2);
+    sk.mono(650, 340, `temperature ${st.t.toFixed(2)} · top p = ${p[0].toFixed(2)}`, { s: 12 });
+  },
+  controls: c => c.slider('t', 'Temperature', 0.1, 3, 0.05, v => v.toFixed(2))
+});
+
+fig('params', {
+  view: '0 0 960 330', hue: 150, state: { d: 4096, n: 32 },
+  label: 'Stacked bar of total parameters split into attention, MLP and embeddings for the chosen width and depth, plus a per-block split showing MLP as two thirds.',
+  draw(sk, st) {
+    const d = st.d, N = st.n, V = 128000, att = 4 * d * d * N, mlp = 8 * d * d * N, emb = V * d * 2, tot = att + mlp + emb;
+    const W = 800, x0 = 80; let x = x0;
+    [['attention 4d²·N', att, 0.45], ['MLP 8d²·N', mlp, 0.9], ['embed + unembed', emb, 0.2]].forEach(([t, v, a], i) => {
+      const w = W * v / tot;
+      sk.cell(rect(x, 110, w, 60), a); sk.ink(box(x, 110, w, 60, i));
+      if (w > 70) sk.mono(x + w / 2, 145, `${fmtN(v)}`, { s: 12 });
+      sk.hand(x + w / 2, i % 2 ? 214 : 96, t, 18, -2);
+      x += w;
+    });
+    sk.serif(480, 60, `≈ ${fmtN(tot)} parameters`, 30);
+    sk.mono(480, 260, `d = ${d}, N = ${N}, V = 128k, untied`, { s: 12 });
+  },
+  controls: c => c.slider('d', 'Width d', 512, 8192, 256).slider('n', 'Blocks N', 2, 96, 1)
+});
+
+const Ed = { view: '0 0 240 110', hue: 150 };
+fig('e-final', { ...Ed, draw(sk) { node(sk, 20, 36, 60, 34, 'block', { font: 'mono', s: 11 }); node(sk, 94, 36, 52, 34, 'norm', { font: 'mono', s: 11, fill: 'accent' }); node(sk, 160, 36, 64, 34, 'unembed', { font: 'mono', s: 10 }); sk.ink(arr(82, 53, 92, 53)); sk.ink(arr(148, 53, 158, 53)); } });
+fig('e-grow', { ...Ed, draw(sk) { bars(sk, [1, 1.6, 2.3, 3.1, 4, 5.2], 40, 14, 160, 70, { hiSet: new Set([5]) }); sk.mono(120, 104, '‖stream‖ by layer', { s: 10 }); } });
+fig('e-swiglu', { ...Ed, draw(sk) { ['gate', 'up', 'down'].forEach((t, i) => node(sk, 16 + i * 72, 34, 62, 36, t, { font: 'mono', s: 11, fill: i === 0 ? 'accent' : 'paper' })); sk.mono(120, 96, 'hidden ≈ 8d/3', { s: 11 }); } });
+fig('e-eps', { ...Ed, draw(sk) { sk.mono(120, 44, 'x / √(var + ε)', { s: 14 }); sk.mono(120, 76, 'ε = 1e-12 → 0 in fp16', { s: 11, c: 'redt' }); } });
+fig('e-drop', { ...Ed, draw(sk) { sk.ink(arr(60, 100, 60, 12)); node(sk, 100, 40, 80, 32, 'dropout', { font: 'mono', s: 11, fill: 'accent' }); sk.ink(carr(140, 38, 66, 24, 10)); sk.red(cross(60, 60, 8)); } });
+  </script></Fragment>
+</Note>

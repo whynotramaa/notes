@@ -1,0 +1,311 @@
+---
+import Note from '../../../layouts/Note.astro';
+---
+<Note ch={1} description="How byte-level BPE turns any text into integer ids: UTF-8 bytes, pre-tokenization, learning merges, encoding, vocabulary size, and bits per byte.">
+  <header class="hero">
+    <div>
+      <p class="kicker">chapter 01</p>
+      <h1><span>Byte-level BPE</span></h1>
+      <p class="lede">A model cannot read letters.</p>
+    </div>
+  </header>
+
+  <h2>Text is already numbers</h2>
+
+  <figure class="fig" id="utf8">
+    <div class="fig-head"><h3>Characters become bytes</h3></div>
+  </figure>
+
+  <figure class="fig" id="cuts">
+    <div class="fig-head"><h3>Four ways to cut the same word</h3></div>
+  </figure>
+
+  <h2>Before merging: draw walls</h2>
+
+  <figure class="fig" id="pretok">
+    <div class="fig-head"><h3>Pre-tokenization chunks</h3></div>
+  </figure>
+
+  <h2>Training: learn the merges</h2>
+
+  <figure class="fig" id="train">
+    <div class="fig-head"><h3>Watch BPE learn on a tiny corpus</h3></div>
+  </figure>
+
+  <figure class="fig" id="encode">
+    <div class="fig-head"><h3>Encoding new text with the learned merges</h3></div>
+  </figure>
+
+  <h2>How big should the vocabulary be?</h2>
+
+  <figure class="fig" id="vocab">
+    <div class="fig-head"><h3>The vocabulary size trade-off</h3></div>
+  </figure>
+
+  <figure class="fig" id="bpb">
+    <div class="fig-head"><h3>Perplexity vs bits per byte</h3></div>
+    <div class="formula">bits/byte = <em>loss per token (nats)</em> ÷ ln 2 ÷ <em>bytes per token</em> &nbsp;·&nbsp; perplexity = e<sup>loss</sup></div>
+  </figure>
+
+  <h2>Exceptions and sharp edges</h2>
+  <div class="edges">
+    <article class="edge redraw" id="e-emoji"><div class="art"></div><h4>Emoji split mid-character</h4><span class="fix">when streaming, buffer bytes until they form complete UTF-8.</span></article>
+    <article class="edge redraw" id="e-space"><div class="art"></div><h4>“ the” and “the” differ</h4><span class="fix">never strip or add spaces around prompts casually.</span></article>
+    <article class="edge redraw" id="e-num"><div class="art"></div><h4>Numbers split unevenly</h4><span class="fix">split digits one by one, or in fixed groups of three.</span></article>
+    <article class="edge redraw" id="e-lang"><div class="art"></div><h4>Some languages cost more</h4><span class="fix">train merges on a balanced multilingual corpus.</span></article>
+    <article class="edge redraw" id="e-case"><div class="art"></div><h4>Case changes everything</h4><span class="fix">nothing to fix, the model learns the link from data.</span></article>
+    <article class="edge redraw" id="e-tie"><div class="art"></div><h4>Ties in pair counts</h4><span class="fix">break ties deterministically, for example by byte order.</span></article>
+    <article class="edge redraw" id="e-special"><div class="art"></div><h4>Special tokens are not text</h4><span class="fix">add special tokens outside the merge process.</span></article>
+    <article class="edge redraw" id="e-glitch"><div class="art"></div><h4>Under-trained tokens</h4><span class="fix">train the tokenizer on data like the model's.</span></article>
+  </div>
+  <Fragment slot="scripts"><script is:inline>
+const { fig, box, rect, o, arr, carr, ln, node, chip, bars, axes, smooth, cross, check, squig, clamp, map } = Ink;
+const enc = new TextEncoder(), dec = new TextDecoder();
+const show = s => s.replace(/ /g, '␠').replace(/\n/g, '↵').replace(/\t/g, '⇥');
+const hex = b => b.toString(16).toUpperCase().padStart(2, '0');
+const RX = /'s|'t|'re|'ve|'m|'ll|'d| ?\p{L}+| ?\p{N}+| ?[^\s\p{L}\p{N}]+|\s+(?!\S)|\s+/gu;
+const kind = c => /^\s+$/u.test(c) ? 'space' : /\p{N}/u.test(c) ? 'number' : /\p{L}/u.test(c) ? 'word' : 'symbol';
+
+fig('utf8', {
+  view: '0 0 960 270', hue: 85, state: { text: 'naïve café 🙂' },
+  label: 'Each character of the typed text sits above the UTF-8 bytes that encode it. Multi-byte characters are highlighted.',
+  draw(sk, st) {
+    const chars = [...st.text].slice(0, 24), cw = 34;
+    let x = 30, total = 0, y0 = 70, y1 = 150;
+    sk.mono(22, 60, 'chars', { a: 'end', c: 'muted' });
+    sk.mono(22, 172, 'bytes', { a: 'end', c: 'muted' });
+    for (const ch of chars) {
+      const bytes = [...enc.encode(ch)];
+      if (x + bytes.length * cw > 940) { sk.hand(x + 20, 120, '…', 30); break; }
+      const w = bytes.length * cw, multi = bytes.length > 1;
+      multi ? sk.accent(box(x + 2, y0 - 16, w - 4, 40, x)) : sk.paper(box(x + 2, y0 - 16, w - 4, 40, x));
+      sk.ink(box(x + 2, y0 - 16, w - 4, 40, x));
+      sk.text(x + w / 2, y0 + 12, ch === ' ' ? '␠' : ch, { f: 'serif', s: 22 });
+      sk.thin(`M${x + w / 2} ${y0 + 26}L${x + w / 2} ${y1 - 8}`);
+      bytes.forEach((b, i) => { chip(sk, x + i * cw + 2, y1, cw - 4, 36, hex(b), { hi: multi, s: 12 }); });
+      if (multi) sk.mono(x + w / 2, y1 + 54, `${bytes.length} bytes`, { s: 10, c: 'tint' });
+      x += w; total += bytes.length;
+    }
+    sk.hand(830, 252, `${[...st.text].length} chars → ${enc.encode(st.text).length} bytes`, 22, -2);
+  },
+  controls: c => c.text('text', 'Type text', 30).note('try ü, 日本, 🙂, or ∑')
+});
+
+fig('cuts', {
+  view: '0 0 960 330', hue: 85,
+  label: 'The word unhappiness cut as one word, eleven characters, eleven bytes, and three BPE tokens: un, happi, ness. Word vocabularies fail on new words; bytes never fail.',
+  draw(sk) {
+    const rows = [
+      ['words', ['unhappiness'], 'vocab: every word ever. new word → [UNK]', true],
+      ['chars', [...'unhappiness'], 'vocab: ~150k Unicode code points', false],
+      ['bytes', [...enc.encode('unhappiness')].map(hex), 'vocab: 256. never unknown. long.', false],
+      ['BPE', ['un', 'happi', 'ness'], 'vocab: 256 + learned merges', false],
+    ];
+    rows.forEach(([lab, parts, note, bad], r) => {
+      const y = 30 + r * 72;
+      sk.hand(62, y + 28, lab, 24, -3);
+      let x = 110;
+      const w = parts.length === 1 ? 210 : parts.length === 3 ? 70 : 31;
+      parts.forEach((p, i) => { const ww = parts.length === 3 ? [40, 74, 58][i] + 10 : w; chip(sk, x, y + 6, ww, 32, p, { hi: r === 3, s: parts.length === 1 ? 16 : 13 }); x += ww + 4; });
+      sk.mono(x + 18, y + 26, `${parts.length} token${parts.length > 1 ? 's' : ''}`, { a: 'start', s: 13 });
+      sk.text(940, y + 27, note, { s: 18, a: 'end', c: bad ? 'redt' : 'muted' });
+    });
+    sk.red(cross(332, 52, 10));
+    sk.ink(ticks(420, 250));
+  }
+});
+function ticks(x, y) { return `M${x} ${y} ${x + 7} ${y - 13}M${x + 4} ${y + 8} ${x + 17} ${y + 3}M${x + 2} ${y + 17} ${x + 13} ${y + 23}`; }
+
+fig('pretok', {
+  view: '0 0 960 230', hue: 85, state: { text: "I'll pay $1,250 for 3 cats!!" },
+  label: 'The typed text split into pre-tokenization chunks, each labelled word, number, symbol or space.',
+  draw(sk, st) {
+    const parts = st.text.match(RX) || [];
+    let x = 24, y = 70;
+    parts.forEach((p, i) => {
+      const w = Math.max(30, 13 * [...p].length + 16);
+      if (x + w > 940) { x = 24; y += 80; }
+      if (y > 160) return;
+      const k = kind(p.trim() || p);
+      chip(sk, x, y, w, 38, show(p), { hi: k === 'word', dim: k === 'space', s: 14 });
+      sk.mono(x + w / 2, y + 56, k, { s: 10, c: 'muted' });
+      if (i < parts.length - 1) sk.red(`M${x + w + 4} ${y - 8}V${y + 46}`);
+      x += w + 10;
+    });
+    sk.hand(860, 34, 'red bars = walls', 21, -3, { c: 'redt' });
+  },
+  controls: c => c.text('text', 'Type text', 40).read(st => `${(st.text.match(RX) || []).length} chunks`)
+});
+
+function trainBPE(text, limit = 12) {
+  const counts = new Map();
+  for (const w of text.match(RX) || []) counts.set(w, (counts.get(w) || 0) + 1);
+  let words = [...counts].map(([w, c]) => ({ w, c, ids: [...enc.encode(w)] }));
+  const vocab = new Map(); for (let i = 0; i < 256; i++) vocab.set(i, [i]);
+  const merges = [], snaps = [];
+  for (let s = 0; s <= limit; s++) {
+    const pc = new Map();
+    for (const { c, ids } of words) for (let i = 0; i < ids.length - 1; i++) { const k = ids[i] + ',' + ids[i + 1]; pc.set(k, (pc.get(k) || 0) + c); }
+    const pairs = [...pc].map(([k, n]) => ({ pair: k.split(',').map(Number), n })).sort((a, b) => b.n - a.n || a.pair[0] - b.pair[0] || a.pair[1] - b.pair[1]);
+    const best = s < limit && pairs[0] && pairs[0].n >= 2 ? pairs[0] : null;
+    snaps.push({ words: words.map(w => ({ ...w, ids: w.ids.slice() })), pairs: pairs.slice(0, 6), best, merges: merges.slice() });
+    if (!best) break;
+    const id = 256 + merges.length;
+    vocab.set(id, [...vocab.get(best.pair[0]), ...vocab.get(best.pair[1])]);
+    merges.push({ pair: best.pair, id });
+    words = words.map(w => { const out = []; for (let i = 0; i < w.ids.length; i++) { if (w.ids[i] === best.pair[0] && w.ids[i + 1] === best.pair[1]) { out.push(id); i++; } else out.push(w.ids[i]); } return { ...w, ids: out }; });
+  }
+  return { vocab, merges, snaps };
+}
+const corpus = 'banana bandana banana band bandana banana';
+const bpe = trainBPE(corpus, 12);
+const tokStr = id => show(dec.decode(Uint8Array.from(bpe.vocab.get(id) || [id])));
+const tokW = id => 18 + 10 * [...tokStr(id)].length;
+
+fig('train', {
+  view: '0 0 960 420', hue: 85,
+  label: 'BPE training. Distinct chunks with counts on the left as token chips, a bar chart of the most frequent adjacent pairs on the right, and the learned merges listed along the bottom.',
+  draw(sk, st) {
+    const s = bpe.snaps[st.step];
+    sk.paper(box(20, 20, 500, 290, 1)); sk.ink(box(20, 20, 500, 290, 1));
+    sk.hand(40, 46, 'chunks', 22, -3, { a: 'start' });
+    s.words.forEach((w, r) => {
+      const y = 70 + r * 58;
+      sk.mono(62, y + 24, `×${w.c}`, { s: 13, a: 'end' });
+      let x = 74;
+      w.ids.forEach((id, i) => {
+        const inBest = s.best && ((id === s.best.pair[0] && w.ids[i + 1] === s.best.pair[1]) || (id === s.best.pair[1] && w.ids[i - 1] === s.best.pair[0]));
+        const fresh = st.step > 0 && id === 255 + st.step;
+        chip(sk, x, y, tokW(id), 34, tokStr(id), { hi: inBest, s: 13 });
+        if (fresh) sk.pop(box(x - 3, y - 3, tokW(id) + 6, 40, i));
+        x += tokW(id) + 5;
+      });
+      sk.mono(504, y + 22, `${w.ids.length} tok`, { a: 'end', s: 10, c: 'muted' });
+    });
+    sk.paper(box(548, 20, 392, 290, 2)); sk.ink(box(548, 20, 392, 290, 2));
+    sk.hand(568, 46, 'pair counts', 22, -3, { a: 'start' });
+    const max = Math.max(1, ...s.pairs.map(p => p.n));
+    s.pairs.forEach((p, i) => {
+      const y = 66 + i * 38, w = 200 * p.n / max, isB = s.best && i === 0;
+      sk.mono(668, y + 18, `${tokStr(p.pair[0])} + ${tokStr(p.pair[1])}`, { a: 'end', s: 12 });
+      const d = `M680 ${y + 4} ${680 + w} ${y + 3} ${680 + w - 3} ${y + 26} 680 ${y + 26}Z`;
+      isB ? sk.accent(d) : sk.cell(d, 0.3); sk.ink(d);
+      sk.mono(690 + w, y + 19, String(p.n), { a: 'start', s: 12 });
+    });
+    if (s.best) sk.hand(820, 292, `merge → “${tokStr(s.best.pair[0])}${tokStr(s.best.pair[1])}”`.replace(/␠/g, '␠'), 21, -3, { c: 'tint' });
+    else sk.hand(800, 292, 'no pair appears twice: stop', 20, -3, { c: 'redt' });
+    sk.hand(40, 350, 'merges', 22, -3, { a: 'start' });
+    let x = 120;
+    s.merges.forEach((m, i) => {
+      const t = tokStr(m.id), w = 30 + 10 * [...t].length;
+      if (x + w > 950) return;
+      chip(sk, x, 336, w, 30, t, { s: 12, sub: `#${256 + i}` });
+      x += w + 8;
+    });
+    if (!s.merges.length) sk.mono(124, 356, 'none yet: 256 raw bytes', { a: 'start', c: 'muted', s: 12 });
+    const tot = s.words.reduce((a, w) => a + w.c * w.ids.length, 0);
+    sk.mono(940, 410, `corpus = ${tot} tokens · vocab = ${256 + s.merges.length}`, { a: 'end', s: 12 });
+  },
+  controls: c => c.player('step', bpe.snaps.length, { ms: 1300, name: 'merge' })
+});
+
+function encodeSteps(text) {
+  const steps = [];
+  for (const chunk of text.match(RX) || []) {
+    let ids = [...enc.encode(chunk)];
+    steps.push({ chunk, ids: ids.slice(), rule: 'raw bytes' });
+    for (const m of bpe.merges) {
+      let hit = false; const out = [];
+      for (let i = 0; i < ids.length; i++) { if (ids[i] === m.pair[0] && ids[i + 1] === m.pair[1]) { out.push(m.id); i++; hit = true; } else out.push(ids[i]); }
+      if (hit) { ids = out; steps.push({ chunk, ids: ids.slice(), rule: `${tokStr(m.pair[0])} + ${tokStr(m.pair[1])} → ${tokStr(m.id)}` }); }
+    }
+  }
+  return steps.length ? steps : [{ chunk: '', ids: [], rule: 'empty' }];
+}
+fig('encode', {
+  view: '0 0 960 360', hue: 85, state: { text: ' bandanas' },
+  label: 'Encoding the typed text: rows show the token chips after each learned merge is applied, ending at the final encoding.',
+  draw(sk, st) {
+    const steps = encodeSteps(st.text), cur = Math.min(st.step, steps.length - 1);
+    const from = Math.max(0, cur - 5);
+    steps.slice(from, cur + 1).forEach((s, r) => {
+      const y = 28 + r * 52, last = from + r === cur;
+      sk.mono(250, y + 22, s.rule, { a: 'end', s: 12, c: last ? '' : 'muted' });
+      let x = 270;
+      s.ids.forEach(id => { const w = tokW(id); if (x + w < 900) chip(sk, x, y, w, 32, tokStr(id), { hi: last && id >= 256, dim: !last, s: 13 }); x += w + 5; });
+      sk.mono(940, y + 22, `${s.ids.length}`, { a: 'end', s: 12, c: last ? '' : 'muted' });
+    });
+    sk.ink(arr(256, 330, 256, 340));
+    sk.hand(120, 345, steps[cur].chunk ? `chunk “${show(steps[cur].chunk)}”` : 'type something', 20, -2);
+    sk.hand(700, 345, cur === steps.length - 1 ? 'done: these ids go to the model' : 'next merge in learned order…', 20, -2, { c: 'tint' });
+  },
+  controls: c => c.player('step', st => encodeSteps(st.text).length, { ms: 900, name: 'step' }).text('text', 'Text', 24)
+});
+
+const bpt = V => 1 + 3.4 * (1 - Math.exp(-Math.log2(V / 256) / 4.5));
+fig('vocab', {
+  view: '0 0 960 330', hue: 85, state: { lv: Math.log2(50257) },
+  label: 'Two charts against vocabulary size on a log axis: bytes per token rising and flattening, and embedding parameters rising linearly. A vertical marker shows the chosen size.',
+  draw(sk, st) {
+    const V = 2 ** st.lv, X = lv => map(lv, 8, 18, 60, 420), X2 = lv => map(lv, 8, 18, 540, 900);
+    axes(sk, 60, 40, 370, 210, { xl: 'vocab size (log) →', yl: 'bytes per token' });
+    const pts = []; for (let lv = 8; lv <= 18; lv += 0.25) pts.push([X(lv), map(bpt(2 ** lv), 0.8, 4.6, 250, 40)]);
+    sk.plot(smooth(pts), 'pop');
+    sk.dash(`M${X(st.lv)} 40V250`);
+    sk.accent(o(X(st.lv), map(bpt(V), 0.8, 4.6, 250, 40), 7)); sk.ink(o(X(st.lv), map(bpt(V), 0.8, 4.6, 250, 40), 7));
+    sk.mono(X(st.lv) + 10, 66, `${bpt(V).toFixed(2)} B/tok`, { a: 'start', s: 12 });
+    [256, 4096, 65536].forEach(v => sk.mono(X(Math.log2(v)), 270, Ink.fmtN(v), { s: 10, c: 'muted' }));
+    axes(sk, 540, 40, 370, 210, { xl: 'vocab size (log) →', yl: 'embedding params (d = 4096)' });
+    const P = lv => 2 ** lv * 4096, ymax = P(18);
+    const pts2 = []; for (let lv = 8; lv <= 18; lv += 0.25) pts2.push([X2(lv), map(P(lv), 0, ymax, 250, 40)]);
+    sk.plot(smooth(pts2));
+    sk.dash(`M${X2(st.lv)} 40V250`);
+    sk.accent(o(X2(st.lv), map(P(st.lv), 0, ymax, 250, 40), 7)); sk.ink(o(X2(st.lv), map(P(st.lv), 0, ymax, 250, 40), 7));
+    sk.mono(X2(st.lv) - 10, map(P(st.lv), 0, ymax, 250, 40) - 12, `${Ink.fmtN(P(st.lv))} params`, { a: 'end', s: 12 });
+    [256, 4096, 65536].forEach(v => sk.mono(X2(Math.log2(v)), 270, Ink.fmtN(v), { s: 10, c: 'muted' }));
+    const T = Math.round(4000 / bpt(V));
+    sk.hand(480, 316, `a 4 KB document ≈ ${T} tokens → ${Ink.fmtN(T * T)} attention scores per head`, 21, -1, { c: 'tint' });
+  },
+  controls: c => c.slider('lv', 'Vocab size', 8, 18, 0.05, v => Math.round(2 ** v).toLocaleString())
+});
+
+fig('bpb', {
+  view: '0 0 960 320', hue: 85, state: { lossB: 2.6, bptB: 3.0 },
+  label: 'Two models compared. Bars show perplexity and bits per byte. Model A: loss 3.0 nats per token, 4 bytes per token. Model B is adjustable. The better model by perplexity can be worse by bits per byte.',
+  draw(sk, st) {
+    const A = { loss: 3.0, bpt: 4.0 }, B = { loss: st.lossB, bpt: st.bptB };
+    const ppl = m => Math.exp(m.loss), bb = m => m.loss / Math.LN2 / m.bpt;
+    const pA = ppl(A), pB = ppl(B), bA = bb(A), bB = bb(B);
+    sk.hand(240, 40, 'perplexity (per token)', 22, -2);
+    sk.hand(720, 40, 'bits per byte', 22, -2);
+    const pm = Math.max(pA, pB) * 1.15, bm = Math.max(bA, bB) * 1.15;
+    const bar = (x, v, m, win, lab, val) => {
+      const h = 190 * v / m, d = `M${x} ${250 - h + 2} ${x + 90} ${250 - h} ${x + 90} 250 ${x} 250Z`;
+      win ? sk.accent(d) : sk.cell(d, 0.25); sk.ink(d);
+      sk.mono(x + 45, 250 - h - 10, val, { s: 13 });
+      sk.hand(x + 45, 278, lab, 21);
+      if (win) sk.ink(Ink.check(x + 34, 304, 0.8));
+    };
+    bar(110, pA, pm, pA <= pB, 'model A', pA.toFixed(1));
+    bar(260, pB, pm, pB < pA, 'model B', pB.toFixed(1));
+    bar(590, bA, bm, bA <= bB, 'model A', bA.toFixed(3));
+    bar(740, bB, bm, bB < bA, 'model B', bB.toFixed(3));
+    sk.thin('M480 60V290');
+    sk.mono(165, 70, 'A: 3.0 nats · 4.0 B/tok', { s: 11, c: 'muted' });
+    sk.mono(305, 86, `B: ${st.lossB.toFixed(2)} nats · ${st.bptB.toFixed(1)} B/tok`, { s: 11, c: 'muted' });
+    if ((pA < pB) !== (bA < bB)) sk.hand(480, 300, 'the rankings disagree!', 22, -4, { c: 'redt' });
+  },
+  controls: c => c.slider('lossB', 'B loss (nats/token)', 1.5, 4, 0.05, v => v.toFixed(2)).slider('bptB', 'B bytes/token', 1.5, 6, 0.1, v => v.toFixed(1))
+});
+
+const E = { view: '0 0 240 110', hue: 85 };
+fig('e-emoji', { ...E, draw(sk) { ['F0', '9F', '99', '82'].forEach((b, i) => chip(sk, 30 + i * 46 + (i > 1 ? 10 : 0), 28, 40, 28, b, { hi: i < 2, s: 12 })); sk.red('M126 18V68'); sk.hand(70, 92, '→ �', 22, -3, { c: 'redt' }); sk.hand(180, 92, '→ �', 22, 3, { c: 'redt' }); } });
+fig('e-space', { ...E, draw(sk) { chip(sk, 30, 32, 76, 34, '␠the', { hi: true, s: 14, sub: 'id 262' }); chip(sk, 134, 32, 76, 34, 'the', { s: 14, sub: 'id 1169' }); sk.hand(120, 52, '≠', 26); } });
+fig('e-num', { ...E, draw(sk) { [['123', 52], ['45', 40], ['67', 40]].reduce((x, [t, w], i) => { chip(sk, x, 30, w, 32, t, { hi: i === 0, s: 14 }); return x + w + 6; }, 46); sk.hand(120, 94, 'carry the 1… where?', 18, -2); } });
+fig('e-lang', { ...E, draw(sk) { bars(sk, [5, 18], 60, 16, 120, 60, { labels: ['hello', 'नमस्ते'], vals: true, fmt: v => v + ' B', hi: 1, gap: 30 }); } });
+fig('e-case', { ...E, draw(sk) { [['Hello', 0], ['hello', 1], ['HELLO', 0]].forEach(([t, h], i) => chip(sk, 18 + i * 72, 34, 62, 32, t, { hi: h, s: 13, sub: ['#15496', '#31373', '#13909'][i] })); } });
+fig('e-tie', { ...E, draw(sk) { bars(sk, [5, 5], 70, 20, 100, 56, { labels: ['a+n', 'n+a'], hiSet: new Set([0, 1]), gap: 20 }); sk.hand(196, 40, '?', 30, 10, { c: 'redt' }); } });
+fig('e-special', { ...E, draw(sk) { chip(sk, 50, 22, 140, 30, '<|endoftext|>', { hi: true, s: 12, sub: 'one id: 50256' }); sk.hand(120, 102, 'not 13 bytes of text', 17, -2); } });
+fig('e-glitch', { ...E, draw(sk) { chip(sk, 30, 30, 180, 32, '␠SolidGoldMagikarp', { hi: true, s: 12 }); sk.red(squig(40, 80, 160, 4)); sk.hand(196, 26, '?!', 22, 8, { c: 'redt' }); } });
+</script></Fragment>
+</Note>

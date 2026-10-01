@@ -1,0 +1,204 @@
+---
+import Note from '../../../layouts/Note.astro';
+---
+<Note ch={9} description="Single-head versus multi-head attention: why one softmax blurs, splitting the width into heads, head patterns, concatenation and W_O, unchanged cost, and grouped-query attention.">
+  <header class="hero">
+    <div>
+      <p class="kicker">chapter 09</p>
+      <h1><span>Multi-head</span> attention</h1>
+      <p class="lede">One head produces one set of weights per token.</p>
+    </div>
+  </header>
+
+  <h2>Single head vs multi-head</h2>
+  <figure class="fig" id="blur">
+    <div class="fig-head"><h3>One softmax, two needs</h3></div>
+  </figure>
+
+  <figure class="fig" id="split">
+    <div class="fig-head"><h3>Split the width, do not multiply it</h3></div>
+  </figure>
+
+  <h2>What different heads learn</h2>
+  <figure class="fig" id="arcs">
+    <div class="fig-head"><h3>Four heads, four habits</h3></div>
+  </figure>
+
+  <figure class="fig" id="grid">
+    <div class="fig-head"><h3>The same four heads as matrices</h3></div>
+  </figure>
+
+  <h2>Putting heads back together</h2>
+  <figure class="fig" id="concat">
+    <div class="fig-head"><h3>Concatenate, then mix with W<sub>O</sub></h3></div>
+    <div class="formula">MultiHead(x) = <em>concat</em>(head₁, …, head<sub>h</sub>) · <em>W<sub>O</sub></em></div>
+  </figure>
+
+  <figure class="fig" id="cost">
+    <div class="fig-head"><h3>More heads, same parameter bill</h3></div>
+  </figure>
+
+  <figure class="fig" id="gqa">
+    <div class="fig-head"><h3>Heads can share keys and values</h3></div>
+  </figure>
+
+  <h2>Exceptions and sharp edges</h2>
+  <div class="edges">
+    <article class="edge redraw" id="e-div"><div class="art"></div><h4>d<sub>model</sub> must divide by h</h4><span class="fix">pick h so d_model / h is a whole number, usually 64 or 128.</span></article>
+    <article class="edge redraw" id="e-tiny"><div class="art"></div><h4>Heads that are too narrow</h4><span class="fix">keep d_head around 64 to 128 and scale heads with width.</span></article>
+    <article class="edge redraw" id="e-redund"><div class="art"></div><h4>Many heads are redundant</h4><span class="fix">useful for compression, but you still need them during training.</span></article>
+    <article class="edge redraw" id="e-sink"><div class="art"></div><h4>Attention sinks</h4><span class="fix">keep the first tokens in the cache when trimming long contexts.</span></article>
+    <article class="edge redraw" id="e-reshape"><div class="art"></div><h4>The reshape bug</h4><span class="fix">check one head's output against a single-head reference.</span></article>
+  </div>
+
+  <Fragment slot="scripts"><script is:inline>
+const { fig, box, rect, o, arr, carr, ln, node, chip, heat, vec, bars, axes, smooth, cross, check, squig, clamp, map, gauss, dot, softmax, matmul } = Ink;
+const toks = ['The', 'cat', 'sat', 'because', 'it', 'was', 'tired'];
+const n = 7;
+const causal = f => Array.from({ length: n }, (_, i) => { const s = Array.from({ length: n }, (_, j) => j > i ? -Infinity : f(i, j)); return softmax(s); });
+const heads = {
+  'previous token': causal((i, j) => (j === i - 1 ? 4 : j === i ? (i === 0 ? 4 : 1) : 0)),
+  'antecedent': causal((i, j) => (i === 4 && j === 1 ? 5 : i === 6 && j === 1 ? 3 : i === 2 && j === 1 ? 3 : j === i ? 1.5 : 0)),
+  'first-token sink': causal((i, j) => (j === 0 ? 3.5 : j === i ? 1 : 0)),
+  'broad average': causal(() => 0),
+};
+const names = Object.keys(heads);
+
+fig('blur', {
+  view: '0 0 960 360', hue: 250,
+  label: 'Left: one head splitting its weights between cat and because, producing a blended output. Right: two heads, one focused on cat and one on because, each with a sharp output.',
+  draw(sk) {
+    const one = [0.06, 0.4, 0.06, 0.38, 0.1], h1 = [0.02, 0.9, 0.02, 0.03, 0.03], h2 = [0.02, 0.03, 0.05, 0.85, 0.05], labs = toks.slice(0, 5);
+    sk.hand(240, 34, 'one head', 24, -3);
+    bars(sk, one, 60, 70, 360, 150, { labels: labs, max: 1, vals: true, hiSet: new Set([1, 3]) });
+    sk.ink(arr(240, 260, 240, 290));
+    vec(sk, [0.5, 0.4, 0.45, 0.5, 0.42, 0.48], 140, 300, 34, 30, { max: 1 });
+    sk.hand(240, 352, 'muddy blend', 22, -2, { c: 'redt' });
+    sk.hand(720, 34, 'two heads', 24, -3);
+    bars(sk, h1, 520, 70, 180, 130, { labels: labs, max: 1, hiSet: new Set([1]), labS: 9.5 });
+    bars(sk, h2, 740, 70, 180, 130, { labels: labs, max: 1, hiSet: new Set([3]), labS: 9.5 });
+    sk.mono(610, 62, 'head 1: who is it?', { s: 10.5 }); sk.mono(830, 62, 'head 2: what came before?', { s: 10.5 });
+    sk.ink(arr(610, 236, 610, 290)); sk.ink(arr(830, 236, 830, 290));
+    vec(sk, [0.95, 0.1, 0.8], 560, 300, 34, 30, { max: 1 }); vec(sk, [0.1, 0.9, 0.2], 780, 300, 34, 30, { max: 1 });
+    sk.hand(720, 352, 'two sharp answers', 22, -2, { c: 'tint' });
+  }
+});
+
+fig('split', {
+  view: '0 0 960 260', hue: 250, state: { h: 3 },
+  label: 'A vector of width 12 drawn as twelve cells, divided by thick marks into h equal slices, one per head, with the head width labelled.',
+  draw(sk, st) {
+    const d = 12, w = 64, dh = d / st.h, x0 = 96;
+    for (let j = 0; j < d; j++) { const hd = Math.floor(j / dh); sk.cell(rect(x0 + j * w, 80, w, 60), hd % 2 ? 0.35 : 0.8); sk.mono(x0 + j * w + w / 2, 116, String(j), { s: 11 }); }
+    sk.ink(box(x0, 80, d * w, 60, 1));
+    for (let k = 1; k < st.h; k++) sk.ink(`M${x0 + k * dh * w} 70V150`);
+    for (let k = 0; k < st.h; k++) sk.hand(x0 + (k + 0.5) * dh * w, 186, st.h <= 6 ? `head ${k + 1}` : `${k + 1}`, st.h <= 6 ? 20 : 16, -3);
+    sk.serif(480, 44, `${st.h} head${st.h > 1 ? 's' : ''} × d_head ${dh} = 12`, 24);
+    sk.hand(480, 236, dh <= 2 ? 'very narrow lanes: each head sees little' : dh >= 12 ? 'one wide lane, one pattern' : 'balanced', 20, -2, { c: dh <= 2 ? 'redt' : 'tint' });
+  },
+  controls: c => c.choice('h', 'Heads', [1, 2, 3, 4, 6, 12].map(v => [v, String(v)]))
+});
+
+fig('arcs', {
+  view: '0 0 960 330', hue: 250, state: { k: 'antecedent' },
+  label: 'The sentence as chips in a row. Curved arcs above connect each token to the tokens it attends to for the selected head, with thickness showing weight.',
+  draw(sk, st) {
+    const W = heads[st.k], xs = toks.map((_, i) => 80 + i * 130);
+    toks.forEach((t, i) => chip(sk, xs[i] - 50, 240, 100, 38, t, { hi: st.k === 'antecedent' && (i === 1 || i === 4), s: 14 }));
+    W.forEach((row, i) => row.forEach((w, j) => {
+      if (j >= i || w < 0.08) return;
+      const x1 = xs[i], x2 = xs[j], h = 30 + (i - j) * 26;
+      sk.raw(`<path d="M${x1} 236C${x1} ${236 - h} ${x2} ${236 - h} ${x2} 236" fill="none" style="stroke:oklch(var(--pop) var(--hue))" stroke-width="${(1 + w * 9).toFixed(1)}" stroke-linecap="round" opacity="${(0.35 + w * 0.65).toFixed(2)}"/>`);
+    }));
+    sk.hand(480, 316, st.k, 24, -2, { c: 'tint' });
+    if (st.k === 'broad average') sk.hand(820, 60, 'arcs everywhere, all thin', 18, -3);
+    if (st.k === 'first-token sink') sk.hand(170, 60, 'everything falls into “The”', 18, -3);
+  },
+  controls: c => c.choice('k', 'Head', names.map(v => [v, v]))
+});
+
+fig('grid', {
+  view: '0 0 960 330', hue: 250,
+  label: 'Four 7 by 7 attention matrices side by side for the previous-token, antecedent, first-token sink, and broad-average heads.',
+  draw(sk) {
+    names.forEach((k, i) => {
+      const x0 = 50 + i * 230;
+      heat(sk, heads[k], x0, 70, 26, 26, { max: 1, grid: false });
+      sk.hand(x0 + 91, 50, k, 19, -2);
+    });
+    sk.mono(480, 300, 'rows = query token, columns = key token, causal', { s: 11, c: 'muted' });
+  }
+});
+
+fig('concat', {
+  view: '0 0 960 360', hue: 250,
+  label: 'Three head outputs of width 4 are concatenated into one vector of width 12, which is multiplied by W_O to give the final output of width 12.',
+  draw(sk, st) {
+    const hs = [0, 1, 2].map(h => Array.from({ length: 4 }, (_, j) => gauss(h + 5, j + 1) * 0.7));
+    hs.forEach((v, h) => { sk.hand(60, 60 + h * 70, `head ${h + 1}`, 18, -3); vec(sk, v, 110, 42 + h * 70, 30, 30, { max: 1.4 }); });
+    if (st.step >= 1) {
+      const cat = hs.flat();
+      sk.ink(arr(250, 130, 300, 130));
+      vec(sk, cat, 310, 115, 28, 30, { max: 1.4 });
+      for (let k = 1; k < 3; k++) sk.ink(`M${310 + k * 112} 108V152`);
+      sk.mono(478, 170, 'concat  [1 × 12]', { s: 11 });
+    }
+    if (st.step >= 2) {
+      sk.ink(arr(478, 180, 478, 214));
+      const Wo = Array.from({ length: 12 }, (_, i) => Array.from({ length: 12 }, (_, j) => gauss(i + 40, j + 2) * 0.4));
+      heat(sk, Wo, 410, 220, 11.5, 9, { grid: false });
+      sk.mono(478, 342, 'W_O  [12 × 12]', { s: 11 });
+    }
+    if (st.step >= 3) {
+      const out = matmul([hs.flat()], Array.from({ length: 12 }, (_, i) => Array.from({ length: 12 }, (_, j) => gauss(i + 40, j + 2) * 0.4)))[0];
+      sk.ink(arr(560, 270, 620, 270));
+      vec(sk, out, 630, 255, 26, 30, { max: 1.4 });
+      sk.pop(box(626, 251, 320, 38, 2));
+      sk.hand(790, 320, 'every output dim now mixes all heads', 19, -2, { c: 'tint' });
+    }
+  },
+  controls: c => c.player('step', 4, { ms: 1100, name: 'step' })
+});
+
+fig('cost', {
+  view: '0 0 960 300', hue: 250, state: { h: 4 },
+  label: 'Four square matrices W_Q, W_K, W_V and W_O, each d by d, with W_Q, W_K and W_V divided into h column blocks. The parameter total stays 4 d squared.',
+  draw(sk, st) {
+    ['W_Q', 'W_K', 'W_V', 'W_O'].forEach((t, i) => {
+      const x = 40 + i * 230, s = 160;
+      sk.paper(box(x, 60, s, s, i)); sk.ink(box(x, 60, s, s, i));
+      for (let k = 0; k < st.h; k++) if (k % 2 === 0) sk.cell(rect(x + (i === 3 ? 0 : k * s / st.h), 60 + (i === 3 ? k * s / st.h : 0), i === 3 ? s : s / st.h, i === 3 ? s / st.h : s), 0.35);
+      for (let k = 1; k < st.h; k++) i === 3 ? sk.thin(`M${x} ${60 + k * s / st.h}h${s}`) : sk.thin(`M${x + k * s / st.h} 60v${s}`);
+      sk.serif(x + s / 2, 48, t, 20); sk.mono(x + s / 2, 240, 'd × d', { s: 11 });
+    });
+    sk.hand(480, 284, `h = ${st.h} → still 4 × d² = 4 × 768² ≈ 2.36M params per layer at d = 768`, 19, -1, { c: 'tint' });
+  },
+  controls: c => c.choice('h', 'Heads', [1, 2, 4, 8, 16].map(v => [v, String(v)]))
+});
+
+fig('gqa', {
+  view: '0 0 960 340', hue: 250, state: { kv: 2 },
+  label: 'Eight query heads on top. Below, a smaller number of key-value heads, with lines showing which query heads share each key-value head. With 8 it is standard multi-head, with 1 it is multi-query.',
+  draw(sk, st) {
+    const Qh = 8, g = Qh / st.kv;
+    for (let i = 0; i < Qh; i++) { const x = 60 + i * 108; chip(sk, x, 60, 80, 36, `Q${i + 1}`, { hi: true, s: 13 }); }
+    for (let j = 0; j < st.kv; j++) {
+      const cx = 60 + ((j + 0.5) * g - 0.5) * 108 + 40;
+      chip(sk, cx - 50, 220, 100, 40, `K,V ${j + 1}`, { s: 13 });
+      for (let i = j * g; i < (j + 1) * g; i++) sk.ink(ln(60 + i * 108 + 40, 100, cx, 216, i));
+    }
+    const name = st.kv === 8 ? 'MHA: no sharing' : st.kv === 1 ? 'MQA: one K,V for all' : `GQA: groups of ${g}`;
+    sk.serif(480, 310, name, 22);
+    sk.hand(830, 300, `KV cache ÷ ${8 / st.kv}`, 22, -4, { c: 'tint' });
+  },
+  controls: c => c.choice('kv', 'K,V heads', [[8, '8 (MHA)'], [4, '4'], [2, '2 (GQA)'], [1, '1 (MQA)']])
+});
+
+const Ed = { view: '0 0 240 110', hue: 250 };
+fig('e-div', { ...Ed, draw(sk) { sk.mono(120, 42, '768 / 12 = 64 ✓', { s: 13 }); sk.mono(120, 74, '768 / 10 = 76.8', { s: 13, c: 'redt' }); } });
+fig('e-tiny', { ...Ed, draw(sk) { for (let i = 0; i < 16; i++) sk.ink(box(24 + i * 12, 36, 9, 30, i)); sk.hand(120, 96, '16 heads of width 8', 16, -2, { c: 'redt' }); } });
+fig('e-redund', { ...Ed, draw(sk) { [0, 1, 2].forEach(i => heat(sk, [[1, 0, 0], [0.9, 0.1, 0], [0.1, 0.8, 0.1]], 30 + i * 66, 30, 15, 15, { max: 1, grid: false })); sk.hand(120, 94, 'triplets', 18, -2); } });
+fig('e-sink', { ...Ed, draw(sk) { heat(sk, heads['first-token sink'].slice(0, 4).map(r => r.slice(0, 4)), 76, 14, 20, 20, { max: 1 }); sk.ink(arr(60, 96, 84, 84)); sk.mono(40, 104, 'BOS', { s: 10 }); } });
+fig('e-reshape', { ...Ed, draw(sk) { sk.mono(120, 36, '[T, d] → [T, h, dh]', { s: 11.5 }); sk.mono(120, 60, '→ transpose → [h, T, dh]', { s: 11.5 }); sk.hand(120, 92, 'order matters', 18, -2, { c: 'redt' }); } });
+  </script></Fragment>
+</Note>

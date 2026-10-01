@@ -1,0 +1,239 @@
+---
+import Note from '../../../layouts/Note.astro';
+---
+<Note ch={13} description="Basic optimization and reproducibility drawn: the training loop, cross-entropy, learning rate, SGD versus Adam, warmup and cosine schedules, gradient clipping, loss curves, seeds and determinism.">
+  <header class="hero">
+    <div>
+      <p class="kicker">chapter 13</p>
+      <h1><span>Optimization</span> and reproducibility</h1>
+      <p class="lede">Training repeats one loop millions of times: predict, measure the miss, compute gradients, nudge every weight.</p>
+    </div>
+  </header>
+
+  <h2>The loop</h2>
+  <figure class="fig" id="loop">
+    <div class="fig-head"><h3>One training step, six moves</h3></div>
+  </figure>
+
+  <figure class="fig" id="xent">
+    <div class="fig-head"><h3>Cross-entropy: the price of surprise</h3></div>
+    <div class="formula">loss = <em>− log p(target)</em> &nbsp; · &nbsp; perplexity = e<sup>mean loss</sup></div>
+  </figure>
+
+  <h2>Stepping downhill</h2>
+  <figure class="fig" id="lr">
+    <div class="fig-head"><h3>Learning rate: too small, just right, too big</h3></div>
+  </figure>
+
+  <figure class="fig" id="adam">
+    <div class="fig-head"><h3>SGD vs Adam in a narrow valley</h3></div>
+  </figure>
+
+  <figure class="fig" id="sched">
+    <div class="fig-head"><h3>Warmup, then cosine decay</h3></div>
+  </figure>
+
+  <figure class="fig" id="clip">
+    <div class="fig-head"><h3>Gradient clipping</h3></div>
+    <div class="formula">g ← g · <em>min(1, c / ‖g‖)</em></div>
+  </figure>
+
+  <figure class="fig" id="curves">
+    <div class="fig-head"><h3>Reading loss curves</h3></div>
+  </figure>
+
+  <h2>Reproducibility</h2>
+
+  <figure class="fig" id="seeds">
+    <div class="fig-head"><h3>Same seed, different seed, nondeterministic kernels</h3></div>
+  </figure>
+
+  <figure class="fig" id="checklist">
+    <div class="fig-head"><h3>The reproducibility checklist</h3></div>
+  </figure>
+
+  <h2>Exceptions and sharp edges</h2>
+  <div class="edges">
+    <article class="edge redraw" id="e-atomic"><div class="art"></div><h4>Atomic adds on GPU</h4><span class="fix">torch.use_deterministic_algorithms(True), at some speed cost.</span></article>
+    <article class="edge redraw" id="e-hw"><div class="art"></div><h4>Different hardware</h4><span class="fix">record versions; expect “statistically same”, not “bitwise same”, across machines.</span></article>
+    <article class="edge redraw" id="e-workers"><div class="art"></div><h4>Data loader workers</h4><span class="fix">seed each worker from the base seed and worker id.</span></article>
+    <article class="edge redraw" id="e-resume"><div class="art"></div><h4>Resuming loses state</h4><span class="fix">checkpoint optimizer, scheduler, RNG states and the data position.</span></article>
+    <article class="edge redraw" id="e-batch"><div class="art"></div><h4>Changing batch size</h4><span class="fix">retune LR, or scale it with batch size and re-check.</span></article>
+    <article class="edge redraw" id="e-spike"><div class="art"></div><h4>Loss spikes</h4><span class="fix">clip gradients, lower peak LR, or rewind and skip the batch.</span></article>
+  </div>
+
+  <Fragment slot="scripts"><script is:inline>
+const { fig, box, rect, o, arr, carr, ln, node, chip, heat, vec, bars, axes, smooth, cross, check, squig, clamp, map, gauss, softmax, mean, std, fmtN } = Ink;
+
+const moves = [['batch', 'x, y = next(loader)'], ['forward', 'logits = model(x)'], ['loss', 'loss = cross_entropy(logits, y)'], ['backward', 'loss.backward()'], ['step', 'optimizer.step()'], ['zero grad', 'optimizer.zero_grad()']];
+fig('loop', {
+  view: '0 0 960 380', hue: 195,
+  label: 'Six stations around a circle: batch, forward, loss, backward, optimizer step, zero grad. The current station is highlighted and the matching line of code is shown.',
+  draw(sk, st) {
+    const cx = 300, cy = 190, R = 130;
+    sk.ink(o(cx, cy, R));
+    sk.mover(`M${cx} ${cy - R}a${R} ${R} 0 1 1 -0.1 0`, { dur: 6 });
+    moves.forEach(([t], i) => {
+      const a = -Math.PI / 2 + i / moves.length * Math.PI * 2, x = cx + Math.cos(a) * R, y = cy + Math.sin(a) * R;
+      node(sk, x - 56, y - 20, 112, 40, t, { fill: i === st.step ? 'accent' : 'paper', s: 19 });
+    });
+    sk.hand(cx, cy + 6, `step ${st.step + 1}`, 22, -4, { c: 'tint' });
+    sk.paper(box(600, 90, 330, 200, 3)); sk.ink(box(600, 90, 330, 200, 3));
+    moves.forEach(([, code], i) => sk.mono(620, 124 + i * 28, code, { a: 'start', s: 12.5, c: i === st.step ? '' : 'muted' }));
+    sk.pop(box(612, 106 + st.step * 28, 308, 26, st.step));
+  },
+  controls: c => c.player('step', moves.length, { ms: 1000, name: 'move', loop: true })
+});
+
+fig('xent', {
+  view: '0 0 960 320', hue: 195, state: { p: 0.42 },
+  label: 'Plot of minus log p from p near zero to 1, with a marker at the chosen probability and its loss value.',
+  draw(sk, st) {
+    const X = p => map(p, 0, 1, 80, 600), Y = v => map(v, 0, 5, 270, 40);
+    axes(sk, 80, 40, 520, 230, { xl: 'p(correct token) →', yl: 'loss = −log p' });
+    const pts = []; for (let p = 0.007; p <= 1; p += 0.01) pts.push([X(p), Y(-Math.log(p))]);
+    sk.plot(smooth(pts), 'pop');
+    const l = -Math.log(st.p);
+    sk.dash(`M${X(st.p)} 270V${Y(l)}H80`);
+    sk.accent(o(X(st.p), Y(l), 8)); sk.ink(o(X(st.p), Y(l), 8));
+    sk.serif(790, 100, `loss = ${l.toFixed(2)} nats`, 28);
+    sk.mono(790, 132, `= ${(l / Math.LN2).toFixed(2)} bits`, { s: 13 });
+    sk.hand(790, 200, st.p > 0.8 ? 'confident and right' : st.p > 0.3 ? 'decent guess' : st.p > 0.05 ? 'surprised' : 'very surprised', 24, -3, { c: st.p > 0.3 ? 'tint' : 'redt' });
+  },
+  controls: c => c.slider('p', 'p(tired)', 0.01, 1, 0.01, v => v.toFixed(2))
+});
+
+const f1 = x => 0.08 * x * x + 0.6 * Math.sin(x * 0.9) + 2, d1 = x => 0.16 * x + 0.54 * Math.cos(x * 0.9);
+fig('lr', {
+  view: '0 0 960 330', hue: 195, state: { lr: 1.2 },
+  label: 'A one-dimensional loss curve with a ball and its trail of positions after each gradient descent step for the chosen learning rate.',
+  draw(sk, st) {
+    const X = x => map(x, -8, 8, 70, 890), Y = v => map(v, 0, 9, 290, 30);
+    const pts = []; for (let x = -8; x <= 8; x += 0.1) pts.push([X(x), Y(f1(x))]);
+    sk.plot(smooth(pts));
+    let x = -6.5; const trail = [x];
+    for (let i = 0; i < st.step; i++) { x = x - st.lr * d1(x); trail.push(x); if (Math.abs(x) > 9) break; }
+    trail.forEach((t, i) => { if (Math.abs(t) > 8.5) return; const cx = X(t), cy = Y(f1(t)) - 9; if (i) { const p = trail[i - 1]; if (Math.abs(p) <= 8.5) sk.thin(`M${X(p)} ${Y(f1(p)) - 9}Q${(X(p) + cx) / 2} ${Math.min(Y(f1(p)), cy) - 30} ${cx} ${cy}`); } });
+    const last = trail[trail.length - 1];
+    if (Math.abs(last) <= 8.5) { sk.accent(o(X(last), Y(f1(last)) - 9, 9)); sk.ink(o(X(last), Y(f1(last)) - 9, 9)); }
+    else sk.hand(480, 80, 'diverged off the chart!', 26, -4, { c: 'redt' });
+    const verdict = st.lr < 0.4 ? 'too small: crawling' : st.lr <= 4 ? 'reasonable' : 'too big: bouncing out';
+    sk.hand(760, 50, `lr ${st.lr.toFixed(2)} · ${verdict}`, 21, -2, { c: st.lr > 4 ? 'redt' : 'tint' });
+  },
+  controls: c => c.player('step', 30, { ms: 220, name: 'step' }).slider('lr', 'Learning rate', 0.05, 7, 0.05, v => v.toFixed(2))
+});
+
+const a = 1, b = 25, grad = ([x, y]) => [a * x, b * y];
+const sgd = (() => { let p = [-9, 2.4]; const out = [p]; for (let i = 0; i < 40; i++) { const g = grad(p); p = [p[0] - 0.075 * g[0], p[1] - 0.075 * g[1]]; out.push(p); } return out; })();
+const adamPath = (() => { let p = [-9, 2.4], m = [0, 0], v = [0, 0]; const out = [p]; for (let t = 1; t <= 40; t++) { const g = grad(p); m = m.map((mi, i) => 0.9 * mi + 0.1 * g[i]); v = v.map((vi, i) => 0.999 * vi + 0.001 * g[i] ** 2); const mh = m.map(mi => mi / (1 - 0.9 ** t)), vh = v.map(vi => vi / (1 - 0.999 ** t)); p = p.map((pi, i) => pi - 0.45 * mh[i] / (Math.sqrt(vh[i]) + 1e-8)); out.push(p); } return out; })();
+fig('adam', {
+  view: '0 0 960 360', hue: 195,
+  label: 'Elliptical contour lines of a narrow valley. The SGD path zig-zags across the narrow direction. The Adam path moves more directly toward the minimum.',
+  draw(sk, st) {
+    const X = x => map(x, -10, 2, 60, 900), Y = y => map(y, -3, 3, 320, 40);
+    [0.5, 2, 6, 14, 28, 46].forEach(c => { const rx = Math.sqrt(2 * c / a), ry = Math.sqrt(2 * c / b); const pts = []; for (let t = 0; t <= Math.PI * 2 + 0.01; t += 0.1) pts.push([X(rx * Math.cos(t)), Y(ry * Math.sin(t))]); sk.add('x', `<path class="sk-thin" d="${Ink.poly(pts)}Z"/>`); });
+    const n = st.step + 1;
+    sk.plot(Ink.poly(sgd.slice(0, n).map(([x, y]) => [X(x), Y(y)])));
+    sk.plot(Ink.poly(adamPath.slice(0, n).map(([x, y]) => [X(x), Y(y)])), 'pop');
+    const ps = sgd[n - 1], pa = adamPath[n - 1];
+    sk.paper(o(X(ps[0]), Y(ps[1]), 7)); sk.ink(o(X(ps[0]), Y(ps[1]), 7));
+    sk.accent(o(X(pa[0]), Y(pa[1]), 7)); sk.ink(o(X(pa[0]), Y(pa[1]), 7));
+    sk.accent(o(X(0), Y(0), 4)); sk.hand(X(0) + 30, Y(0) + 30, 'minimum', 18, -4);
+    sk.hand(160, 30, 'SGD (ink)', 20, -3); sk.hand(320, 30, 'Adam (accent)', 20, -3, { c: 'tint' });
+  },
+  controls: c => c.player('step', 41, { ms: 160, name: 'step' })
+});
+
+fig('sched', {
+  view: '0 0 960 320', hue: 195, state: { warm: 0.05, minr: 0.1 },
+  label: 'Learning rate schedule over training: a linear warmup to the peak, then cosine decay down to a floor.',
+  draw(sk, st) {
+    const X = t => map(t, 0, 1, 80, 900), Y = v => map(v, 0, 1.05, 270, 40);
+    axes(sk, 80, 40, 820, 230, { xl: 'training progress →', yl: 'learning rate' });
+    const lr = t => t < st.warm ? t / st.warm : st.minr + (1 - st.minr) * 0.5 * (1 + Math.cos(Math.PI * (t - st.warm) / (1 - st.warm)));
+    const pts = []; for (let t = 0; t <= 1.0001; t += 0.005) pts.push([X(t), Y(lr(t))]);
+    sk.zone(rect(80, 40, X(st.warm) - 80, 230));
+    sk.plot(smooth(pts), 'pop');
+    sk.dash(`M80 ${Y(st.minr)}H900`);
+    sk.hand(X(st.warm) + 8, 62, 'peak', 20, -4, { a: 'start' });
+    sk.mono(X(st.warm / 2), 292, 'warmup', { s: 11 });
+    sk.mono(860, Y(st.minr) - 8, `floor ${(st.minr * 100).toFixed(0)}%`, { s: 11, a: 'end' });
+  },
+  controls: c => c.slider('warm', 'Warmup fraction', 0.01, 0.3, 0.01, v => (v * 100).toFixed(0) + '%').slider('minr', 'Final LR', 0, 0.5, 0.01, v => (v * 100).toFixed(0) + '%')
+});
+
+fig('clip', {
+  view: '0 0 960 320', hue: 195, state: { g: 2.6, c: 1 },
+  label: 'A gradient arrow from the origin, a dashed circle of radius equal to the clip threshold, and the clipped arrow that stops at the circle when the gradient is too long.',
+  draw(sk, st) {
+    const cx = 120, cy = 250, u = 70, dir = [Math.cos(0.65), -Math.sin(0.65)];
+    sk.dash(`M${cx + st.c * u} ${cy}A${st.c * u} ${st.c * u} 0 0 0 ${cx} ${cy - st.c * u}`);
+    sk.thin(`M${cx} ${cy}H${cx + 420}M${cx} ${cy}V20`);
+    const L = st.g * u, clipped = Math.min(st.g, st.c) * u;
+    sk.ink(arr(cx, cy, cx + dir[0] * L, cy + dir[1] * L));
+    if (st.g > st.c) sk.pop(arr(cx, cy, cx + dir[0] * clipped, cy + dir[1] * clipped));
+    sk.hand(cx + dir[0] * L + 20, cy + dir[1] * L, '‖g‖ = ' + st.g.toFixed(1), 20, -4, { a: 'start' });
+    sk.serif(760, 100, st.g > st.c ? `scaled × ${(st.c / st.g).toFixed(2)}` : 'untouched', 28);
+    sk.hand(760, 170, st.g > st.c ? 'same direction, shorter step' : 'below the threshold', 22, -3, { c: 'tint' });
+  },
+  controls: c => c.slider('g', 'Gradient norm', 0.1, 4, 0.1, v => v.toFixed(1)).slider('c', 'Clip threshold c', 0.2, 3, 0.1, v => v.toFixed(1))
+});
+
+const N = 60, trainL = t => 3.6 * Math.exp(-t / 14) + 0.7 - t * 0.004, valL = t => 3.6 * Math.exp(-t / 14) + 0.95 + Math.max(0, t - 32) ** 2 * 0.0011;
+fig('curves', {
+  view: '0 0 960 330', hue: 195,
+  label: 'Training and validation loss curves over epochs. Training keeps falling. Validation falls, flattens and then rises. The lowest validation point is marked as the best checkpoint.',
+  draw(sk, st) {
+    const X = t => map(t, 0, N, 80, 900), Y = v => map(v, 0.4, 4.6, 280, 40);
+    axes(sk, 80, 40, 820, 240, { xl: 'steps →', yl: 'loss' });
+    const n = st.step + 1, tp = [], vp = [];
+    for (let t = 0; t < n; t++) { tp.push([X(t), Y(trainL(t) + gauss(t, 1) * 0.04)]); vp.push([X(t), Y(valL(t) + gauss(t, 9) * 0.03)]); }
+    sk.plot(Ink.poly(tp)); sk.plot(Ink.poly(vp), 'pop');
+    sk.hand(X(Math.min(n - 1, 50)), Y(trainL(Math.min(n - 1, 50))) + 26, 'train', 20, -3);
+    sk.hand(X(Math.min(n - 1, 50)), Y(valL(Math.min(n - 1, 50))) - 14, 'validation', 20, -3, { c: 'tint' });
+    let best = 0; for (let t = 0; t < n; t++) if (valL(t) < valL(best)) best = t;
+    if (n > 20) { sk.dash(`M${X(best)} 40V280`); sk.accent(o(X(best), Y(valL(best)), 7)); sk.ink(o(X(best), Y(valL(best)), 7)); sk.mono(X(best), 300, 'best checkpoint', { s: 11 }); }
+    if (n > 40) sk.hand(X(52), Y(2.2), 'overfitting', 22, -6, { c: 'redt' });
+  },
+  controls: c => c.player('step', N, { ms: 90, name: 'step' })
+});
+
+const run = (seed, drift = 0) => Array.from({ length: 80 }, (_, t) => 3.4 * Math.exp(-t / 16) + 0.9 + gauss(t, 3) * 0.06 + (seed ? gauss(t + 40, seed) * 0.09 : 0) + (drift ? Math.max(0, t - 18) ** 1.3 * 0.0025 * gauss(t + 99, 5) : 0));
+fig('seeds', {
+  view: '0 0 960 330', hue: 195, state: { mode: 'same' },
+  label: 'Two loss curves for run A and run B. With the same seed they overlap exactly. With a different seed they differ throughout. With nondeterministic kernels they start identical and drift apart later.',
+  draw(sk, st) {
+    const X = t => map(t, 0, 79, 80, 900), Y = v => map(v, 0.4, 4.6, 280, 40);
+    axes(sk, 80, 40, 820, 240, { xl: 'steps →', yl: 'loss' });
+    const A = run(0), Bv = st.mode === 'same' ? run(0) : st.mode === 'seed' ? run(7) : run(0, 1);
+    sk.plot(Ink.poly(A.map((v, t) => [X(t), Y(v)])));
+    sk.plot(Ink.poly(Bv.map((v, t) => [X(t), Y(v)])), 'pop dash');
+    const diff = Math.max(...A.map((v, i) => Math.abs(v - Bv[i])));
+    sk.serif(720, 90, diff === 0 ? 'max difference: 0' : `max difference: ${diff.toFixed(3)}`, 22);
+    sk.hand(720, 124, { same: 'bitwise identical', seed: 'same shape, different noise', nondet: 'identical at first, then drifting' }[st.mode], 21, -2, { c: diff === 0 ? 'tint' : 'redt' });
+    sk.hand(200, 70, 'A (ink)  ·  B (dashed)', 18, -2);
+  },
+  controls: c => c.choice('mode', 'Run B', [['same', 'Same seed'], ['seed', 'Different seed'], ['nondet', 'Same seed, nondeterministic']])
+});
+
+const items = [
+  ['seed python, numpy, torch, cuda', 'torch.manual_seed(42)'],
+  ['deterministic kernels', 'use_deterministic_algorithms'],
+  ['seed data loader workers', 'worker_init_fn'],
+  ['fixed data order + splits', 'save shuffle seed'],
+  ['log config + git commit', 'hash everything'],
+  ['pin library versions', 'requirements lock'],
+  ['checkpoint optimizer + RNG', 'not just weights'],
+  ['note the hardware', 'GPU, driver, CUDA'],
+];
+Ink.checklist('checklist', items, { hue: 195, done: [true, false, false, false, true], unit: 'habits', full: 'fully reproducible, on this machine' });
+
+const Ed = { view: '0 0 240 110', hue: 195 };
+fig('e-atomic', { ...Ed, draw(sk) { sk.mono(120, 40, '(a + b) + c', { s: 13 }); sk.hand(120, 62, '≠', 22); sk.mono(120, 86, 'a + (b + c)', { s: 13 }); } });
+fig('e-hw', { ...Ed, draw(sk) { node(sk, 24, 34, 80, 40, 'A100', { font: 'mono', s: 12 }); node(sk, 136, 34, 80, 40, 'H100', { font: 'mono', s: 12, fill: 'accent' }); sk.hand(120, 60, '≈', 22); } });
+fig('e-workers', { ...Ed, draw(sk) { [0, 1, 2].forEach(i => chip(sk, 24 + i * 68, 36, 58, 30, 'seed 7', { s: 10, red: true })); sk.hand(120, 98, 'all the same!', 17, -2, { c: 'redt' }); } });
+fig('e-resume', { ...Ed, draw(sk) { sk.ink(smooth([[24, 30], [70, 60], [110, 74]])); sk.red('M110 74 118 30'); sk.ink(smooth([[118, 30], [160, 62], [210, 76]])); sk.mono(118, 100, 'resume', { s: 10 }); } });
+fig('e-batch', { ...Ed, draw(sk) { sk.mono(120, 40, 'batch × 2', { s: 13 }); sk.mono(120, 70, 'lr × ?', { s: 13, c: 'redt' }); } });
+fig('e-spike', { ...Ed, draw(sk) { sk.ink(Ink.poly([[20, 40], [60, 62], [100, 72], [120, 74], [128, 20], [136, 74], [170, 80], [220, 84]])); sk.red(Ink.ticks(132, 14)); } });
+  </script></Fragment>
+</Note>

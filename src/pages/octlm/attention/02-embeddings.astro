@@ -1,0 +1,254 @@
+---
+import Note from '../../../layouts/Note.astro';
+---
+<Note ch={2} description="Token embeddings drawn: lookup tables, one-hot products, embedding maps, cosine similarity, training dynamics, parameter counts and weight tying.">
+  <header class="hero">
+    <div>
+      <p class="kicker">chapter 02</p>
+      <h1><span>Token embeddings</span></h1>
+      <p class="lede">An id is a name tag, not a quantity.</p>
+    </div>
+  </header>
+
+  <h2>The lookup</h2>
+
+  <figure class="fig" id="lookup">
+    <div class="fig-head"><h3>Seven ids fetch seven rows</h3></div>
+  </figure>
+
+  <figure class="fig" id="onehot">
+    <div class="fig-head"><h3>Why it counts as a matrix multiply</h3></div>
+  </figure>
+
+  <h2>A map of meaning</h2>
+
+  <figure class="fig" id="map">
+    <div class="fig-head"><h3>Neighbours in embedding space</h3></div>
+  </figure>
+
+  <div class="pair">
+    <figure class="fig" id="strips">
+      <div class="fig-head"><h3>Vectors as colour strips</h3></div>
+    </figure>
+    <figure class="fig" id="cosmat">
+      <div class="fig-head"><h3>Cosine similarity between them</h3></div>
+    </figure>
+  </div>
+
+  <figure class="fig" id="angle">
+    <div class="fig-head"><h3>Cosine similarity is an angle</h3></div>
+    <div class="formula">cos θ = <em>a · b</em> ÷ (‖a‖ ‖b‖)</div>
+  </figure>
+
+  <h2>Where the map comes from</h2>
+
+  <figure class="fig" id="train">
+    <div class="fig-head"><h3>Training pulls the points into clusters</h3></div>
+  </figure>
+
+  <figure class="fig" id="params">
+    <div class="fig-head"><h3>The table is big, so some models share it</h3></div>
+  </figure>
+
+  <h2>Exceptions and sharp edges</h2>
+  <div class="edges">
+    <article class="edge redraw" id="e-bank"><div class="art"></div><h4>One vector per token, any context</h4><span class="fix">attention mixes in context later. That is the point of the rest of the model.</span></article>
+    <article class="edge redraw" id="e-order"><div class="art"></div><h4>Ids are not quantities</h4><span class="fix">always look up a vector, never use the id as a value.</span></article>
+    <article class="edge redraw" id="e-rare"><div class="art"></div><h4>Rare tokens barely move</h4><span class="fix">sensible vocab size, and tokenizer data that matches model data.</span></article>
+    <article class="edge redraw" id="e-range"><div class="art"></div><h4>Out-of-range id</h4><span class="fix">check that the tokenizer and model agree on V, including special tokens.</span></article>
+    <article class="edge redraw" id="e-pad"><div class="art"></div><h4>Padding has a row too</h4><span class="fix">mask pad positions in attention and in the loss.</span></article>
+    <article class="edge redraw" id="e-scale"><div class="art"></div><h4>Scale matters</h4><span class="fix">follow your architecture's convention, then keep it consistent.</span></article>
+  </div>
+
+  <Fragment slot="scripts"><script is:inline>
+const { fig, box, rect, o, arr, carr, ln, node, chip, heat, vec, bars, axes, smooth, cross, check, squig, clamp, map, lerp, gauss, rand, cos, dot, norm } = Ink;
+const story = [['The', 464], [' cat', 3797], [' sat', 3332], [' because', 780], [' it', 340], [' was', 373], [' tired', 10032]];
+const D = 8;
+const row = id => Array.from({ length: D }, (_, j) => +(gauss(id * 0.37, j + 1) * 0.6).toFixed(2));
+const vis = s => s.replace(/ /g, '␠');
+
+fig('lookup', {
+  view: '0 0 960 400', hue: 150,
+  label: 'Seven token chips with their ids on the left. The embedding table E in the middle with the selected row highlighted. The fetched rows stack into the matrix x on the right.',
+  hit: (k, st, set) => set({ step: +k }),
+  draw(sk, st) {
+    const s = st.step;
+    story.forEach(([t, id], i) => {
+      const y = 34 + i * 48;
+      chip(sk, 20, y, 92, 34, vis(t), { hi: i === s, dim: i > s, s: 13 });
+      sk.mono(150, y + 22, String(id), { s: 12, c: i === s ? '' : 'muted' });
+      sk.hit(rect(20, y, 150, 34), i, `Embed ${t.trim()}`);
+    });
+    const ids = [0, 340, 373, 464, 780, 3332, 3797, 10032, 50256];
+    const tx = 290, ty = 50, cw = 22, rh = 32;
+    sk.hand(tx + 88, 28, 'E   [50257 × d]', 21, -2);
+    ids.forEach((id, r) => {
+      const y = ty + r * rh;
+      sk.mono(tx - 8, y + 20, String(id), { a: 'end', s: 11, c: id === story[s][1] ? '' : 'muted' });
+      row(id).forEach((v, j) => sk.cell(rect(tx + j * cw, y + 2, cw, rh - 4), clamp(Math.abs(v), 0.08, 1) * 0.9, v < 0));
+      if (r) sk.thin(`M${tx} ${y}h${D * cw}`);
+    });
+    sk.ink(box(tx, ty, D * cw, ids.length * rh, 1));
+    sk.mono(tx + D * cw / 2, ty + ids.length * rh + 18, 'rows in between not drawn', { s: 10, c: 'muted' });
+    const r = ids.indexOf(story[s][1]), ry = ty + r * rh;
+    sk.pop(box(tx - 3, ry, D * cw + 6, rh, 3));
+    sk.ink(carr(172, 34 + s * 48 + 17, tx - 44, ry + rh / 2, -12));
+    sk.ink(arr(tx + D * cw + 10, ry + rh / 2, 600, 60 + s * 40 + 14));
+    sk.hand(780, 30, 'x   [7 × d]', 21, -2);
+    for (let i = 0; i <= s; i++) {
+      const y = 60 + i * 40;
+      vec(sk, row(story[i][1]), 610, y, 36, 28, { nums: i === s, fmt: v => v.toFixed(1), numS: 9.5 });
+      sk.mono(608 + D * 36 + 8, y + 18, vis(story[i][0]), { a: 'start', s: 11 });
+    }
+    if (s === story.length - 1) sk.hand(770, 370, 'ready for positions', 22, -3, { c: 'tint' });
+  },
+  controls: c => c.player('step', story.length, { ms: 1100, name: 'token' })
+});
+
+fig('onehot', {
+  view: '0 0 960 330', hue: 150, state: { idx: 3 },
+  label: 'A one-hot row vector of length 10 with a single 1, times a 10 by 6 matrix E, equals one row of E. The selected row of E is highlighted.',
+  draw(sk, st) {
+    const V = 10, d = 6, E = Array.from({ length: V }, (_, i) => Array.from({ length: d }, (_, j) => +(gauss(i + 20, j + 3) * 0.7).toFixed(1)));
+    const oh = Array.from({ length: V }, (_, i) => i === st.idx ? 1 : 0);
+    sk.hand(165, 40, 'one-hot  [1 × V]', 20, -2);
+    oh.forEach((v, i) => { const x = 20 + i * 29; v ? sk.accent(rect(x, 140, 29, 34)) : sk.paper(rect(x, 140, 29, 34)); sk.mono(x + 14.5, 162, String(v), { s: 12 }); if (i) sk.thin(`M${x} 140v34`); });
+    sk.ink(box(20, 140, 290, 34, 1));
+    sk.hand(332, 166, '×', 30);
+    sk.hand(468, 40, 'E  [V × d]', 20, -2);
+    heat(sk, E, 360, 60, 36, 22, { nums: true, fmt: v => v.toFixed(1), numS: 10, max: 1.6, hiRow: st.idx });
+    oh.forEach((v, i) => sk.mono(352, 60 + i * 22 + 15, String(i), { a: 'end', s: 9.5, c: 'muted' }));
+    sk.hand(612, 166, '=', 30);
+    sk.hand(770, 120, 'row ' + st.idx, 20, -2);
+    vec(sk, E[st.idx], 650, 140, 40, 34, { nums: true, max: 1.6 });
+    sk.ink(carr(560, 60 + st.idx * 22 + 11, 650, 140, -20));
+    sk.hand(480, 316, 'every other row × 0 → no contribution, no gradient', 20, -1, { c: 'muted' });
+  },
+  controls: c => c.slider('idx', 'Token id', 0, 9, 1)
+});
+
+const words = {
+  cat: [250, 120], kitten: [215, 96], dog: [300, 152], puppy: [268, 178], lion: [196, 160], tiger: [170, 196], it: [338, 96],
+  king: [620, 90], queen: [700, 150], man: [560, 160], woman: [640, 220], prince: [590, 56],
+  paris: [480, 292], france: [540, 322], tokyo: [380, 300], japan: [440, 332],
+  run: [790, 250], ran: [836, 278], walk: [770, 312], walked: [820, 338],
+  tired: [430, 120], sleepy: [462, 92], happy: [470, 176],
+};
+const near = w => Object.keys(words).filter(k => k !== w).map(k => [k, Math.hypot(words[k][0] - words[w][0], words[k][1] - words[w][1])]).sort((a, b) => a[1] - b[1]).slice(0, 3);
+fig('map', {
+  view: '0 0 960 380', hue: 150, state: { sel: 'cat', analogy: false },
+  label: 'A two-dimensional scatter of words in toy embedding space, clustered into animals, royalty, places, verbs and feelings. Lines connect the selected word to its three nearest neighbours.',
+  hit: (k, st, set) => set({ sel: k }),
+  draw(sk, st) {
+    [['animals', 120, 60], ['royalty', 740, 50], ['places', 340, 360], ['verbs', 890, 220], ['feelings', 470, 60]].forEach(([t, x, y]) => sk.hand(x, y, t, 20, -4, { c: 'tint' }));
+    const [sx, sy] = words[st.sel];
+    near(st.sel).forEach(([k, d]) => { const [x, y] = words[k]; sk.pop(ln(sx, sy, x, y)); sk.mono((sx + x) / 2, (sy + y) / 2 - 6, (d / 100).toFixed(2), { s: 10 }); });
+    if (st.analogy) {
+      const [kx, ky] = words.king, [mx, my] = words.man, [wx, wy] = words.woman, [qx, qy] = words.queen;
+      sk.ink(arr(mx, my, wx, wy)); sk.ink(arr(kx, ky, qx, qy)); sk.dash(`M${mx} ${my}L${kx} ${ky}M${wx} ${wy}L${qx} ${qy}`);
+      sk.hand(700, 250, '+ (woman − man)', 18, -6);
+    }
+    Object.entries(words).forEach(([w, [x, y]]) => {
+      const on = w === st.sel;
+      on ? sk.accent(o(x, y, 7)) : sk.paper(o(x, y, 5)); sk.ink(o(x, y, on ? 7 : 5));
+      sk.mono(x, y - 11, w, { s: on ? 13 : 11 });
+      sk.hit(o(x, y, 16), w, `Show neighbours of ${w}`);
+    });
+  },
+  controls: c => c.toggle('analogy', 'king − man + woman').read(st => 'nearest to ' + st.sel + ': ' + near(st.sel).map(n => n[0]).join(', '))
+});
+
+const sw = ['cat', 'kitten', 'dog', 'it', 'car', 'truck', 'the'];
+const bases = { animal: [1, 0.8, 0.1, -0.2, 0.6, 0, 0.5, -0.4, 0.2, 0], vehicle: [-0.1, 0.1, 1, 0.9, -0.3, 0.5, -0.2, 0.1, 0.7, -0.5], fn: [0.1, -0.5, 0, 0.1, 0, -0.8, 0.2, 0.9, -0.1, 0.6] };
+const which = { cat: 'animal', kitten: 'animal', dog: 'animal', it: 'animal', car: 'vehicle', truck: 'vehicle', the: 'fn' };
+const sv = Object.fromEntries(sw.map((w, i) => [w, bases[which[w]].map((b, j) => +(b * (w === 'it' ? 0.55 : 1) + gauss(i + 4, j + 9) * (w === 'it' ? 0.45 : 0.22)).toFixed(2))]));
+
+fig('strips', {
+  view: '0 0 460 330', hue: 150,
+  label: 'Seven tokens as horizontal strips of ten coloured cells. Cat, kitten and dog look alike. Car and truck look alike. The looks different.',
+  draw(sk) {
+    sw.forEach((w, i) => vec(sk, sv[w], 110, 30 + i * 40, 30, 28, { label: w, labS: 13 }));
+    sk.hand(420, 106, '}', 50, 0); sk.hand(430, 72, 'animals', 18, -8, { a: 'start' });
+  }
+});
+fig('cosmat', {
+  view: '0 0 460 330', hue: 150,
+  label: 'A seven by seven matrix of cosine similarities between the same tokens, with high values in blocks for animals and for vehicles.',
+  draw(sk) {
+    const M = sw.map(a => sw.map(b => cos(sv[a], sv[b])));
+    heat(sk, M, 120, 50, 40, 36, { nums: true, max: 1, rows: sw, cols: sw, fmt: v => v.toFixed(1), numS: 10.5, colR: -40 });
+  }
+});
+
+fig('angle', {
+  view: '0 0 960 300', hue: 150, state: { deg: 40 },
+  label: 'Two arrows from a common origin with an adjustable angle between them. A readout shows the cosine and a gauge from minus one to one.',
+  draw(sk, st) {
+    const cx = 260, cy = 210, L = 150, th = st.deg * Math.PI / 180, c = Math.cos(th);
+    sk.ink(arr(cx, cy, cx + L, cy));
+    sk.pop(arr(cx, cy, cx + L * Math.cos(th), cy - L * Math.sin(th)));
+    const r = 46; sk.ink(`M${cx + r} ${cy}A${r} ${r} 0 0 0 ${(cx + r * Math.cos(th)).toFixed(1)} ${(cy - r * Math.sin(th)).toFixed(1)}`);
+    sk.hand(cx + L + 14, cy + 6, 'a', 24); sk.hand(cx + (L + 18) * Math.cos(th), cy - (L + 18) * Math.sin(th), 'b', 24);
+    sk.mono(cx + 66 * Math.cos(th / 2), cy - 66 * Math.sin(th / 2), `${st.deg}°`, { s: 12 });
+    const gx = 560, gw = 340, px = gx + (c + 1) / 2 * gw;
+    sk.paper(box(gx, 120, gw, 36, 2)); sk.ink(box(gx, 120, gw, 36, 2));
+    sk.zone(rect(gx, 120, (c + 1) / 2 * gw, 36));
+    sk.pop(`M${px} 110V166`);
+    [['−1', 0], ['0', 0.5], ['+1', 1]].forEach(([t, k]) => sk.mono(gx + k * gw, 184, t, { s: 12 }));
+    sk.serif(gx + gw / 2, 82, `cos θ = ${c.toFixed(2)}`, 30);
+    sk.hand(gx + gw / 2, 240, c > 0.7 ? 'similar' : c > 0.25 ? 'somewhat related' : c > -0.25 ? 'unrelated' : c > -0.7 ? 'leaning opposite' : 'opposite', 26, -3, { c: 'tint' });
+  },
+  controls: c => c.slider('deg', 'Angle', 0, 180, 1, v => v + '°')
+});
+
+const tw = Object.keys(words), STEPS = 24;
+const ease = t => 1 - (1 - t) ** 3;
+fig('train', {
+  view: '0 0 960 380', hue: 150,
+  label: 'Animated scatter. Words start at random positions and drift into clusters as training steps advance. A small loss curve falls in the corner.',
+  draw(sk, st) {
+    const t = ease(st.step / (STEPS - 1));
+    tw.forEach((w, i) => {
+      const [x1, y1] = words[w], x0 = 60 + rand(i, 3) * 820, y0 = 40 + rand(i, 5) * 300;
+      const x = lerp(x0, x1, t), y = lerp(y0, y1, t);
+      sk.paper(o(x, y, 5)); sk.ink(o(x, y, 5)); sk.mono(x, y - 10, w, { s: 11 });
+    });
+    sk.paper(box(760, 24, 180, 110, 3)); sk.ink(box(760, 24, 180, 110, 3));
+    const pts = Array.from({ length: STEPS }, (_, i) => [774 + i * 6.5, 40 + 80 * (1 - ease(i / (STEPS - 1)) * 0.85) + gauss(i, 2) * 3]);
+    sk.plot(smooth(pts.slice(0, st.step + 1)), 'pop');
+    sk.mono(850, 126, 'loss', { s: 10, c: 'muted' });
+    sk.hand(120, 360, st.step === 0 ? 'step 0: pure noise' : st.step === STEPS - 1 ? 'trained: neighbours mean something' : 'gradients pulling…', 22, -2, { a: 'start', c: 'tint' });
+  },
+  controls: c => c.player('step', STEPS, { ms: 160, name: 'step' })
+});
+
+fig('params', {
+  view: '0 0 960 340', hue: 150, state: { lv: Math.log2(50257), d: 768, tied: false },
+  label: 'Two rectangles: the input embedding E of size V by d and the output projection of size d by V. With weight tying they are the same matrix. Readouts give parameter counts and memory.',
+  draw(sk, st) {
+    const V = Math.round(2 ** st.lv), d = st.d, hV = map(st.lv, 12, 18, 60, 250), wd = map(d, 256, 4096, 30, 140);
+    sk.accent(box(60, 300 - hV, wd, hV, 1)); sk.ink(box(60, 300 - hV, wd, hV, 1));
+    sk.hand(60 + wd / 2, 290 - hV, 'E', 26); sk.mono(60 + wd / 2, 322, `${Ink.fmtN(V)} × ${d}`, { s: 11 });
+    const ox = 320, oy = 300 - wd;
+    if (st.tied) { sk.dash(`M${ox} ${oy}h${hV}v${wd}h${-hV}Z`); sk.hand(ox + hV / 2, oy - 10, 'same numbers, Eᵀ', 20, -2, { c: 'tint' }); }
+    else { sk.paper(box(ox, oy, hV, wd, 2)); sk.cell(box(ox, oy, hV, wd, 2), 0.35); sk.ink(box(ox, oy, hV, wd, 2)); sk.hand(ox + hV / 2, oy - 10, 'W_out', 22, -2); }
+    sk.mono(ox + hV / 2, 322, `${d} × ${Ink.fmtN(V)}`, { s: 11 });
+    const total = V * d * (st.tied ? 1 : 2);
+    sk.serif(800, 120, Ink.fmtN(total) + ' params', 30);
+    sk.mono(800, 152, `${Ink.fmtBytes(total * 2)} in bf16`, { s: 13 });
+    sk.hand(800, 200, st.tied ? 'tied: one table, two jobs' : 'untied: two separate tables', 21, -2, { c: st.tied ? 'tint' : '' });
+    sk.ink(arr(60 + wd + 14, 280, ox - 14, 280));
+    sk.hand((60 + wd + ox) / 2, 266, 'the model', 18, -3, { c: 'muted' });
+  },
+  controls: c => c.slider('lv', 'V', 12, 18, 0.05, v => Math.round(2 ** v).toLocaleString()).slider('d', 'd', 256, 4096, 64).toggle('tied', 'Tie weights')
+});
+
+const E = { view: '0 0 240 110', hue: 150 };
+fig('e-bank', { ...E, draw(sk) { sk.hand(56, 34, 'river bank', 18, -4); sk.hand(184, 34, 'bank loan', 18, 4); sk.ink(arr(60, 44, 112, 70)); sk.ink(arr(180, 44, 128, 70)); vec(sk, [0.6, -0.3, 0.9, 0.1, -0.5], 70, 74, 20, 18); sk.hand(196, 100, 'same row', 16, 0, { c: 'redt' }); } });
+fig('e-order', { ...E, draw(sk) { sk.mono(70, 50, '3797', { s: 16 }); sk.hand(120, 52, '>', 26); sk.mono(170, 50, '340', { s: 16 }); sk.red('M50 40 192 62'); sk.hand(120, 92, 'cat is not “bigger” than it', 17, -2); } });
+fig('e-rare', { ...E, draw(sk) { bars(sk, [90, 60, 30, 8, 2, 0.5], 40, 16, 160, 66, { hiSet: new Set([4, 5]) }); sk.hand(170, 32, 'rare', 18, 6, { c: 'redt' }); } });
+fig('e-range', { ...E, draw(sk) { sk.ink(box(70, 18, 70, 70, 1)); for (let i = 1; i < 5; i++) sk.thin(`M70 ${18 + i * 14}h70`); sk.ink(arr(196, 104, 150, 96)); sk.mono(206, 96, 'id 50300', { s: 10, a: 'end' }); sk.red(Ink.cross(158, 98, 7)); sk.hand(56, 104, 'V = 50257', 15, -3); } });
+fig('e-pad', { ...E, draw(sk) { ['hi', 'there', '<pad>', '<pad>'].forEach((t, i) => chip(sk, 14 + i * 54, 38, 50, 30, t, { dim: i > 1, red: i > 1, s: 11 })); } });
+fig('e-scale', { ...E, draw(sk) { bars(sk, [0.3, 1, 0.9], 50, 14, 140, 70, { labels: ['emb', 'emb·√d', 'pos'], hi: 1, gap: 18 }); } });
+  </script></Fragment>
+</Note>

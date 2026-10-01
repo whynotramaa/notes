@@ -1,0 +1,190 @@
+---
+import Note from '../../../layouts/Note.astro';
+---
+<Note ch={4} description="Grouped-query attention drawn: MHA, GQA and MQA, repeating KV heads, head-to-group mapping, KV cache memory, decode memory traffic, the quality and speed trade-off, uptraining, and code.">
+  <header class="hero">
+    <div>
+      <p class="kicker">chapter 04</p>
+      <h1><span>Grouped-query</span> attention</h1>
+      <p class="lede">Every query head in Day 1 had its own keys and values.</p>
+    </div>
+  </header>
+
+  <h2>The spectrum</h2>
+  <figure class="fig" id="spectrum">
+    <div class="fig-head"><h3>MHA, GQA, MQA</h3></div>
+  </figure>
+
+  <figure class="fig" id="repeat">
+    <div class="fig-head"><h3>Making the shapes line up</h3></div>
+    <div class="formula">[B, h<sub>kv</sub>, T, d<sub>h</sub>] → <em>repeat_interleave(h / h<sub>kv</sub>, dim=1)</em> → [B, h, T, d<sub>h</sub>]</div>
+  </figure>
+
+  <figure class="fig" id="mapping">
+    <div class="fig-head"><h3>Which KV head does query head i use?</h3></div>
+  </figure>
+
+  <h2>What it saves</h2>
+  <figure class="fig" id="cache">
+    <div class="fig-head"><h3>KV cache size against context length</h3></div>
+    <div class="formula">bytes = 2 · layers · <em>h<sub>kv</sub></em> · d<sub>h</sub> · tokens · 2</div>
+  </figure>
+
+  <figure class="fig" id="traffic">
+    <div class="fig-head"><h3>Decode is a memory-reading contest</h3></div>
+  </figure>
+
+  <figure class="fig" id="tradeoff">
+    <div class="fig-head"><h3>The trade-off</h3></div>
+  </figure>
+
+  <figure class="fig" id="uptrain">
+    <div class="fig-head"><h3>Converting an MHA checkpoint</h3></div>
+  </figure>
+
+  <figure class="fig" id="code">
+    <div class="fig-head"><h3>The code</h3></div>
+  </figure>
+
+  <h2>Exceptions and sharp edges</h2>
+  <div class="edges">
+    <article class="edge redraw" id="e-div"><div class="art"></div><h4>h must divide by h<sub>kv</sub></h4><span class="fix">choose h_kv from the divisors of h.</span></article>
+    <article class="edge redraw" id="e-tile"><div class="art"></div><h4>repeat vs repeat_interleave</h4><span class="fix">use repeat_interleave or the expand-reshape trick.</span></article>
+    <article class="edge redraw" id="e-tp"><div class="art"></div><h4>More GPUs than KV heads</h4><span class="fix">replicate KV heads across GPUs.</span></article>
+    <article class="edge redraw" id="e-cache"><div class="art"></div><h4>Caching the repeated tensor</h4><span class="fix">cache h_kv heads, repeat on the fly or let the kernel handle it.</span></article>
+    <article class="edge redraw" id="e-native"><div class="art"></div><h4>Kernels can skip the copy</h4><span class="fix">pass h_kv-shaped K and V when the kernel supports it.</span></article>
+  </div>
+
+  <Fragment slot="scripts"><script is:inline>
+const { fig, box, rect, o, arr, carr, ln, node, chip, heat, vec, bars, axes, smooth, cross, check, squig, clamp, map, gauss, code, fmtN, fmtBytes } = Ink;
+
+fig('spectrum', {
+  view: '0 0 980 330', hue: 250, state: { kv: 2 },
+  label: 'Eight query head chips on top, a chosen number of key-value head chips below, with lines from each query head to the KV head it reads. Groups alternate between accent and pale fills.',
+  draw(sk, st) {
+    const h = 8, g = h / st.kv;
+    for (let i = 0; i < h; i++) { const grp = Math.floor(i / g); chip(sk, 50 + i * 112, 50, 90, 40, `Q${i}`, { hi: grp % 2 === 0, s: 14 }); }
+    for (let j = 0; j < st.kv; j++) {
+      const cx = 50 + ((j + 0.5) * g - 0.5) * 112 + 45;
+      chip(sk, cx - 55, 220, 110, 44, `K,V ${j}`, { hi: j % 2 === 0, s: 14 });
+      for (let i = j * g; i < (j + 1) * g; i++) sk.ink(ln(50 + i * 112 + 45, 94, cx, 216, i));
+    }
+    sk.serif(490, 310, st.kv === 8 ? 'MHA · group size 1' : st.kv === 1 ? 'MQA · group size 8' : `GQA · group size ${g}`, 22);
+  },
+  controls: c => c.choice('kv', 'KV heads', [[8, '8 · MHA'], [4, '4'], [2, '2'], [1, '1 · MQA']])
+});
+
+fig('repeat', {
+  view: '0 0 980 330', hue: 250,
+  label: 'Two KV head slabs on the left are copied into eight slabs on the right, each original slab appearing four times in a row, to match eight query heads.',
+  draw(sk, st) {
+    const slab = (x, y, t, acc) => { (acc ? sk.accent.bind(sk) : sk.paper.bind(sk))(box(x, y, 70, 120, x)); sk.ink(box(x, y, 70, 120, x)); sk.mono(x + 35, y + 64, t, { s: 13 }); };
+    slab(60, 100, 'K₀', true); slab(150, 100, 'K₁', false);
+    sk.mono(140, 250, '[B, 2, T, dₕ]', { s: 12 });
+    sk.ink(arr(250, 160, 330, 160)); sk.mono(290, 148, '× 4', { s: 12 });
+    const shown = Math.min(8, (st.step + 1) * 2);
+    for (let i = 0; i < shown; i++) slab(360 + i * 74, 100, `K${Math.floor(i / 4)}`, Math.floor(i / 4) === 0);
+    sk.mono(656, 250, '[B, 8, T, dₕ]', { s: 12 });
+    for (let i = 0; i < 8; i++) chip(sk, 366 + i * 74, 36, 58, 32, `Q${i}`, { s: 11, dim: i >= shown });
+    sk.hand(656, 300, 'Q₀–Q₃ read K₀, Q₄–Q₇ read K₁', 20, -1, { c: 'tint' });
+  },
+  controls: c => c.player('step', 4, { ms: 800, name: 'copy' })
+});
+
+fig('mapping', {
+  view: '0 0 980 300', hue: 250, state: { h: 16, kv: 4, bug: false },
+  label: 'A row of query heads, each labelled with the KV head it reads. Correct interleaved grouping gives runs of equal labels. Tile-style repeat gives a repeating cycle and red marks.',
+  draw(sk, st) {
+    const h = st.h, kv = Math.min(st.kv, h), g = h / kv, w = Math.min(56, 900 / h);
+    for (let i = 0; i < h; i++) {
+      const good = Math.floor(i / g), got = st.bug ? i % kv : good, x = 40 + i * w;
+      chip(sk, x, 60, w - 6, 34, `Q${i}`, { hi: good % 2 === 0, s: w > 40 ? 12 : 9 });
+      chip(sk, x, 150, w - 6, 34, `K${got}`, { hi: got % 2 === 0, s: w > 40 ? 12 : 9, red: got !== good });
+      sk.thin(`M${x + (w - 6) / 2} 96V146`);
+    }
+    sk.serif(490, 250, `kv_head = ⌊i / ${g}⌋`, 24);
+    if (st.bug) sk.hand(490, 284, '.repeat() tiles: K0 K1 K2 K3 K0 K1… wrong partners', 20, -1, { c: 'redt' });
+  },
+  controls: c => c.choice('h', 'Query heads', [[8, '8'], [16, '16'], [32, '32']]).choice('kv', 'KV heads', [[1, '1'], [2, '2'], [4, '4'], [8, '8']]).toggle('bug', 'Use .repeat (bug)')
+});
+
+fig('cache', {
+  view: '0 0 980 340', hue: 250,
+  label: 'Line chart of KV cache gigabytes against context length up to 128k for 32, 8 and 1 KV heads, with a dashed line at 80 GB.',
+  draw(sk) {
+    const per = h => 2 * 32 * h * 128 * 2, Tm = 131072, X = t => map(t, 0, Tm, 90, 900), Y = b => map(b, 0, 72 * 1024 ** 3, 290, 40);
+    axes(sk, 90, 40, 810, 250, { xl: 'context length (tokens)', yl: 'KV cache' });
+    [[32, 'MHA · 32', ''], [8, 'GQA · 8', 'pop'], [1, 'MQA · 1', 'dash']].forEach(([h, t, c]) => { sk.plot(Ink.poly([[X(0), Y(0)], [X(Tm), Y(per(h) * Tm)]]), c); sk.mono(X(Tm) - 4, Y(per(h) * Tm) - 8, `${t}: ${fmtBytes(per(h) * Tm)}`, { a: 'end', s: 12 }); });
+    sk.red(`M90 ${Y(64 * 1024 ** 3)}H900`); sk.hand(200, Y(64 * 1024 ** 3) - 8, '64 GB', 18, -2, { c: 'redt' });
+    [32768, 65536, 98304, 131072].forEach(t => sk.mono(X(t), 310, fmtN(t), { s: 10.5, c: 'muted' }));
+  }
+});
+
+fig('traffic', {
+  view: '0 0 980 340', hue: 250, state: { lt: 15 },
+  label: 'Two stacked bars, MHA and GQA, each split into weights and KV cache bytes read per decoded token, with the resulting milliseconds per token at 2 TB per second.',
+  draw(sk, st) {
+    const T = 2 ** st.lt, W = 16 * 1024 ** 3, bw = 2e12, cache = h => 2 * 32 * h * 128 * 2 * T;
+    const items = [['MHA (32 KV heads)', cache(32)], ['GQA (8 KV heads)', cache(8)]];
+    const max = W + cache(32), S = v => 600 * v / max;
+    items.forEach(([t, c], i) => {
+      const y = 70 + i * 110;
+      sk.cell(rect(200, y, S(W), 54), 0.35); sk.ink(box(200, y, S(W), 54, i));
+      sk.accent(rect(200 + S(W), y, S(c), 54)); sk.ink(box(200 + S(W), y, S(c), 54, i + 2));
+      sk.mono(190, y + 32, t, { a: 'end', s: 12 });
+      sk.mono(200 + S(W) / 2, y + 32, 'weights 16 GB', { s: 11 });
+      if (S(c) > 60) sk.mono(200 + S(W) + S(c) / 2, y + 32, `cache ${fmtBytes(c)}`, { s: 11 });
+      sk.mono(200 + S(W) + S(c) + 10, y + 32, `${((W + c) / bw * 1000).toFixed(1)} ms/token`, { a: 'start', s: 12 });
+    });
+    sk.hand(490, 316, `context ${fmtN(T)} tokens`, 22, -2, { c: 'tint' });
+  },
+  controls: c => c.slider('lt', 'Context', 10, 17, 1, v => fmtN(2 ** v))
+});
+
+fig('tradeoff', {
+  view: '0 0 980 330', hue: 250,
+  label: 'Illustrative scatter with inference speed on the x axis and quality on the y axis. MHA sits high and slow, MQA fast and lower, GQA-8 high and fast.',
+  draw(sk) {
+    axes(sk, 90, 40, 800, 240, { xl: 'inference speed →', yl: 'quality' });
+    [['MHA', 180, 70, false], ['GQA-8', 720, 88, true], ['MQA', 830, 190, false]].forEach(([t, x, y, a]) => { a ? sk.accent(o(x, y, 14)) : sk.paper(o(x, y, 14)); sk.ink(o(x, y, 14)); sk.hand(x, y - 22, t, 22, -3); });
+    sk.dash('M180 70Q500 60 720 88'); sk.dash('M720 88Q790 120 830 190');
+    sk.hand(470, 160, 'sweet spot →', 22, -4, { c: 'tint' });
+    sk.mono(490, 318, 'illustrative positions', { s: 11, c: 'muted' });
+  }
+});
+
+fig('uptrain', {
+  view: '0 0 980 320', hue: 250,
+  label: 'Eight K projection heads from an MHA checkpoint, grouped in fours, averaged into two GQA K heads, followed by a short continued-pretraining step.',
+  draw(sk, st) {
+    for (let i = 0; i < 8; i++) { const x = 40 + i * 64; heat(sk, Array.from({ length: 5 }, (_, r) => [gauss(i, r), gauss(i + 9, r)]), x, 60, 22, 18, { grid: false }); sk.mono(x + 22, 168, `K${i}`, { s: 11 }); }
+    sk.pop(box(34, 52, 252, 104, 1)); sk.pop(box(290, 52, 252, 104, 2));
+    if (st.step >= 1) {
+      sk.ink(carr(160, 182, 640, 110, 30)); sk.ink(carr(416, 182, 760, 110, 20));
+      [0, 1].forEach(j => { const avg = Array.from({ length: 5 }, (_, r) => [0, 1].map(c => [0, 1, 2, 3].reduce((s, k) => s + gauss(j * 4 + k + c * 9, r), 0) / 4)); heat(sk, avg, 620 + j * 120, 60, 22, 18, { grid: false, max: 2.5 }); sk.mono(642 + j * 120, 168, `K'${j}`, { s: 11 }); });
+      sk.hand(700, 40, 'mean-pool each group', 20, -3, { c: 'tint' });
+    }
+    if (st.step >= 2) { node(sk, 600, 220, 260, 50, 'continue pretraining', { s: 20, fill: 'accent', sub: '≈ 5% of the original compute' }); sk.ink(arr(730, 184, 730, 216)); }
+  },
+  controls: c => c.player('step', 3, { ms: 1300, name: 'step' })
+});
+
+fig('code', {
+  view: '0 0 980 380', hue: 250,
+  label: 'A code card: k and v projections output h_kv times d_h features, a repeat_kv helper uses expand and reshape to copy each KV head n_rep times, and attention runs with full-size q and repeated k and v.',
+  draw(sk) {
+    code(sk, ['self.q_proj = nn.Linear(d, h * d_h, bias=False)', 'self.k_proj = nn.Linear(d, h_kv * d_h, bias=False)', 'self.v_proj = nn.Linear(d, h_kv * d_h, bias=False)', '', 'def repeat_kv(x, n_rep):          # [B, h_kv, T, d_h]', '    B, h_kv, T, d_h = x.shape', '    x = x[:, :, None].expand(B, h_kv, n_rep, T, d_h)', '    return x.reshape(B, h_kv * n_rep, T, d_h)', '', 'k, v = cache.update(k, v)        # still h_kv heads', 'k, v = repeat_kv(k, h // h_kv), repeat_kv(v, h // h_kv)', 'out = F.scaled_dot_product_attention(q, k, v, is_causal=True)'], 20, 14, { w: 720, s: 12, lh: 27, hi: [1, 2, 6, 7], dim: [3, 8] });
+    sk.hand(870, 80, 'smaller K, V', 21, -4, { c: 'tint' }); sk.ink(arr(820, 86, 748, 76));
+    sk.hand(870, 200, 'interleaved copy', 21, -4); sk.ink(arr(820, 206, 748, 206));
+    sk.hand(870, 290, 'cache before repeat', 21, -4, { c: 'redt' }); sk.ink(arr(820, 290, 748, 274));
+  }
+});
+
+const Ed = { view: '0 0 240 110', hue: 250 };
+fig('e-div', { ...Ed, draw(sk) { sk.mono(120, 40, '32 / 8 = 4 ✓', { s: 14 }); sk.mono(120, 70, '32 / 6 = 5.33', { s: 14, c: 'redt' }); } });
+fig('e-tile', { ...Ed, draw(sk) { ['A', 'A', 'B', 'B'].forEach((t, i) => chip(sk, 20 + i * 52, 20, 46, 28, t, { hi: t === 'A', s: 12 })); ['A', 'B', 'A', 'B'].forEach((t, i) => chip(sk, 20 + i * 52, 64, 46, 28, t, { hi: t === 'A', s: 12, red: true })); } });
+fig('e-tp', { ...Ed, draw(sk) { for (let i = 0; i < 8; i++) chip(sk, 14 + i * 27, 20, 24, 26, 'g', { s: 10 }); for (let i = 0; i < 4; i++) chip(sk, 40 + i * 44, 72, 36, 26, 'kv', { hi: true, s: 10 }); sk.mono(120, 60, '8 GPUs, 4 KV heads', { s: 10 }); } });
+fig('e-cache', { ...Ed, draw(sk) { bars(sk, [8, 32], 70, 16, 100, 64, { labels: ['cached h_kv', 'cached h'], hi: 1, gap: 30, labS: 10 }); sk.red(cross(165, 26, 8)); } });
+fig('e-native', { ...Ed, draw(sk) { sk.mono(120, 44, 'sdpa(q, k, v,', { s: 12 }); sk.mono(120, 66, '  enable_gqa=True)', { s: 12 }); sk.ink(check(96, 92, 0.6)); } });
+  </script></Fragment>
+</Note>

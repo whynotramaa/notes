@@ -1,0 +1,228 @@
+---
+import Note from '../../../layouts/Note.astro';
+---
+<Note ch={7} description="Scaled dot-product attention step by step: QKᵀ, the √d_k scale, softmax and its numerical stability, dot product geometry, and outputs as convex blends of values.">
+  <header class="hero">
+    <div>
+      <p class="kicker">chapter 07</p>
+      <h1><span>Scaled dot-product</span> attention</h1>
+      <p class="lede">One line of maths runs every attention head in every modern LLM.</p>
+    </div>
+  </header>
+  <div class="formula" style="font-size:clamp(15px,2.4vw,22px);text-align:center">Attention(Q, K, V) = <em>softmax</em>( Q Kᵀ / <em>√d<sub>k</sub></em> + mask ) · V</div>
+
+  <h2>The whole computation</h2>
+  <figure class="fig" id="pipeline">
+    <div class="fig-head"><h3>Six steps, one matrix at a time</h3></div>
+  </figure>
+
+  <figure class="fig" id="rowview">
+    <div class="fig-head"><h3>Every row is chapter 6 again</h3></div>
+  </figure>
+
+  <h2>Why divide by √d<sub>k</sub></h2>
+
+  <figure class="fig" id="variance">
+    <div class="fig-head"><h3>Dot products spread out as width grows</h3></div>
+  </figure>
+
+  <figure class="fig" id="saturate">
+    <div class="fig-head"><h3>Large scores freeze softmax</h3></div>
+  </figure>
+
+  <h2>Softmax, carefully</h2>
+  <figure class="fig" id="softmax">
+    <div class="fig-head"><h3>Softmax step by step, with the overflow trap</h3></div>
+    <div class="formula">softmax(s)<sub>i</sub> = e<sup>s<sub>i</sub> − <em>max(s)</em></sup> ÷ Σ<sub>j</sub> e<sup>s<sub>j</sub> − <em>max(s)</em></sup> &nbsp; (same answer, no overflow)</div>
+  </figure>
+
+  <figure class="fig" id="geometry">
+    <div class="fig-head"><h3>What a dot product measures</h3></div>
+  </figure>
+
+  <figure class="fig" id="hull">
+    <div class="fig-head"><h3>The output is a blend, always inside the values</h3></div>
+  </figure>
+
+  <h2>Exceptions and sharp edges</h2>
+  <div class="edges">
+    <article class="edge redraw" id="e-nan"><div class="art"></div><h4>A fully masked row</h4><span class="fix">make sure every query can see at least one key, usually itself.</span></article>
+    <article class="edge redraw" id="e-fp16"><div class="art"></div><h4>−1e9 in fp16</h4><span class="fix">use the dtype's minimum value instead of a magic number.</span></article>
+    <article class="edge redraw" id="e-tie"><div class="art"></div><h4>All scores equal</h4><span class="fix">normal at initialisation; training breaks the ties.</span></article>
+    <article class="edge redraw" id="e-drop"><div class="art"></div><h4>Attention dropout</h4><span class="fix">turn dropout off for evaluation with model.eval().</span></article>
+    <article class="edge redraw" id="e-scale"><div class="art"></div><h4>Not always 1/√d<sub>k</sub></h4><span class="fix">do not change the scale of a pretrained model.</span></article>
+  </div>
+
+  <Fragment slot="scripts"><script is:inline>
+const { fig, box, rect, o, arr, carr, ln, node, chip, heat, vec, bars, axes, smooth, cross, check, squig, clamp, map, gauss, dot, softmax, matmul, T, norm } = Ink;
+const toks = ['The', 'cat', 'sat', 'because', 'it', 'was', 'tired'];
+const Kx = [[0, 0.2, 0, 1], [1, 0.9, 0, 0], [0, 0, 1, 0.1], [0, 0, 0.2, 0.9], [0.3, 0.4, 0, 0.5], [0, 0, 0.8, 0.4], [0.2, 0, 0.5, 0.1]];
+const Qx = [[0, 1.2, 0, 0.3], [0, 0, 1.4, 0], [1.3, 1, 0, 0], [0, 0, 1.2, 0.2], [2.2, 1.6, 0, 0], [1, 1.2, 0, 0], [1.2, 0.6, 0.6, 0]];
+const Vx = [[0.1, 0, -0.2, 0.3], [0.9, 0.8, 0.1, -0.3], [-0.2, 0.1, 0.9, 0.4], [0, -0.3, 0.2, 0.7], [0.4, 0.3, 0, 0.2], [-0.1, 0.2, 0.6, 0.3], [0.3, -0.4, 0.5, 0.1]];
+const S = matmul(Qx, T(Kx)), Ss = S.map(r => r.map(v => v / 2)), Sm = Ss.map((r, i) => r.map((v, j) => j > i ? -Infinity : v)), W = Sm.map(r => softmax(r)), Out = matmul(W, Vx);
+
+const stages = [
+  ['Q and K', 'start: queries and keys'],
+  ['S = QKᵀ', 'every query · every key'],
+  ['S / √d_k', 'divide by √4 = 2'],
+  ['+ mask', 'future set to −∞'],
+  ['softmax', 'each row sums to 1'],
+  ['· V', 'blend values'],
+];
+fig('pipeline', {
+  view: '0 0 960 470', hue: 150,
+  label: 'Six-stage attention pipeline. A rail of stage names along the top, and below it the current matrix: Q and K, raw scores, scaled scores, masked scores, softmax weights, and the output.',
+  draw(sk, st) {
+    const s = st.step;
+    stages.forEach(([t], i) => { const x = 24 + i * 154; chip(sk, x, 18, 140, 34, t, { hi: i === s, dim: i > s, s: 12.5 }); if (i < 5) sk.ink(arr(x + 142, 35, x + 152, 35)); });
+    const cell = 50, x0 = 170, y0 = 110;
+    if (s === 0) {
+      heat(sk, Qx, 140, y0, 50, 40, { nums: true, rows: toks, fmt: v => v.toFixed(1), numS: 12 });
+      sk.serif(240, 98, 'Q  [7 × 4]', 20);
+      heat(sk, Kx, 560, y0, 50, 40, { nums: true, rows: toks, fmt: v => v.toFixed(1), numS: 12 });
+      sk.serif(660, 98, 'K  [7 × 4]', 20);
+    } else if (s === 5) {
+      heat(sk, W, 70, y0, 46, 40, { nums: true, rows: toks, cols: toks, max: 1, colR: -35, numS: 10.5 });
+      sk.hand(420, 260, '·', 36);
+      heat(sk, Vx, 450, y0, 40, 40, { nums: true, fmt: v => v.toFixed(1), numS: 10.5 });
+      sk.hand(630, 260, '=', 32);
+      heat(sk, Out, 660, y0, 52, 40, { nums: true, rows: toks, numS: 11 });
+      sk.pop(box(656, y0 + 4 * 40 - 2, 212, 44, 3));
+      sk.hand(770, 430, 'row “it” ≈ mostly cat', 21, -3, { c: 'tint' });
+    } else {
+      const M = [S, Ss, Sm, W][s - 1];
+      heat(sk, M, x0 + 60, y0, cell + 6, 40, { nums: true, rows: toks, cols: toks, max: s === 4 ? 1 : 3, colR: -35, numS: 12, hiRow: s === 4 ? 4 : null });
+      sk.hand(820, 180, stages[s][1], 22, -4, { c: 'tint' });
+      if (s === 3) sk.hand(820, 230, 'upper triangle gone', 20, -3, { c: 'redt' });
+      if (s === 4) sk.hand(820, 230, 'row “it”: cat wins', 20, -3);
+    }
+  },
+  controls: c => c.player('step', stages.length, { ms: 1800, name: 'stage' })
+});
+
+fig('rowview', {
+  view: '0 0 960 360', hue: 150, state: { r: 4 },
+  label: 'The masked attention weight matrix. Clicking a row shows that row as a bar chart of weights over the visible tokens.',
+  hit: (k, st, set) => set({ r: +k }),
+  draw(sk, st) {
+    heat(sk, W, 130, 60, 40, 38, { rows: toks, cols: toks, max: 1, colR: -35, hiRow: st.r });
+    toks.forEach((t, i) => sk.hit(rect(60, 60 + i * 38, 350, 38), i, `Show weights for ${t}`));
+    sk.ink(carr(420, 79 + st.r * 38, 520, 200, -30));
+    bars(sk, W[st.r], 540, 70, 380, 200, { labels: toks, hi: W[st.r].indexOf(Math.max(...W[st.r])), vals: true, labS: 11 });
+    sk.hand(730, 46, `query: “${toks[st.r]}”`, 22, -2, { c: 'tint' });
+  },
+  controls: c => c.read(st => `row ${toks[st.r]} sums to ${W[st.r].reduce((a, b) => a + b, 0).toFixed(3)}`)
+});
+
+const N = 300;
+const dots = d => Array.from({ length: N }, (_, s) => { let t = 0; for (let j = 0; j < d; j++) t += gauss(s + 1, j + 1) * gauss(s + 777, j + 3); return t; });
+fig('variance', {
+  view: '0 0 960 330', hue: 150, state: { ld: 4 },
+  label: 'Two histograms of 300 random dot products. The raw histogram widens as d_k grows. The scaled histogram keeps a standard deviation near 1.',
+  draw(sk, st) {
+    const d = 2 ** st.ld, raw = dots(d), sc = raw.map(v => v / Math.sqrt(d));
+    const hist = (vals, x0, lim, title, acc) => {
+      const B = 30, cnt = Array(B).fill(0);
+      vals.forEach(v => { const b = Math.floor(map(clamp(v, -lim, lim - 1e-9), -lim, lim, 0, B)); cnt[b]++; });
+      axes(sk, x0, 50, 380, 210, { xl: `−${lim} … +${lim}` });
+      const mx = Math.max(...cnt);
+      cnt.forEach((c, i) => { if (!c) return; const h = c / mx * 190, x = x0 + 4 + i * 12.5; const p = rect(x, 260 - h, 11, h); acc ? sk.accent(p) : sk.cell(p, 0.5); });
+      sk.hand(x0 + 190, 34, title, 22, -2);
+      sk.mono(x0 + 190, 300, `std = ${Ink.std(vals).toFixed(2)}`, { s: 13 });
+    };
+    hist(raw, 60, 40, `raw q · k  (d_k = ${d})`, false);
+    hist(sc, 520, 5, 'scaled by 1/√d_k', true);
+  },
+  controls: c => c.slider('ld', 'd_k', 1, 10, 1, v => 2 ** v).note('raw std ≈ √d_k')
+});
+
+const base = [2, 1, 0.5, 0, -1];
+fig('saturate', {
+  view: '0 0 960 320', hue: 150, state: { m: 1 },
+  label: 'Softmax bars over five scores multiplied by a factor, beside a gauge for the gradient of the top weight p times one minus p.',
+  draw(sk, st) {
+    const p = softmax(base.map(v => v * st.m)), g = p[0] * (1 - p[0]);
+    bars(sk, p, 70, 60, 460, 190, { labels: base.map(v => (v * st.m).toFixed(1)), hi: 0, vals: true, max: 1 });
+    sk.hand(300, 40, `softmax(${st.m.toFixed(1)} × scores)`, 22, -2);
+    sk.mono(300, 296, 'scaled scores', { s: 11, c: 'muted' });
+    sk.paper(box(660, 60, 80, 190, 3)); sk.ink(box(660, 60, 80, 190, 3));
+    const h = g / 0.25 * 190; sk.accent(rect(662, 250 - h, 76, h));
+    sk.mono(700, 276, `p(1−p) = ${g.toFixed(3)}`, { s: 12 });
+    sk.hand(830, 120, g < 0.02 ? 'gradient gone' : g < 0.1 ? 'fading…' : 'healthy', 24, -4, { c: g < 0.02 ? 'redt' : 'tint' });
+    sk.mono(830, 150, 'max possible = 0.25', { s: 11, c: 'muted' });
+  },
+  controls: c => c.slider('m', 'Multiply scores by', 0.2, 12, 0.1, v => v.toFixed(1) + '×')
+});
+
+fig('softmax', {
+  view: '0 0 960 360', hue: 150, state: { big: false },
+  label: 'Softmax in four rows: the scores, scores minus the max, exponentials, and final probabilities. With big scores, the naive exponentials overflow to infinity and produce NaN, while the stable path still works.',
+  draw(sk, st) {
+    const s = st.big ? [1000, 1001, 1002] : [1, 2, 3], m = Math.max(...s);
+    const naive = s.map(Math.exp), ns = naive.reduce((a, b) => a + b, 0);
+    const sh = s.map(v => v - m), ex = sh.map(Math.exp), es = ex.reduce((a, b) => a + b, 0), p = ex.map(v => v / es);
+    const fmt = v => !Number.isFinite(v) ? (Number.isNaN(v) ? 'NaN' : '∞') : Math.abs(v) >= 1e4 ? v.toExponential(1) : v.toFixed(3);
+    const rows = [['scores s', s, 0], ['s − max', sh, st.step >= 1], ['e^(s − max)', ex, st.step >= 2], ['÷ sum ' + es.toFixed(3), p, st.step >= 3]];
+    rows.forEach(([t, v, on], r) => {
+      if (r && !on) return;
+      const y = 40 + r * 62;
+      sk.mono(200, y + 24, t, { a: 'end', s: 12 });
+      v.forEach((x, j) => chip(sk, 220 + j * 92, y, 82, 36, fmt(x), { hi: r === 3, s: 12 }));
+      if (r) sk.ink(arr(160, y - 18, 160, y - 2));
+    });
+    sk.paper(box(560, 40, 370, 140, 2)); sk.ink(box(560, 40, 370, 140, 2));
+    sk.hand(745, 70, 'naive: e^s ÷ Σ e^s', 21, -2);
+    naive.forEach((x, j) => chip(sk, 590 + j * 104, 90, 92, 30, fmt(x), { red: !Number.isFinite(x), s: 12 }));
+    const np = naive.map(v => v / ns);
+    sk.mono(745, 150, '→ ' + np.map(fmt).join(', '), { s: 12, c: np.some(Number.isNaN) ? 'redt' : '' });
+    if (np.some(Number.isNaN)) sk.hand(745, 214, 'overflow → ∞/∞ → NaN', 24, -4, { c: 'redt' });
+    else sk.hand(745, 214, 'fine for small scores…', 22, -3, { c: 'muted' });
+  },
+  controls: c => c.player('step', 4, { ms: 1100, name: 'step' }).toggle('big', 'Big scores (1000+)')
+});
+
+fig('geometry', {
+  view: '0 0 960 320', hue: 150, state: { deg: 35, len: 1 },
+  label: 'A query arrow and a key arrow from one origin, with the projection of the key onto the query drawn as a shadow. The score equals the product of lengths and the cosine.',
+  draw(sk, st) {
+    const cx = 120, cy = 240, L = 220, th = st.deg * Math.PI / 180, kl = L * 0.7 * st.len;
+    sk.pop(arr(cx, cy, cx + L, cy));
+    const kx = cx + kl * Math.cos(th), ky = cy - kl * Math.sin(th);
+    sk.ink(arr(cx, cy, kx, ky));
+    sk.dash(`M${kx} ${ky}L${kx} ${cy}`);
+    const proj = kl * Math.cos(th);
+    sk.accent(rect(cx, cy + 6, Math.max(0, proj), 8));
+    sk.hand(cx + L + 20, cy + 6, 'q', 24); sk.hand(kx + 14, ky - 6, 'k', 24);
+    const score = 1 * st.len * Math.cos(th);
+    sk.serif(720, 110, `q · k = ${score.toFixed(2)}`, 30);
+    sk.mono(720, 146, `‖q‖ = 1 · ‖k‖ = ${st.len.toFixed(1)} · cos ${st.deg}° = ${Math.cos(th).toFixed(2)}`, { s: 12 });
+    sk.hand(720, 220, 'the accent bar is the shadow of k on q', 20, -2, { c: 'tint' });
+  },
+  controls: c => c.slider('deg', 'Angle', 0, 180, 1, v => v + '°').slider('len', 'Key length', 0.2, 2.5, 0.1, v => v.toFixed(1))
+});
+
+const pts = [[180, 70], [80, 270], [400, 260]];
+fig('hull', {
+  view: '0 0 960 330', hue: 150, state: { a: 2, b: 0.5, c: 0 },
+  label: 'A triangle whose corners are three value vectors. The output point, the softmax-weighted average, always lies inside the triangle.',
+  draw(sk, st) {
+    sk.paper(`M${pts[0]} L${pts[1]} L${pts[2]}Z`); sk.zone(`M${pts[0]} L${pts[1]} L${pts[2]}Z`);
+    sk.ink(`M${pts[0][0]} ${pts[0][1]} ${pts[1][0]} ${pts[1][1]} ${pts[2][0]} ${pts[2][1]}Z`);
+    const w = softmax([st.a, st.b, st.c]);
+    const ox = w.reduce((s, wi, i) => s + wi * pts[i][0], 0), oy = w.reduce((s, wi, i) => s + wi * pts[i][1], 0);
+    pts.forEach(([x, y], i) => { sk.paper(o(x, y, 8)); sk.ink(o(x, y, 8)); sk.thin(`M${x} ${y}L${ox} ${oy}`); sk.mono(x + (i === 2 ? 20 : -20), y + (i === 0 ? -14 : 22), `v${i + 1} · ${w[i].toFixed(2)}`, { s: 12 }); });
+    sk.accent(o(ox, oy, 9)); sk.ink(o(ox, oy, 9)); sk.hand(ox + 30, oy - 10, 'out', 22, -6);
+    bars(sk, w, 560, 80, 320, 180, { labels: ['w1', 'w2', 'w3'], vals: true, max: 1, hi: w.indexOf(Math.max(...w)) });
+    sk.hand(720, 50, 'weights ≥ 0, sum = 1', 21, -2, { c: 'tint' });
+  },
+  controls: c => c.slider('a', 'score 1', -3, 5, 0.1, v => v.toFixed(1)).slider('b', 'score 2', -3, 5, 0.1, v => v.toFixed(1)).slider('c', 'score 3', -3, 5, 0.1, v => v.toFixed(1))
+});
+
+const Ed = { view: '0 0 240 110', hue: 150 };
+fig('e-nan', { ...Ed, draw(sk) { ['−∞', '−∞', '−∞'].forEach((t, i) => chip(sk, 26 + i * 50, 24, 44, 28, t, { dim: true, s: 12 })); sk.ink(arr(176, 38, 196, 38)); sk.hand(212, 46, 'NaN', 20, -6, { c: 'redt' }); sk.mono(100, 86, '0 / 0', { s: 13 }); } });
+fig('e-fp16', { ...Ed, draw(sk) { sk.mono(120, 42, '−1e9 → fp16 → −inf', { s: 12, c: 'redt' }); sk.mono(120, 72, 'max fp16 = 65504', { s: 12 }); } });
+fig('e-tie', { ...Ed, draw(sk) { bars(sk, [0.25, 0.25, 0.25, 0.25], 50, 20, 140, 60, { max: 0.5, vals: true }); } });
+fig('e-drop', { ...Ed, draw(sk) { bars(sk, [0.4, 0, 0.3, 0.3], 50, 16, 140, 64, { max: 0.5 }); sk.red(cross(103, 72, 8)); sk.hand(120, 104, 'sum = 0.7 (scaled)', 15, -2); } });
+fig('e-scale', { ...Ed, draw(sk) { sk.mono(70, 52, '1/√d', { s: 16 }); sk.mono(170, 52, '1/d', { s: 16 }); sk.hand(120, 56, 'or', 20); sk.hand(120, 94, 'pick one, keep it', 17, -2); } });
+  </script></Fragment>
+</Note>

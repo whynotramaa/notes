@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#f5f3ee">
+  <title>octlm · Day 01 · Attention, drawn by hand</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="app.js" defer></script>
+</head>
+<body>
+  <svg class="filter-root" aria-hidden="true"><defs><filter id="ink-edge"><feTurbulence type="fractalNoise" baseFrequency=".03" numOctaves="2" seed="3"/><feDisplacementMap in="SourceGraphic" scale="3"/></filter></defs></svg>
+  <header class="topbar">
+    <a class="brand" href="#tokenization" aria-label="Octlm Day 01, first slide">octlm<span>day 01</span></a>
+    <div class="journey">attention, drawn by hand</div>
+    <div class="tools">
+      <button id="play" aria-pressed="false">Pause motion</button>
+      <button id="replay">Replay</button>
+      <button id="cinema">Present</button>
+      <button id="theme" aria-label="Switch to dark theme">Dark ink</button>
+    </div>
+  </header>
+  <main id="main" tabindex="-1">
+    <div class="slide-heading">
+      <div><h1 id="title"></h1><p id="subtitle"></p></div>
+      <div id="aside" class="scribble"></div>
+    </div>
+    <div id="lab" class="lab" aria-label="Playground controls"></div>
+    <div id="drawings" class="drawings"></div>
+    <div class="slide-foot"><span>Illustrative toy values · not a trained model</span><a id="source" target="_blank" rel="noreferrer">Reading ↗</a></div>
+  </main>
+  <footer class="navigation">
+    <button id="previous" aria-label="Previous topic">← <span>Back</span></button>
+    <nav id="topics" aria-label="Lesson topics"></nav>
+    <button id="next" aria-label="Next topic"><span>Next</span> →</button>
+  </footer>
+  <div id="announcement" class="sr-only" aria-live="polite"></div>
+  <dialog id="presentation" aria-labelledby="presentation-title">
+    <div class="present-top"><span id="presentation-title"></span><button id="close-presentation">Close <kbd>Esc</kbd></button></div>
+    <div id="present-slot"></div>
+    <div class="present-bottom"><button id="previous-scene">← Drawing</button><span id="scene-count"></span><button id="present-replay">Replay ink</button><button id="next-scene">Drawing →</button></div>
+  </dialog>
+  <noscript>This interactive notebook needs JavaScript. Enable JavaScript and reload to explore the diagrams.</noscript>
+</body>
+</html>

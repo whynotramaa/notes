@@ -1,0 +1,218 @@
+---
+import Note from '../../../layouts/Note.astro';
+---
+<Note ch={7} description="The modern decoder block assembled: a GPT-2 versus Llama comparison, upgrades applied one at a time, tensor shapes through a Llama 3 8B block, parameter breakdown, real configs, the forward code, where compute goes, and a porting checklist.">
+  <header class="hero">
+    <div>
+      <p class="kicker">chapter 07</p>
+      <h1><span>The modern</span> decoder block</h1>
+      <p class="lede">Put every upgrade from today into one block and you have the layer that Llama 3, Mistral and Qwen stack 28 to 80 times.</p>
+    </div>
+  </header>
+
+  <h2>Before and after</h2>
+  <figure class="fig" id="diff">
+    <div class="fig-head"><h3>The full diff</h3></div>
+  </figure>
+
+  <figure class="fig" id="upgrade">
+    <div class="fig-head"><h3>Apply the upgrades one at a time</h3></div>
+  </figure>
+
+  <h2>Inside the finished block</h2>
+  <figure class="fig" id="flow">
+    <div class="fig-head"><h3>Shapes through one Llama 3 8B block</h3></div>
+  </figure>
+
+  <figure class="fig" id="params">
+    <div class="fig-head"><h3>Where one block's 218M parameters live</h3></div>
+  </figure>
+
+  <figure class="fig" id="configs">
+    <div class="fig-head"><h3>Four real configs</h3></div>
+  </figure>
+
+  <figure class="fig" id="code">
+    <div class="fig-head"><h3>The whole block in code</h3></div>
+  </figure>
+
+  <figure class="fig" id="compute">
+    <div class="fig-head"><h3>Where compute goes, per generated token</h3></div>
+  </figure>
+
+  <figure class="fig" id="checklist">
+    <div class="fig-head"><h3>Porting checklist</h3></div>
+  </figure>
+
+  <h2>Exceptions and sharp edges</h2>
+  <div class="edges">
+    <article class="edge redraw" id="e-qwen"><div class="art"></div><h4>Qwen keeps QKV biases</h4><span class="fix">do not assume bias=False everywhere.</span></article>
+    <article class="edge redraw" id="e-swa"><div class="art"></div><h4>Mistral's sliding window</h4><span class="fix">pass the window to the attention kernel and the cache.</span></article>
+    <article class="edge redraw" id="e-gemma"><div class="art"></div><h4>Gemma's extras</h4><span class="fix">read the model's reference code, not just the config.</span></article>
+    <article class="edge redraw" id="e-tied"><div class="art"></div><h4>Tied embeddings in small models</h4><span class="fix">check tie_word_embeddings.</span></article>
+    <article class="edge redraw" id="e-init"><div class="art"></div><h4>Initialisation for training from scratch</h4><span class="fix">small std (about 0.02) and scaled residual projections.</span></article>
+  </div>
+
+  <Fragment slot="scripts"><script is:inline>
+const { fig, box, rect, o, arr, carr, ln, node, chip, heat, vec, bars, axes, smooth, cross, check, squig, clamp, map, gauss, code, fmtN, fmtBytes, tape } = Ink;
+
+fig('diff', {
+  view: '0 0 980 470', hue: 150,
+  label: 'A two-column table comparing GPT-2 and Llama 3 on positions, normalisation, norm placement, attention heads, attention kernel, MLP, biases, embeddings and context length.',
+  draw(sk) {
+    const rows = [['positions', 'learned table, added once', 'RoPE in every attention layer'], ['norm', 'LayerNorm (γ, β)', 'RMSNorm (γ only)'], ['norm placement', 'pre-norm', 'pre-norm + final norm'], ['KV heads', '12 KV heads for 12 Q heads', '8 KV heads for 32 Q heads (GQA)'], ['attention kernel', 'manual softmax(QKᵀ)V', 'SDPA → FlashAttention'], ['MLP', 'GELU, d → 4d → d', 'SwiGLU, d → 3.5d → d'], ['biases', 'everywhere', 'none'], ['embeddings', 'tied in/out', 'untied (8B)'], ['context', '1024', '8192 (128k in 3.1)']];
+    sk.hand(370, 34, 'GPT-2 small', 24, -2); sk.hand(720, 34, 'Llama 3 8B', 24, -2, { c: 'tint' });
+    rows.forEach(([k, a, b], i) => {
+      const y = 56 + i * 44;
+      sk.thin(`M20 ${y}H960`);
+      sk.text(30, y + 29, k, { s: 20, a: 'start' });
+      sk.mono(370, y + 27, a, { s: 12 });
+      sk.cell(rect(540, y + 4, 410, 36), 0.25);
+      sk.mono(720, y + 27, b, { s: 12 });
+      sk.mono(540, y + 27, '→', { s: 13, c: 'muted' });
+    });
+    sk.ink(box(20, 50, 940, 404, 1));
+  }
+});
+
+const D = 4096, ups = [
+  { t: 'vanilla GPT-2 style', a: 4 * D * D + 4 * D, m: 8 * D * D + 5 * D, n: 4 * D, kv: 32, pos: 'learned P', norm: 'LayerNorm', mlp: 'GELU 4d', att: 'MHA, manual', note: 'starting point' },
+  { t: '+ RoPE', a: 4 * D * D + 4 * D, m: 8 * D * D + 5 * D, n: 4 * D, kv: 32, pos: 'RoPE', norm: 'LayerNorm', mlp: 'GELU 4d', att: 'MHA, manual', note: 'position table deleted, relative scores' },
+  { t: '+ RMSNorm', a: 4 * D * D + 4 * D, m: 8 * D * D + 5 * D, n: 2 * D, kv: 32, pos: 'RoPE', norm: 'RMSNorm', mlp: 'GELU 4d', att: 'MHA, manual', note: 'β gone, one reduction per norm' },
+  { t: '+ SwiGLU', a: 4 * D * D + 4 * D, m: 3 * D * 14336, n: 2 * D, kv: 32, pos: 'RoPE', norm: 'RMSNorm', mlp: 'SwiGLU 14336', att: 'MHA, manual', note: 'MLP grows (Llama 3 uses ×1.3)' },
+  { t: '+ GQA (8 KV heads)', a: 2 * D * D + 2 * D * 1024 + 4 * D, m: 3 * D * 14336, n: 2 * D, kv: 8, pos: 'RoPE', norm: 'RMSNorm', mlp: 'SwiGLU 14336', att: 'GQA, manual', note: 'KV cache ÷ 4, k/v projections ÷ 4' },
+  { t: '+ SDPA / FlashAttention', a: 2 * D * D + 2 * D * 1024 + 4 * D, m: 3 * D * 14336, n: 2 * D, kv: 8, pos: 'RoPE', norm: 'RMSNorm', mlp: 'SwiGLU 14336', att: 'GQA, Flash', note: 'no T × T matrix in memory' },
+  { t: '− biases', a: 2 * D * D + 2 * D * 1024, m: 3 * D * 14336, n: 2 * D, kv: 8, pos: 'RoPE', norm: 'RMSNorm', mlp: 'SwiGLU 14336', att: 'GQA, Flash', note: 'Llama 3 8B block' },
+];
+fig('upgrade', {
+  view: '0 0 980 460', hue: 150,
+  label: 'A block diagram whose parts relabel as each upgrade is applied, beside a panel showing the upgrade name, parameters per block split into attention, MLP and norms, KV cache bytes per token per layer, and a note.',
+  draw(sk, st) {
+    const u = ups[st.step], prev = ups[Math.max(0, st.step - 1)], X = 160;
+    const ch = k => st.step > 0 && u[k] !== prev[k];
+    sk.ink(arr(X, 440, X, 20));
+    node(sk, X + 40, 400, 200, 34, `embed${u.pos === 'learned P' ? ' + P' : ''}`, { font: 'mono', s: 12, fill: ch('pos') ? 'accent' : 'paper' });
+    node(sk, X + 40, 340, 200, 34, u.norm, { font: 'mono', s: 12, fill: ch('norm') ? 'accent' : 'paper' });
+    node(sk, X + 40, 250, 200, 70, u.att, { font: 'mono', s: 13, fill: ch('att') || ch('kv') ? 'accent' : 'paper', sub: u.pos === 'RoPE' ? `RoPE on q, k · ${u.kv} KV heads` : `${u.kv} KV heads` });
+    node(sk, X + 40, 190, 200, 34, u.norm, { font: 'mono', s: 12, fill: ch('norm') ? 'accent' : 'paper' });
+    node(sk, X + 40, 100, 200, 70, u.mlp, { font: 'mono', s: 13, fill: ch('mlp') ? 'accent' : 'paper', sub: st.step === 6 ? 'no biases' : '' });
+    if (st.step === 1) sk.hand(X + 140, 384, 'P table removed', 18, -3, { c: 'tint' });
+    sk.paper(box(500, 30, 450, 400, 2)); sk.ink(box(500, 30, 450, 400, 2));
+    sk.hand(725, 70, u.t, 26, -2, { c: 'tint' });
+    const tot = u.a + u.m + u.n;
+    bars(sk, [u.a, u.m, u.n], 540, 110, 370, 160, { labels: ['attention', 'MLP', 'norms'], vals: true, fmt: fmtN, max: 3 * D * 14336, hi: 1, gap: 40 });
+    sk.serif(725, 330, `${fmtN(tot)} params / block`, 24);
+    sk.mono(725, 362, `KV cache: ${fmtBytes(2 * u.kv * 128 * 2)} per token per layer`, { s: 13 });
+    sk.hand(725, 404, u.note, 19, -1);
+  },
+  controls: c => c.player('step', ups.length, { ms: 1600, name: 'upgrade' })
+});
+
+fig('flow', {
+  view: '0 0 980 560', hue: 150,
+  label: 'Vertical data flow through a Llama 3 8B block with shapes: x T by 4096, RMSNorm, q to T by 32 by 128, k and v to T by 8 by 128, RoPE on q and k, KV cache, SDPA with GQA, output T by 4096, o projection, residual add, RMSNorm, gate and up to T by 14336, SiLU and multiply, down to T by 4096, residual add.',
+  draw(sk) {
+    const X = 110;
+    sk.ink(arr(X, 540, X, 16));
+    node(sk, 20, 510, 180, 36, 'x  [T, 4096]', { font: 'mono', s: 12 });
+    const step = (y, t, sh, acc, x = X + 70, w = 200) => { node(sk, x, y, w, 34, t, { font: 'mono', s: 12, fill: acc ? 'accent' : 'paper' }); if (sh) sk.mono(x + w + 12, y + 22, sh, { a: 'start', s: 11.5 }); };
+    sk.ink(`M${X} 480H${X + 70}`); step(463, 'RMSNorm', '[T, 4096]', true);
+    step(410, 'q_proj', '→ [T, 32, 128]', false, X + 70, 120); step(410, 'k_proj', '[T, 8, 128]', false, X + 350, 100); step(410, 'v_proj', '[T, 8, 128]', false, X + 580, 100);
+    sk.ink(arr(X + 170, 461, X + 130, 446)); sk.ink(carr(X + 230, 461, X + 400, 446, 8)); sk.ink(carr(X + 260, 461, X + 630, 446, 14));
+    step(356, 'RoPE(q)', '', true, X + 70, 120); step(356, 'RoPE(k)', '', true, X + 350, 100);
+    sk.ink(arr(X + 130, 408, X + 130, 392)); sk.ink(arr(X + 400, 408, X + 400, 392));
+    step(300, 'KV cache  [S, 8, 128]', '', false, X + 350, 330);
+    sk.ink(arr(X + 400, 354, X + 400, 336)); sk.ink(carr(X + 630, 408, X + 630, 336, 0));
+    step(240, 'SDPA (Flash, GQA, causal)', '→ [T, 32, 128]', true, X + 70, 330);
+    sk.ink(arr(X + 130, 354, X + 130, 276)); sk.ink(carr(X + 500, 298, X + 360, 276, 8));
+    step(190, 'o_proj', '[T, 4096]', false, X + 70, 120);
+    sk.ink(arr(X + 130, 238, X + 130, 226));
+    sk.paper(o(X, 172, 13)); sk.ink(o(X, 172, 13)); sk.hand(X, 179, '+', 22); sk.ink(carr(X + 70, 207, X + 14, 176, -8));
+    sk.ink(`M${X} 150H${X + 70}`); step(133, 'RMSNorm', '[T, 4096]', true);
+    step(80, 'gate_proj', '[T, 14336]', false, X + 70, 130); step(80, 'up_proj', '[T, 14336]', false, X + 380, 120);
+    sk.ink(arr(X + 135, 131, X + 135, 116)); sk.ink(carr(X + 240, 131, X + 440, 116, 8));
+    step(30, 'SiLU(gate) ⊙ up → down_proj', '[T, 4096]', true, X + 70, 330);
+    sk.ink(arr(X + 135, 78, X + 135, 66)); sk.ink(carr(X + 440, 78, X + 360, 66, 6));
+    sk.paper(o(X, 14, 11)); sk.ink(o(X, 14, 11)); sk.hand(X, 20, '+', 20); sk.ink(carr(X + 70, 46, X + 12, 18, -8));
+  }
+});
+
+const parts = [['q_proj', 4096 * 4096], ['k_proj', 4096 * 1024], ['v_proj', 4096 * 1024], ['o_proj', 4096 * 4096], ['gate', 4096 * 14336], ['up', 4096 * 14336], ['down', 14336 * 4096], ['2 norms', 2 * 4096]];
+fig('params', {
+  view: '0 0 980 340', hue: 150,
+  label: 'Bar chart of parameter counts in one Llama 3 8B block: q and o projections 16.8 million each, k and v 4.2 million each, gate, up and down 58.7 million each, norms 8 thousand.',
+  draw(sk) {
+    bars(sk, parts.map(p => p[1]), 80, 50, 820, 210, { labels: parts.map(p => p[0]), vals: true, fmt: fmtN, hiSet: new Set([4, 5, 6]), labS: 12 });
+    const att = parts.slice(0, 4).reduce((a, p) => a + p[1], 0), mlp = parts.slice(4, 7).reduce((a, p) => a + p[1], 0), tot = att + mlp + 8192;
+    sk.hand(250, 310, `attention ${fmtN(att)} (${(att / tot * 100).toFixed(0)}%)`, 20, -2);
+    sk.hand(680, 310, `MLP ${fmtN(mlp)} (${(mlp / tot * 100).toFixed(0)}%)`, 20, -2, { c: 'tint' });
+  }
+});
+
+fig('configs', {
+  view: '0 0 980 520', hue: 150,
+  label: 'A table of configuration values for GPT-2 small, Llama 3 8B, Mistral 7B v0.1 and Qwen 2.5 7B: width, layers, query and KV heads, MLP width, vocabulary, positions, norm, activation, QKV bias, tied embeddings and context.',
+  draw(sk) {
+    const cols = ['GPT-2 small', 'Llama 3 8B', 'Mistral 7B', 'Qwen2.5 7B'];
+    const rows = [
+      ['d_model', '768', '4096', '4096', '3584'], ['layers', '12', '32', '32', '28'], ['heads q / kv', '12 / 12', '32 / 8', '32 / 8', '28 / 4'], ['MLP width', '3072', '14336', '14336', '18944'], ['vocab', '50257', '128256', '32000', '152064'],
+      ['positions', 'learned', 'RoPE 500k', 'RoPE 10k', 'RoPE 1M'], ['norm', 'LayerNorm', 'RMSNorm', 'RMSNorm', 'RMSNorm'], ['MLP act', 'GELU', 'SwiGLU', 'SwiGLU', 'SwiGLU'], ['QKV bias', 'yes', 'no', 'no', 'yes'], ['tied emb.', 'yes', 'no', 'no', 'no'], ['context', '1024', '8192', '32k + SWA 4096', '32k native'],
+    ];
+    const x0 = 20, cw = [190, 190, 190, 190, 190], rh = 40;
+    cols.forEach((t, j) => sk.hand(x0 + cw[0] + j * 190 + 95, 34, t, 21, -2, { c: j ? '' : 'muted' }));
+    rows.forEach((r, i) => {
+      const y = 50 + i * rh;
+      sk.thin(`M${x0} ${y}H${x0 + 950}`);
+      r.forEach((t, j) => {
+        const X = j ? x0 + cw[0] + (j - 1) * 190 : x0 + 8;
+        if (j > 1 && ((i === 8 && j === 4) || (i === 10 && j === 3))) sk.accent(rect(X + 4, y + 4, 182, rh - 8));
+        if (j === 1) sk.fill(rect(X + 2, y + 2, 186, rh - 4), 'sk-sunk');
+        sk.mono(j ? X + 95 : X, y + 25, t, { a: j ? 'middle' : 'start', s: 12.5, c: j === 0 ? 'muted' : '' });
+      });
+    });
+    sk.ink(box(x0, 46, 950, rows.length * rh + 6, 1));
+  }
+});
+
+fig('code', {
+  view: '0 0 980 640', hue: 150,
+  label: 'A code card with a complete modern decoder block class: RMSNorm modules, q, k, v and o projections without bias, gate, up and down projections, and a forward that applies RMSNorm, RoPE, KV cache update, SDPA with GQA, residual add, RMSNorm, SwiGLU and residual add.',
+  draw(sk) {
+    const L = ['class Block(nn.Module):', '    def __init__(s, d, h, h_kv, d_ff):', '        s.n1, s.n2 = RMSNorm(d), RMSNorm(d)', '        s.q = nn.Linear(d, d, bias=False)', '        s.k = nn.Linear(d, h_kv * d // h, bias=False)', '        s.v = nn.Linear(d, h_kv * d // h, bias=False)', '        s.o = nn.Linear(d, d, bias=False)', '        s.gate_up = nn.Linear(d, 2 * d_ff, bias=False)', '        s.down = nn.Linear(d_ff, d, bias=False)', '', '    def forward(s, x, cos, sin, cache):', '        B, T, _ = x.shape', '        a = s.n1(x)', '        q = s.q(a).view(B, T, h, dh).transpose(1, 2)', '        k = s.k(a).view(B, T, h_kv, dh).transpose(1, 2)', '        v = s.v(a).view(B, T, h_kv, dh).transpose(1, 2)', '        q, k = rope(q, cos, sin), rope(k, cos, sin)', '        k, v = cache.update(k, v)', '        y = F.scaled_dot_product_attention(q, k, v, is_causal=T > 1, enable_gqa=True)', '        x = x + s.o(y.transpose(1, 2).reshape(B, T, -1))', '        g, u = s.gate_up(s.n2(x)).chunk(2, -1)', '        return x + s.down(F.silu(g) * u)'];
+    code(sk, L, 20, 14, { w: 760, s: 11.5, lh: 27, hi: [2, 4, 5, 7, 12, 16, 18, 20, 21] });
+    [[2, 'ch 2'], [4, 'ch 4'], [7, 'ch 3'], [16, 'ch 1'], [18, 'ch 5, 6'], [21, 'ch 3']].forEach(([i, t]) => { const y = 14 + 9 + i * 27 + 18; sk.ink(arr(800, y - 5, 784, y - 5)); sk.hand(812, y, t, 20, -3, { a: 'start', c: 'tint' }); });
+    sk.hand(880, 520, 'is_causal only when T > 1:', 16, -3, { c: 'redt' }); sk.hand(880, 540, 'the decode fix from ch 5', 16, -3, { c: 'redt' });
+  }
+});
+
+fig('compute', {
+  view: '0 0 980 340', hue: 150, state: { lt: 13 },
+  label: 'Stacked bars of FLOPs per token per block for contexts of 1k, 8k, 32k and 128k, split into linear layers and attention, with the selected context highlighted.',
+  draw(sk, st) {
+    const lin = 2 * 218e6, att = T => 4 * T * 4096, Ts = [1024, 8192, 32768, 131072];
+    const max = lin + att(131072), H = v => 230 * v / max;
+    Ts.forEach((T, i) => {
+      const x = 120 + i * 200, y0 = 280, hl = H(lin), ha = H(att(T)), on = Math.log2(T) === st.lt;
+      sk.cell(rect(x, y0 - hl, 110, hl), 0.35); sk.ink(box(x, y0 - hl, 110, hl, i));
+      on ? sk.accent(rect(x, y0 - hl - ha, 110, ha)) : sk.cell(rect(x, y0 - hl - ha, 110, ha), 0.8); sk.ink(box(x, y0 - hl - ha, 110, ha, i + 4));
+      sk.mono(x + 55, 300, fmtN(T) + ' ctx', { s: 12 });
+      sk.mono(x + 55, y0 - hl - ha - 10, `${(att(T) / (att(T) + lin) * 100).toFixed(0)}% attn`, { s: 11 });
+    });
+    sk.thin('M100 280H920');
+    sk.hand(160, 40, 'linear layers (pale) · attention (dark)', 18, -2, { a: 'start' });
+    sk.mono(490, 330, `crossover ≈ ${fmtN(lin / (4 * 4096))} tokens`, { s: 12 });
+  },
+  controls: c => c.choice('lt', 'Highlight', [[10, '1k'], [13, '8k'], [15, '32k'], [17, '128k']])
+});
+
+const items = [['rope_theta + scaling', 'base and long-context method'], ['pairing convention', 'interleaved or half-split'], ['norm eps and γ form', 'γ or 1 + γ'], ['intermediate_size', 'never assume 4d'], ['gate / up order', 'fused chunk order'], ['h, h_kv, grouping', 'repeat_interleave'], ['causal alignment', 'decode vs prefill'], ['dtype', 'bf16 for Flash'], ['biases', 'QKV bias? (Qwen)'], ['tied embeddings', 'tie_word_embeddings']];
+Ink.checklist('checklist', items, { hue: 150, done: [true, true], unit: 'checked', full: 'safe to load', left: 'left' });
+
+const Ed = { view: '0 0 240 110', hue: 150 };
+fig('e-qwen', { ...Ed, draw(sk) { ['q', 'k', 'v', 'o'].forEach((t, i) => chip(sk, 22 + i * 52, 36, 44, 30, t, { s: 12, hi: i < 3, sub: i < 3 ? '+b' : 'no b' })); } });
+fig('e-swa', { ...Ed, draw(sk) { heat(sk, Array.from({ length: 6 }, (_, i) => Array.from({ length: 6 }, (_, j) => j <= i && i - j < 3 ? 1 : -Infinity)), 80, 6, 16, 16, { max: 1, alpha: 0.7, masked: false }); sk.mono(120, 108, 'window 4096', { s: 10 }); } });
+fig('e-gemma', { ...Ed, draw(sk) { sk.mono(120, 34, 'emb · √d', { s: 12 }); sk.mono(120, 58, 'x · (1 + γ)', { s: 12 }); sk.mono(120, 82, 'tanh soft-cap', { s: 12 }); } });
+fig('e-tied', { ...Ed, draw(sk) { node(sk, 30, 36, 70, 36, 'E', { font: 'serif', fill: 'accent' }); node(sk, 140, 36, 70, 36, 'Eᵀ', { font: 'serif' }); sk.dash('M100 54H140'); sk.mono(120, 96, '1B, 3B: tied · 8B: not', { s: 10 }); } });
+fig('e-init', { ...Ed, draw(sk) { sk.mono(120, 42, 'std = 0.02', { s: 13 }); sk.mono(120, 68, 'out_proj · 1/√(2N)', { s: 12 }); } });
+  </script></Fragment>
+</Note>

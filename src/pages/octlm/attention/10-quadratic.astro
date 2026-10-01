@@ -1,0 +1,219 @@
+---
+import Note from '../../../layouts/Note.astro';
+---
+<Note ch={10} description="The T × T attention matrix and its quadratic cost: growing grids, FLOPs versus the MLP, memory per layer, causal savings, FlashAttention tiling and sparse patterns.">
+  <header class="hero">
+    <div>
+      <p class="kicker">chapter 10</p>
+      <h1><span>The n × n matrix</span></h1>
+      <p class="lede">Every token scores every token, so the score matrix has T² entries per head per layer.</p>
+    </div>
+  </header>
+
+  <h2>Seeing the square</h2>
+  <figure class="fig" id="grow">
+    <div class="fig-head"><h3>Add tokens, watch the grid explode</h3></div>
+  </figure>
+
+  <figure class="fig" id="double">
+    <div class="fig-head"><h3>Doubling is quadrupling</h3></div>
+  </figure>
+
+  <h2>Compute and memory</h2>
+  <figure class="fig" id="flops">
+    <div class="fig-head"><h3>When does attention dominate?</h3></div>
+  </figure>
+
+  <figure class="fig" id="memory">
+    <div class="fig-head"><h3>Memory to store the full score matrix</h3></div>
+  </figure>
+
+  <h2>How real systems cope</h2>
+  <figure class="fig" id="tiles">
+    <div class="fig-head"><h3>FlashAttention: never build the whole square</h3></div>
+  </figure>
+
+  <figure class="fig" id="online">
+    <div class="fig-head"><h3>The online softmax trick behind it</h3></div>
+  </figure>
+
+  <figure class="fig" id="sparse">
+    <div class="fig-head"><h3>Or compute fewer scores</h3></div>
+  </figure>
+
+  <h2>Exceptions and sharp edges</h2>
+  <div class="edges">
+    <article class="edge redraw" id="e-short"><div class="art"></div><h4>Short prompts: blame the MLP</h4><span class="fix">profile before optimising.</span></article>
+    <article class="edge redraw" id="e-flash"><div class="art"></div><h4>FlashAttention is exact</h4><span class="fix">use it by default, it is not an approximation.</span></article>
+    <article class="edge redraw" id="e-padwaste"><div class="art"></div><h4>Padding wastes squares</h4><span class="fix">sort by length, pack sequences, or use variable-length kernels.</span></article>
+    <article class="edge redraw" id="e-decode"><div class="art"></div><h4>Decode is linear per token</h4><span class="fix">see chapter 11.</span></article>
+    <article class="edge redraw" id="e-linear"><div class="art"></div><h4>Linear attention trades quality</h4><span class="fix">hybrids mix a few full-attention layers back in.</span></article>
+  </div>
+
+  <Fragment slot="scripts"><script is:inline>
+const { fig, box, rect, o, arr, carr, ln, node, chip, heat, vec, bars, axes, smooth, cross, check, squig, clamp, map, gauss, dot, softmax, fmtN, fmtBytes } = Ink;
+
+fig('grow', {
+  view: '0 0 960 380', hue: 300, state: { n: 8 },
+  label: 'A row of n token cells on the left and an n by n grid on the right, with counts for tokens and scores.',
+  draw(sk, st) {
+    const n = st.n, maxW = 300, c = Math.min(26, maxW / n), rowC = Math.min(26, 260 / n);
+    for (let i = 0; i < n; i++) { sk.cell(rect(40 + (i % 10) * 26, 60 + Math.floor(i / 10) * 30, 24, 24), 0.8); }
+    sk.mono(170, 40, `${n} tokens`, { s: 14 });
+    const x0 = 480, y0 = 30;
+    for (let i = 0; i < n; i++) for (let j = 0; j < n; j++) sk.cell(rect(x0 + j * c, y0 + i * c, c, c), j <= i ? 0.75 : 0.25);
+    if (c > 5) for (let k = 1; k < n; k++) { sk.thin(`M${x0} ${y0 + k * c}h${n * c}`); sk.thin(`M${x0 + k * c} ${y0}v${n * c}`); }
+    sk.ink(box(x0, y0, n * c, n * c, 1));
+    sk.serif(x0 + n * c + 30, y0 + n * c / 2, `${(n * n).toLocaleString()} scores`, 24, { a: 'start' });
+    sk.hand(170, 330, 'grows like n', 22, -3); sk.hand(640, 360, 'grows like n²', 22, -3, { c: 'tint' });
+    sk.mono(x0, y0 + n * c + 18, 'darker = needed under the causal mask', { a: 'start', s: 10.5, c: 'muted' });
+  },
+  controls: c => c.slider('n', 'Tokens n', 2, 40, 1)
+});
+
+fig('double', {
+  view: '0 0 960 320', hue: 300,
+  label: 'A sequence of squares, each with double the side of the last. Labels show context length and score count, quadrupling each step.',
+  draw(sk, st) {
+    const sizes = [1, 2, 4, 8].slice(0, st.step + 1);
+    let x = 40;
+    sizes.forEach((s, i) => {
+      const side = 30 * s, y = 280 - side, last = i === st.step;
+      last ? sk.accent(box(x, y, side, side, i)) : sk.cell(box(x, y, side, side, i), 0.3);
+      sk.ink(box(x, y, side, side, i));
+      for (let k = 1; k < s; k++) { sk.thin(`M${x + k * 30} ${y}v${side}`); sk.thin(`M${x} ${y + k * 30}h${side}`); }
+      sk.mono(x + side / 2, 304, `${1024 * s} tok`, { s: 12 });
+      if (i) sk.hand(x - 22, 140, '→', 26);
+      x += side + 44;
+    });
+    sk.serif(800, 80, `${(16 ** st.step).toLocaleString()}× the scores`, 26);
+    sk.mono(800, 110, `for ${(2 ** st.step)}× the tokens`, { s: 13 });
+  },
+  controls: c => c.player('step', 4, { ms: 1200, name: 'doubling' })
+});
+
+fig('flops', {
+  view: '0 0 960 340', hue: 300, state: { d: 2048 },
+  label: 'Two curves of FLOPs per layer against sequence length T: attention scores growing as T squared and linear layers growing linearly. They cross at T equals 6d.',
+  draw(sk, st) {
+    const d = st.d, Tmax = 65536, X = t => map(t, 0, Tmax, 80, 900);
+    const att = t => 4 * t * t * d, lin = t => 24 * t * d * d, ymax = Math.max(att(Tmax), lin(Tmax)), Y = v => map(v, 0, ymax, 270, 40);
+    axes(sk, 80, 40, 820, 230, { xl: 'sequence length T →', yl: 'FLOPs per layer' });
+    const p1 = [], p2 = []; for (let t = 0; t <= Tmax; t += 1024) { p1.push([X(t), Y(att(t))]); p2.push([X(t), Y(lin(t))]); }
+    sk.plot(smooth(p1), 'pop'); sk.plot(smooth(p2));
+    const tc = 6 * d;
+    if (tc < Tmax) { sk.dash(`M${X(tc)} 40V270`); sk.accent(o(X(tc), Y(att(tc)), 7)); sk.ink(o(X(tc), Y(att(tc)), 7)); sk.mono(X(tc), 292, `T = 6d = ${tc.toLocaleString()}`, { s: 12 }); }
+    sk.hand(X(Tmax) - 40, Y(att(Tmax)) + 30, '4T²d attention', 20, -4, { a: 'end', c: 'tint' });
+    sk.hand(X(Tmax) - 40, Y(lin(Tmax)) - 14, '24Td² linear', 20, -2, { a: 'end' });
+    [16384, 32768, 49152].forEach(t => sk.mono(X(t), 290, fmtN(t), { s: 10, c: 'muted' }));
+  },
+  controls: c => c.choice('d', 'Width d', [[1024, '1024'], [2048, '2048'], [4096, '4096'], [8192, '8192']])
+});
+
+fig('memory', {
+  view: '0 0 960 340', hue: 300, state: { h: 32 },
+  label: 'Bar chart on a log scale of memory needed to store the full attention matrix for one layer at sequence lengths from 1k to 128k tokens, with a reference line at 80 GB.',
+  draw(sk, st) {
+    const Ts = [1024, 4096, 16384, 32768, 65536, 131072], bytes = Ts.map(t => t * t * st.h * 2);
+    const Y = b => map(Math.log10(b), 6, 13, 270, 40);
+    axes(sk, 80, 40, 820, 230, { yl: 'bytes (log)' });
+    Ts.forEach((t, i) => {
+      const x = 130 + i * 128, y = Y(bytes[i]);
+      const p = `M${x} ${y} ${x + 80} ${y - 1} ${x + 80} 270 ${x} 270Z`;
+      bytes[i] > 80e9 ? sk.accent(p) : sk.cell(p, 0.35); sk.ink(p);
+      sk.mono(x + 40, y - 8, fmtBytes(bytes[i]), { s: 11 });
+      sk.mono(x + 40, 290, fmtN(t) + ' tok', { s: 11 });
+    });
+    sk.red(`M80 ${Y(80e9)}H900`); sk.hand(200, Y(80e9) - 8, 'one 80 GB GPU', 19, -2, { c: 'redt' });
+  },
+  controls: c => c.choice('h', 'Heads', [[8, '8'], [32, '32'], [64, '64']])
+});
+
+const B = 6, pairs = []; for (let i = 0; i < B; i++) for (let j = 0; j <= i; j++) pairs.push([i, j]);
+fig('tiles', {
+  view: '0 0 960 400', hue: 300,
+  label: 'A 6 by 6 grid of attention tiles. Tiles above the diagonal are skipped. One tile at a time is loaded into a small fast-memory box, while running max and sum values update.',
+  draw(sk, st) {
+    const [qi, kj] = pairs[st.step], c = 50, x0 = 80, y0 = 50;
+    for (let i = 0; i < B; i++) for (let j = 0; j < B; j++) {
+      const X = x0 + j * c, Y = y0 + i * c, idx = pairs.findIndex(p => p[0] === i && p[1] === j);
+      if (j > i) { sk.fill(rect(X, Y, c, c), 'sk-sunk'); sk.thin(`M${X + 8} ${Y + c - 8}L${X + c - 8} ${Y + 8}`); }
+      else if (idx < st.step) sk.cell(rect(X, Y, c, c), 0.35);
+      else if (idx === st.step) sk.accent(rect(X, Y, c, c));
+    }
+    for (let k = 1; k < B; k++) { sk.thin(`M${x0} ${y0 + k * c}h${B * c}`); sk.thin(`M${x0 + k * c} ${y0}v${B * c}`); }
+    sk.ink(box(x0, y0, B * c, B * c, 1));
+    sk.mono(x0 - 10, y0 + qi * c + c / 2 + 4, `Q${qi}`, { a: 'end', s: 12 }); sk.mono(x0 + kj * c + c / 2, y0 - 10, `K${kj}`, { s: 12 });
+    sk.hand(x0 + 150, 380, 'skipped: above the diagonal', 18, -2, { c: 'muted' });
+    sk.paper(box(520, 60, 160, 120, 2)); sk.ink(box(520, 60, 160, 120, 2));
+    sk.accent(box(560, 86, 80, 70, 3)); sk.ink(box(560, 86, 80, 70, 3));
+    sk.mono(600, 126, `Q${qi}·K${kj}ᵀ`, { s: 12 });
+    sk.hand(600, 46, 'fast SRAM (tiny)', 20, -3);
+    sk.ink(carr(x0 + kj * c + c, y0 + qi * c + c / 2, 518, 120, -30));
+    sk.paper(box(720, 60, 200, 120, 4)); sk.ink(box(720, 60, 200, 120, 4));
+    sk.mono(820, 96, `running max m${qi}`, { s: 12 }); sk.mono(820, 122, `running sum ℓ${qi}`, { s: 12 }); sk.mono(820, 148, `running out O${qi}`, { s: 12 });
+    sk.hand(820, 46, 'per query block', 20, -3);
+    const done = st.step + 1, total = pairs.length;
+    sk.serif(720, 260, `${done} / ${total} tiles`, 26);
+    sk.mono(720, 290, `${B * B - total} of ${B * B} tiles never computed`, { s: 12 });
+    sk.hand(720, 340, 'the full square never exists in memory', 20, -2, { c: 'tint' });
+  },
+  controls: c => c.player('step', pairs.length, { ms: 500, name: 'tile' })
+});
+
+const chunks = [[1.0, 0.5, 2.0], [3.5, 0.2, 1.1], [0.4, 2.2, 4.1]];
+fig('online', {
+  view: '0 0 960 360', hue: 300,
+  label: 'Three chunks of scores processed in turn. A table tracks the running max and running sum, rescaling the old sum when the max grows. The final sum matches the full softmax denominator.',
+  draw(sk, st) {
+    let m = -Infinity, l = 0; const rows = [];
+    chunks.forEach((ch, k) => { const mNew = Math.max(m, ...ch); const lNew = l * Math.exp(m - mNew) + ch.reduce((s, v) => s + Math.exp(v - mNew), 0); rows.push({ ch, m: mNew, l: lNew, rescale: Number.isFinite(m) ? Math.exp(m - mNew) : null }); m = mNew; l = lNew; });
+    const all = chunks.flat(), M = Math.max(...all), L = all.reduce((s, v) => s + Math.exp(v - M), 0);
+    rows.slice(0, st.step + 1).forEach((r, k) => {
+      const y = 40 + k * 80;
+      r.ch.forEach((v, j) => chip(sk, 40 + j * 70, y, 60, 36, v.toFixed(1), { hi: v === r.m && v === Math.max(...r.ch) && k === st.step, s: 13 }));
+      sk.ink(arr(260, y + 18, 300, y + 18));
+      sk.mono(320, y + 14, `m = ${r.m.toFixed(1)}`, { a: 'start', s: 13 });
+      sk.mono(320, y + 34, r.rescale == null ? `ℓ = ${r.l.toFixed(3)}` : `ℓ = old·${r.rescale.toFixed(3)} + new = ${r.l.toFixed(3)}`, { a: 'start', s: 13 });
+    });
+    if (st.step === chunks.length - 1) {
+      sk.paper(box(660, 250, 270, 80, 3)); sk.ink(box(660, 250, 270, 80, 3));
+      sk.mono(795, 278, `all at once: ℓ = ${L.toFixed(3)}`, { s: 13 });
+      sk.mono(795, 304, `streaming:   ℓ = ${rows[2].l.toFixed(3)}`, { s: 13 });
+      sk.ink(check(890, 230, 0.9));
+    }
+    sk.hand(780, 80, 'only two numbers carried', 20, -3, { c: 'tint' });
+  },
+  controls: c => c.player('step', chunks.length, { ms: 1500, name: 'chunk' })
+});
+
+const pats = {
+  full: (i, j) => j <= i,
+  'sliding window': (i, j) => j <= i && i - j < 4,
+  'strided': (i, j) => j <= i && (i - j < 2 || j % 4 === 0),
+  'global + local': (i, j) => j <= i && (i - j < 3 || j < 2),
+};
+fig('sparse', {
+  view: '0 0 960 340', hue: 300, state: { p: 'sliding window' },
+  label: 'A 16 by 16 causal attention pattern for the selected sparse scheme, with a bar comparing the number of computed cells to full causal attention.',
+  draw(sk, st) {
+    const n = 16, c = 17, f = pats[st.p];
+    let cnt = 0, full = 0;
+    for (let i = 0; i < n; i++) for (let j = 0; j < n; j++) { if (j <= i) full++; if (f(i, j)) { cnt++; sk.cell(rect(80 + j * c, 30 + i * c, c, c), 0.8); } else if (j <= i) sk.cell(rect(80 + j * c, 30 + i * c, c, c), 0.08); }
+    sk.ink(box(80, 30, n * c, n * c, 1));
+    sk.serif(700, 80, st.p, 26);
+    sk.paper(box(560, 120, 300, 36, 2)); sk.cell(rect(562, 122, 296 * cnt / full, 32), 0.8); sk.ink(box(560, 120, 300, 36, 2));
+    sk.mono(710, 182, `${cnt} of ${full} causal cells (${Math.round(cnt / full * 100)}%)`, { s: 13 });
+    sk.hand(710, 250, st.p === 'full' ? 'exact, but quadratic' : 'cheaper, but some pairs never meet', 20, -2, { c: st.p === 'full' ? '' : 'tint' });
+  },
+  controls: c => c.choice('p', 'Pattern', Object.keys(pats).map(k => [k, k]))
+});
+
+const Ed = { view: '0 0 240 110', hue: 300 };
+fig('e-short', { ...Ed, draw(sk) { bars(sk, [0.15, 0.85], 60, 16, 120, 64, { labels: ['attn', 'MLP'], hi: 1, gap: 30, max: 1 }); sk.mono(120, 104, 'T = 512, d = 4096', { s: 10 }); } });
+fig('e-flash', { ...Ed, draw(sk) { sk.mono(120, 40, 'FLOPs   same', { s: 13 }); sk.mono(120, 66, 'memory  O(T)', { s: 13 }); sk.ink(check(196, 66, 0.6)); } });
+fig('e-padwaste', { ...Ed, draw(sk) { sk.cell(rect(80, 14, 30, 30), 0.8); sk.fill(rect(110, 14, 50, 80), 'sk-red-zone'); sk.fill(rect(80, 44, 30, 50), 'sk-red-zone'); sk.ink(box(80, 14, 80, 80, 1)); sk.hand(196, 60, 'waste', 18, -6, { c: 'redt' }); } });
+fig('e-decode', { ...Ed, draw(sk) { for (let j = 0; j < 8; j++) sk.cell(rect(30 + j * 20, 46, 18, 18), 0.6); sk.accent(rect(190, 46, 18, 18)); sk.mono(120, 90, '1 row per step: O(T)', { s: 11 }); } });
+fig('e-linear', { ...Ed, draw(sk) { for (let j = 0; j < 6; j++) chip(sk, 14 + j * 28, 40, 24, 24, '·', { s: 11 }); sk.ink(arr(186, 52, 204, 52)); node(sk, 206, 36, 28, 32, 's', { font: 'mono', fill: 'accent', s: 11 }); sk.hand(110, 98, 'fixed-size memory', 16, -2); } });
+  </script></Fragment>
+</Note>

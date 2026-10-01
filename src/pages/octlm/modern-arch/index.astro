@@ -1,0 +1,137 @@
+---
+import Note from '../../../layouts/Note.astro';
+import { chapters } from './_note.js';
+const base = '/octlm/modern-arch/';
+---
+<Note ch={0} description="Day 2 of octlm: turning the vanilla Transformer block into a modern LLM block with RoPE, RMSNorm, SwiGLU, grouped-query attention, SDPA and FlashAttention.">
+  <header class="hero">
+    <div>
+      <p class="kicker">octlm · day 2 · modern decoder architecture</p>
+      <h1><span>Modern</span> decoder architecture</h1>
+      <p class="lede">Day 1 built the textbook block: learned positions, LayerNorm, a GELU MLP, multi-head attention written by hand.</p>
+    </div>
+  </header>
+
+  <figure class="fig" id="beforeafter">
+    <div class="fig-head"><h3>From GPT-2 to Llama, part by part</h3></div>
+  </figure>
+
+  <div class="pair">
+    <figure class="fig" id="timeline">
+      <div class="fig-head"><h3>When each idea arrived</h3></div>
+    </figure>
+    <figure class="fig" id="buys">
+      <div class="fig-head"><h3>What each upgrade buys</h3></div>
+    </figure>
+  </div>
+
+  <figure class="fig" id="config">
+    <div class="fig-head"><h3>A real modern config, annotated</h3></div>
+  </figure>
+
+  <h2>Chapters</h2>
+  <div class="cards">
+    {chapters.slice(1).map((c, i) => (
+      <a class="card redraw" href={base + c.slug} id={`card${i + 1}`} style={`--h:${c.hue}`}>
+        <div class="art"></div>
+        <small>chapter {String(i + 1).padStart(2, '0')} · act {c.act}</small>
+        <strong>{c.title}</strong>
+        <span>{c.sub}</span>
+      </a>
+    ))}
+  </div>
+
+  <Fragment slot="scripts"><script is:inline>
+const { fig, box, rect, o, arr, carr, ln, node, chip, heat, bars, smooth, check, cross, code, rand, CH } = Ink;
+
+fig('beforeafter', {
+  view: '0 0 980 520', hue: 25,
+  label: 'Two decoder blocks side by side. Vanilla GPT-2 style: learned positions, LayerNorm, multi-head attention written manually, GELU MLP, biases. Modern Llama style: RoPE inside attention, RMSNorm, grouped-query attention via SDPA and FlashAttention, SwiGLU MLP, no biases. Numbered tags link to chapters.',
+  hit: href => { location.href = href; },
+  draw(sk) {
+    const col = (x0, title, parts) => {
+      sk.hand(x0 + 150, 34, title, 26, -2);
+      sk.ink(Ink.arr(x0 + 40, 490, x0 + 40, 60));
+      parts.forEach(([t, sub, y, h, acc]) => node(sk, x0 + 80, y, 220, h, t, { s: 19, sub, fill: acc ? 'accent' : 'paper' }));
+      [[418, 290, 312], [258, 124, 150]].forEach(([yb, yp, yo]) => { sk.ink(`M${x0 + 40} ${yb}H${x0 + 80}`); sk.paper(o(x0 + 40, yp, 13)); sk.ink(o(x0 + 40, yp, 13)); sk.hand(x0 + 40, yp + 7, '+', 22); sk.ink(carr(x0 + 80, yo, x0 + 55, yp, -10)); });
+    };
+    col(20, 'vanilla (GPT-2, 2019)', [
+      ['token + learned pos', 'P[i] added once', 446, 44],
+      ['LayerNorm', 'mean, std, γ, β', 400, 36],
+      ['multi-head attention', 'manual softmax(QKᵀ)V, 12 KV heads', 300, 76],
+      ['LayerNorm', 'mean, std, γ, β', 240, 36],
+      ['GELU MLP', 'd → 4d → d, with biases', 140, 76],
+    ]);
+    col(520, 'modern (Llama 3, 2024)', [
+      ['token embedding', 'no position added here', 446, 44],
+      ['RMSNorm', 'rms, γ only', 400, 36, true],
+      ['GQA + RoPE', 'SDPA → FlashAttention kernel', 300, 76, true],
+      ['RMSNorm', 'rms, γ only', 240, 36, true],
+      ['SwiGLU MLP', 'gate ⊙ up → down, no biases', 140, 76, true],
+    ]);
+    sk.ink(Ink.arr(370, 280, 560, 280)); sk.hand(465, 268, 'upgrade', 20, -4);
+    const tags = [[7, 70, 'whole block'], [3, 178, 'SwiGLU'], [2, 258, 'RMSNorm'], [1, 300, 'RoPE'], [4, 330, 'GQA'], [5, 360, 'SDPA'], [6, 390, 'FlashAttention']];
+    tags.forEach(([n, y, t]) => {
+      const x = 856;
+      sk.accent(o(x, y, 13)); sk.ink(o(x, y, 13)); sk.mono(x, y + 4, String(n), { s: 12 });
+      sk.mono(x + 20, y + 4, t, { a: 'start', s: 11 });
+      sk.hit(Ink.rect(x - 16, y - 15, 34 + 8 * t.length, 30), CH[n].href, `Open chapter ${n}: ${CH[n].title}`);
+    });
+    [178, 258, 338].forEach(y => sk.thin(`M841 ${y}H824`));
+  }
+});
+
+fig('timeline', {
+  view: '0 0 480 380', hue: 300,
+  label: 'Timeline from 2019 to 2024: MQA and RMSNorm 2019, SwiGLU 2020, RoPE 2021, FlashAttention 2022, GQA, FlashAttention-2 and PyTorch SDPA 2023, Llama 3 2024.',
+  draw(sk) {
+    sk.ink(Ink.arr(60, 30, 60, 360));
+    const ev = [[2019, 'RMSNorm', 'Zhang & Sennrich'], [2019, 'MQA', 'Shazeer'], [2020, 'SwiGLU', 'Shazeer'], [2021, 'RoPE', 'Su et al. (RoFormer)'], [2022, 'FlashAttention', 'Dao et al.'], [2023, 'GQA', 'Ainslie et al.'], [2023, 'FlashAttention-2', 'Dao'], [2023, 'SDPA in PyTorch 2.0', ''], [2024, 'Llama 3', 'the bundle, shipped']];
+    ev.forEach(([y, t, who], i) => {
+      const Y = 44 + i * 36;
+      (i === ev.length - 1 ? sk.accent.bind(sk) : sk.paper.bind(sk))(o(60, Y, 7)); sk.ink(o(60, Y, 7));
+      sk.mono(44, Y + 4, String(y), { a: 'end', s: 11 });
+      sk.text(80, Y + 6, t, { s: 20, a: 'start' });
+      if (who) sk.mono(300, Y + 4, who, { a: 'start', s: 10, c: 'muted' });
+    });
+  }
+});
+
+fig('buys', {
+  view: '0 0 480 380', hue: 85,
+  label: 'Table with rows RoPE, RMSNorm, SwiGLU, GQA, SDPA, FlashAttention and columns quality, speed, memory, long context. Dots show the main benefit of each.',
+  draw(sk) {
+    const cols = ['quality', 'speed', 'memory', 'long ctx'], rows = [['RoPE', [1, 0, 0, 2]], ['RMSNorm', [0, 1, 0, 0]], ['SwiGLU', [1, 0, 0, 0]], ['GQA', [0, 1, 1, 2]], ['SDPA', [0, 1, 2, 0]], ['Flash', [0, 1, 1, 1]]];
+    cols.forEach((c, j) => sk.text(170 + j * 80, 40, c, { s: 19, r: -14 }));
+    rows.forEach(([t, v], i) => {
+      const y = 80 + i * 48;
+      sk.text(110, y + 6, t, { s: 21, a: 'end' });
+      sk.thin(`M20 ${y + 24}H460`);
+      v.forEach((k, j) => { const x = 170 + j * 80; if (k === 1) { sk.accent(o(x, y, 11)); sk.ink(o(x, y, 11)); } else if (k === 2) sk.ink(o(x, y, 8)); });
+    });
+  }
+});
+
+fig('config', {
+  view: '0 0 980 400', hue: 195,
+  label: 'Llama 3 8B configuration as a code card with annotations: hidden size 4096, 32 layers, 32 attention heads, 8 key-value heads, intermediate size 14336, RMSNorm epsilon, rope theta 500000, vocabulary 128256, no biases.',
+  draw(sk) {
+    const lines = ['hidden_size          = 4096', 'num_hidden_layers    = 32', 'num_attention_heads  = 32', 'num_key_value_heads  = 8', 'head_dim             = 128', 'intermediate_size    = 14336', 'hidden_act           = "silu"', 'rms_norm_eps         = 1e-5', 'rope_theta           = 500000', 'max_position_embeddings = 8192', 'vocab_size           = 128256', 'attention_bias       = False'];
+    code(sk, lines, 40, 26, { w: 430, lh: 28, s: 13.5, hi: [3, 5, 6, 7, 8] });
+    const notes = [[3, '4 query heads share each K,V head → ch 4'], [5, '3.5 × d, not 4 × d: SwiGLU → ch 3'], [6, 'the “Swi” in SwiGLU'], [7, 'RMSNorm → ch 2'], [8, '50× the 2017 base: long context → ch 1'], [11, 'no biases anywhere → ch 7']];
+    notes.forEach(([i, t]) => { const y = 26 + 9 + i * 28 + 14; sk.ink(Ink.arr(480, y, 520, y)); sk.text(530, y + 6, t, { s: 20, a: 'start' }); });
+  }
+});
+
+const icons = [
+  sk => { sk.paper(o(120, 60, 40)); sk.ink(o(120, 60, 40)); sk.pop(arr(120, 60, 150, 36)); sk.ink(arr(120, 60, 158, 60)); chip(sk, 176, 70, 48, 26, 'cos', { s: 10 }); chip(sk, 16, 70, 48, 26, 'sin', { s: 10 }); },
+  sk => { [0.4, -1.2, 2.1, 0.3, -0.5].forEach((v, i) => { const x = 40 + i * 34, h = Math.abs(v) * 18; sk.cell(rect(x, v > 0 ? 60 - h : 60, 24, h), 0.6, v < 0); }); sk.thin('M30 60H210'); sk.hand(196, 30, '÷ rms', 18, -6); },
+  sk => { node(sk, 20, 40, 60, 34, 'gate', { font: 'mono', s: 11, fill: 'accent' }); sk.hand(98, 64, '⊙', 22); node(sk, 112, 40, 50, 34, 'up', { font: 'mono', s: 11 }); sk.ink(arr(166, 57, 186, 57)); node(sk, 188, 40, 46, 34, 'down', { font: 'mono', s: 10 }); },
+  sk => { for (let i = 0; i < 8; i++) chip(sk, 14 + i * 27, 20, 23, 24, 'Q', { hi: true, s: 10 }); for (let j = 0; j < 2; j++) { chip(sk, 48 + j * 108, 80, 40, 24, 'KV', { s: 10 }); for (let i = j * 4; i < j * 4 + 4; i++) sk.thin(`M${25 + i * 27} 46L${68 + j * 108} 78`); } },
+  sk => { sk.mono(120, 40, 'F.scaled_dot_product_', { s: 11 }); sk.mono(120, 58, 'attention(q, k, v)', { s: 11 }); ['flash', 'mem', 'math'].forEach((t, i) => chip(sk, 26 + i * 66, 74, 58, 26, t, { hi: i === 0, s: 10 })); },
+  sk => { sk.ink(box(20, 20, 90, 80, 1)); sk.mono(65, 64, 'HBM', { s: 12 }); sk.accent(box(170, 46, 46, 30, 2)); sk.ink(box(170, 46, 46, 30, 2)); sk.mono(193, 65, 'SRAM', { s: 9 }); sk.ink(carr(112, 50, 168, 56, -14)); sk.ink(carr(168, 70, 112, 76, -14)); },
+  sk => { ['RMSNorm', 'GQA+RoPE', 'RMSNorm', 'SwiGLU'].forEach((t, i) => node(sk, 60, 88 - i * 24, 120, 20, t, { font: 'mono', s: 9.5, fill: i % 2 ? 'accent' : 'paper' })); sk.ink(arr(40, 112, 40, 8)); },
+];
+icons.forEach((draw, i) => fig('card' + (i + 1), { view: '0 0 240 120', label: `Sketch for ${CH[i + 1].title}`, draw }));
+  </script></Fragment>
+</Note>

@@ -1,0 +1,204 @@
+---
+import Note from '../../../layouts/Note.astro';
+---
+<Note ch={4} description="Sinusoidal positional encodings drawn: waves at many frequencies, the classic heatmap, clock hands, wavelengths, relative dot products and shifts as rotations.">
+  <header class="hero">
+    <div>
+      <p class="kicker">chapter 04</p>
+      <h1><span>Sinusoidal positions</span></h1>
+      <p class="lede">Instead of learning a table, compute each position's vector from sine and cosine waves of many speeds.</p>
+    </div>
+  </header>
+
+  <h2>The formula, then the picture</h2>
+  <div class="formula">PE(pos, 2i) = <em>sin</em>(pos · ω<sub>i</sub>) &nbsp; PE(pos, 2i+1) = <em>cos</em>(pos · ω<sub>i</sub>) &nbsp; ω<sub>i</sub> = 1 / 10000<sup>2i/d</sup></div>
+  <p>Each pair of dimensions is one wave. Early pairs wiggle fast, later pairs crawl.</p>
+
+  <figure class="fig" id="waves">
+    <div class="fig-head"><h3>Read a position off the waves</h3></div>
+  </figure>
+
+  <figure class="fig" id="heat">
+    <div class="fig-head"><h3>The famous heatmap</h3></div>
+  </figure>
+
+  <figure class="fig" id="clocks">
+    <div class="fig-head"><h3>Clock hands at different speeds</h3></div>
+  </figure>
+
+  <h2>Why waves and not just numbers</h2>
+
+  <figure class="fig" id="wavelength">
+    <div class="fig-head"><h3>Wavelengths form a geometric ladder</h3></div>
+  </figure>
+
+  <figure class="fig" id="relative">
+    <div class="fig-head"><h3>The dot product only cares about distance</h3></div>
+    <div class="formula">PE(p) · PE(p+k) = Σ<sub>i</sub> <em>cos(k · ω<sub>i</sub>)</em> &nbsp; (no p anywhere)</div>
+  </figure>
+
+  <figure class="fig" id="rotate">
+    <div class="fig-head"><h3>A shift is a rotation</h3></div>
+  </figure>
+
+  <figure class="fig" id="extrap">
+    <div class="fig-head"><h3>“Works at any length” is only half true</h3></div>
+  </figure>
+
+  <h2>Exceptions and sharp edges</h2>
+  <div class="edges">
+    <article class="edge redraw" id="e-mix"><div class="art"></div><h4>Position and meaning share lanes</h4><span class="fix">the model learns to separate them. RoPE avoids the mixing entirely.</span></article>
+    <article class="edge redraw" id="e-slow"><div class="art"></div><h4>Slow lanes are nearly constant</h4><span class="fix">fine: they leave room for content.</span></article>
+    <article class="edge redraw" id="e-layout"><div class="art"></div><h4>Interleaved or split halves?</h4><span class="fix">match the layout used in training.</span></article>
+    <article class="edge redraw" id="e-prec"><div class="art"></div><h4>Precision at huge positions</h4><span class="fix">compute angles in fp32, then cast.</span></article>
+    <article class="edge redraw" id="e-base"><div class="art"></div><h4>The base 10000 is a choice</h4><span class="fix">long-context models often raise the base.</span></article>
+  </div>
+
+  <Fragment slot="scripts"><script is:inline>
+const { fig, box, rect, o, arr, carr, ln, node, chip, heat, vec, bars, axes, smooth, cross, check, squig, clamp, map, gauss, dot, norm } = Ink;
+const PE = (p, d = 16, base = 10000) => Array.from({ length: d }, (_, j) => { const i = Math.floor(j / 2), w = 1 / base ** (2 * i / d); return j % 2 ? Math.cos(p * w) : Math.sin(p * w); });
+const omega = (i, d = 16) => 1 / 10000 ** (2 * i / d);
+
+fig('waves', {
+  view: '0 0 960 420', hue: 250, state: { p: 12 },
+  label: 'Eight lanes of sine and cosine waves of decreasing frequency over positions 0 to 60, a vertical line at the chosen position with dots on each wave, and the resulting vector as a strip on the right.',
+  draw(sk, st) {
+    const lanes = [0, 1, 2, 3, 6, 7, 10, 11], x0 = 80, x1 = 720, P = 60, X = p => map(p, 0, P, x0, x1), H = 44;
+    lanes.forEach((j, r) => {
+      const y = 36 + r * 46, i = Math.floor(j / 2);
+      sk.thin(`M${x0} ${y + H / 2}H${x1}`);
+      const pts = []; for (let p = 0; p <= P; p += 0.25) pts.push([X(p), y + H / 2 - PE(p)[j] * H * 0.42]);
+      sk.plot(smooth(pts), r === 0 ? 'pop' : '');
+      sk.mono(x0 - 10, y + H / 2 + 4, `${j % 2 ? 'cos' : 'sin'} ${j}`, { a: 'end', s: 10.5 });
+      const v = PE(st.p)[j], cy = y + H / 2 - v * H * 0.42;
+      sk.accent(o(X(st.p), cy, 5)); sk.ink(o(X(st.p), cy, 5));
+      sk.ink(ln(X(st.p) + 8, cy, 790, y + H / 2, r));
+      sk.cell(rect(796, y + 6, 70, H - 12), clamp(Math.abs(v), 0.06, 1), v < 0);
+      sk.ink(box(796, y + 6, 70, H - 12, r));
+      sk.mono(831, y + H / 2 + 4, v.toFixed(2), { s: 11 });
+    });
+    sk.pop(`M${X(st.p)} 28V404`);
+    sk.mono(X(st.p), 418, `pos ${st.p}`, { s: 12 });
+    sk.hand(900, 28, 'PE(pos)', 21, 4);
+    sk.hand(160, 404, 'fast →', 18, -3, { c: 'muted' });
+  },
+  controls: c => c.slider('p', 'Position', 0, 60, 1)
+});
+
+fig('heat', {
+  view: '0 0 960 420', hue: 250, state: { p: 20 },
+  label: 'Heatmap of sinusoidal positional encodings with 48 positions as rows and 32 dimensions as columns. Left columns alternate quickly between positive and negative, right columns change slowly.',
+  draw(sk, st) {
+    const M = Array.from({ length: 48 }, (_, p) => PE(p, 32));
+    heat(sk, M, 210, 30, 16, 7.6, { max: 1, grid: false });
+    sk.pop(box(206, 30 + st.p * 7.6 - 2, 32 * 16 + 8, 11, 2));
+    sk.mono(196, 34, 'pos 0', { a: 'end', s: 11 }); sk.mono(196, 392, 'pos 47', { a: 'end', s: 11 });
+    sk.mono(218, 408, 'dim 0', { s: 11 }); sk.mono(714, 408, 'dim 31', { s: 11 });
+    sk.hand(150, 210, `pos ${st.p} →`, 22, -4, { c: 'tint' });
+    sk.hand(830, 100, 'fast flicker', 20, -4); sk.ink(arr(800, 110, 290, 70));
+    sk.hand(830, 300, 'slow drift', 20, -4); sk.ink(arr(800, 300, 700, 300));
+  },
+  controls: c => c.slider('p', 'Highlight position', 0, 47, 1)
+});
+
+fig('clocks', {
+  view: '0 0 960 360', hue: 250,
+  label: 'Five dials whose hands turn by different fixed angles per position, above a row of five binary bits counting the same position. Both encode position with fast and slow parts.',
+  draw(sk, st) {
+    const p = st.step, d = 10;
+    for (let i = 0; i < 5; i++) {
+      const cx = 120 + i * 180, cy = 120, r = 56, a = p * omega(i, d);
+      sk.paper(o(cx, cy, r)); sk.ink(o(cx, cy, r));
+      for (let t = 0; t < 12; t++) { const q = t / 12 * Math.PI * 2; sk.thin(`M${cx + Math.cos(q) * (r - 6)} ${cy + Math.sin(q) * (r - 6)}L${cx + Math.cos(q) * r} ${cy + Math.sin(q) * r}`); }
+      const hx = cx + Math.cos(a - Math.PI / 2) * (r - 12), hy = cy + Math.sin(a - Math.PI / 2) * (r - 12);
+      (i === 0 ? sk.pop.bind(sk) : sk.ink.bind(sk))(`M${cx} ${cy}L${hx.toFixed(1)} ${hy.toFixed(1)}`);
+      sk.accent(o(cx, cy, 4));
+      sk.mono(cx, cy + r + 20, `ω${i} = ${omega(i, d).toFixed(3)}`, { s: 10.5 });
+      sk.mono(cx, cy + r + 34, `(${Math.sin(a).toFixed(2)}, ${Math.cos(a).toFixed(2)})`, { s: 10, c: 'muted' });
+    }
+    sk.hand(120, 40, 'fast', 20, -6); sk.hand(840, 40, 'slow', 20, 6);
+    sk.hand(90, 290, 'binary', 22, -3);
+    for (let b = 0; b < 5; b++) { const bit = (p >> (4 - b)) & 1, x = 300 + b * 70; chip(sk, x, 266, 56, 44, String(bit), { hi: bit, s: 18 }); sk.mono(x + 28, 326, `2^${4 - b}`, { s: 10, c: 'muted' }); }
+    sk.serif(800, 300, `pos ${p}`, 30);
+  },
+  controls: c => c.player('step', 32, { ms: 450, name: 'pos', loop: true })
+});
+
+fig('wavelength', {
+  view: '0 0 960 320', hue: 250,
+  label: 'Bar chart of wavelength for each of 32 frequency pairs on a log scale, rising from about 6 positions to about 63,000.',
+  draw(sk) {
+    axes(sk, 80, 30, 820, 230, { xl: 'frequency pair i →', yl: 'wavelength (positions, log)' });
+    const d = 64, n = 32, Y = v => map(Math.log10(v), 0.5, 5, 260, 40);
+    for (let i = 0; i < n; i++) {
+      const wl = 2 * Math.PI * 10000 ** (2 * i / d), x = 96 + i * 25, y = Y(wl);
+      const pth = `M${x} ${y} ${x + 16} ${y - 1} ${x + 16} 260 ${x} 260Z`;
+      i === 0 || i === n - 1 ? sk.accent(pth) : sk.cell(pth, 0.35); sk.ink(pth);
+    }
+    [10, 100, 1000, 10000].forEach(v => { sk.mono(70, Y(v) + 4, Ink.fmtN(v), { a: 'end', s: 10 }); sk.thin(`M76 ${Y(v)}h8`); });
+    sk.hand(140, 230, '2π ≈ 6', 19, -6); sk.hand(830, 56, '≈ 63k', 19, -6);
+  }
+});
+
+fig('relative', {
+  view: '0 0 960 320', hue: 250, state: { p: 0 },
+  label: 'A line chart of the dot product between PE of p and PE of p plus k for k from minus 40 to 40. Changing p leaves the curve unchanged. A faint reference curve for p equals 0 sits underneath.',
+  draw(sk, st) {
+    const d = 32, Y = v => map(v, -4, d / 2 + 1, 270, 40), X = k => map(k, -40, 40, 80, 900);
+    axes(sk, 80, 40, 820, 230, { xl: 'offset k →', yl: 'PE(p) · PE(p + k)' });
+    const curve = p => { const out = []; for (let k = -40; k <= 40; k += 1) out.push([X(k), Y(dot(PE(p, d), PE(p + k, d)))]); return out; };
+    sk.plot(smooth(curve(0)), 'faint dash');
+    sk.plot(smooth(curve(st.p)), 'pop');
+    sk.dash(`M${X(0)} 40V270`);
+    sk.mono(X(0), 290, 'k = 0', { s: 11 });
+    sk.hand(720, 80, `p = ${st.p}`, 26, -3, { c: 'tint' });
+    sk.hand(720, 112, 'curve did not move', 20, -3);
+  },
+  controls: c => c.slider('p', 'Start position p', 0, 500, 1)
+});
+
+fig('rotate', {
+  view: '0 0 960 340', hue: 250, state: { p: 3, k: 2 },
+  label: 'A circle with two arrows: one at angle p times omega, one at angle p plus k times omega. The arc between them is k times omega regardless of p.',
+  draw(sk, st) {
+    const w = 0.35, cx = 300, cy = 170, r = 120, a1 = st.p * w, a2 = (st.p + st.k) * w;
+    sk.paper(o(cx, cy, r)); sk.ink(o(cx, cy, r));
+    sk.thin(`M${cx - r - 10} ${cy}H${cx + r + 10}M${cx} ${cy - r - 10}V${cy + r + 10}`);
+    const pt = a => [cx + Math.cos(a) * r, cy - Math.sin(a) * r];
+    const [x1, y1] = pt(a1), [x2, y2] = pt(a2);
+    sk.ink(arr(cx, cy, x1, y1)); sk.pop(arr(cx, cy, x2, y2));
+    const ra = 50, large = (a2 - a1) % (2 * Math.PI) > Math.PI ? 1 : 0;
+    if (st.k) sk.ink(`M${cx + Math.cos(a1) * ra} ${cy - Math.sin(a1) * ra}A${ra} ${ra} 0 ${large} 0 ${(cx + Math.cos(a2) * ra).toFixed(1)} ${(cy - Math.sin(a2) * ra).toFixed(1)}`);
+    sk.hand(x1 + (x1 - cx) * 0.18, y1 + (y1 - cy) * 0.18, 'p', 24); sk.hand(x2 + (x2 - cx) * 0.2, y2 + (y2 - cy) * 0.2, 'p+k', 22);
+    sk.mono(cx, cy + r + 34, '(sin, cos) of one frequency pair', { s: 11, c: 'muted' });
+    sk.serif(720, 120, `angle between = ${(st.k * w).toFixed(2)} rad`, 24);
+    sk.mono(720, 156, `= k · ω = ${st.k} × ${w}`, { s: 13 });
+    sk.hand(720, 220, 'p only spins both arrows together', 21, -2, { c: 'tint' });
+  },
+  controls: c => c.slider('p', 'p', 0, 40, 1).slider('k', 'k', 0, 12, 1)
+});
+
+fig('extrap', {
+  view: '0 0 960 300', hue: 250,
+  label: 'Illustrative chart of loss against position. Loss falls and flattens inside the training length of 512, then climbs after it.',
+  draw(sk) {
+    axes(sk, 80, 30, 820, 210, { xl: 'position →', yl: 'loss' });
+    const X = p => map(p, 0, 2048, 80, 900), Y = v => map(v, 1.5, 5, 240, 30);
+    sk.zone(rect(X(512), 30, X(2048) - X(512), 210), true);
+    const pts = []; for (let p = 4; p <= 2048; p += 16) pts.push([X(p), Y(p < 512 ? 2 + 1.6 * Math.exp(-p / 60) : 2 + 2.4 * (1 - Math.exp(-(p - 512) / 500)))]);
+    sk.plot(smooth(pts), 'pop');
+    sk.red(`M${X(512)} 24V240`);
+    sk.mono(X(512), 262, 'train length 512', { s: 11 });
+    sk.hand(X(1300), 70, 'never seen these', 22, -4, { c: 'redt' });
+    sk.hand(X(220), 200, 'trained range', 20, -2, { c: 'tint' });
+  }
+});
+
+const Ed = { view: '0 0 240 110', hue: 250 };
+fig('e-mix', { ...Ed, draw(sk) { vec(sk, [0.6, -0.4, 0.8, 0.2], 20, 22, 18, 22); sk.hand(102, 38, '+', 22); vec(sk, [0.9, 0.1, -0.9, 0.4], 118, 22, 18, 22); sk.hand(120, 92, 'same lanes', 18, -3, { c: 'redt' }); } });
+fig('e-slow', { ...Ed, draw(sk) { const p1 = [], p2 = []; for (let x = 0; x <= 180; x += 4) { p1.push([30 + x, 38 - Math.sin(x / 8) * 14]); p2.push([30 + x, 80 - Math.sin(x / 300) * 6]); } sk.ink(smooth(p1)); sk.pop(smooth(p2)); sk.hand(200, 100, 'flat', 17, -3); } });
+fig('e-layout', { ...Ed, draw(sk) { ['s', 'c', 's', 'c', 's', 'c'].forEach((t, i) => chip(sk, 20 + i * 34, 18, 30, 24, t, { hi: t === 's', s: 11 })); ['s', 's', 's', 'c', 'c', 'c'].forEach((t, i) => chip(sk, 20 + i * 34, 62, 30, 24, t, { hi: t === 's', s: 11 })); } });
+fig('e-prec', { ...Ed, draw(sk) { sk.mono(120, 40, 'pos = 100000', { s: 13 }); sk.mono(120, 66, 'fp32 → 100000', { s: 11 }); sk.mono(120, 86, 'bf16 → 99840', { s: 11, c: 'redt' }); } });
+fig('e-base', { ...Ed, draw(sk) { sk.mono(70, 58, 'base 10k', { s: 13 }); sk.ink(arr(110, 54, 140, 54)); sk.mono(180, 58, 'base 500k', { s: 13 }); sk.hand(180, 92, 'longer reach', 17, -3, { c: 'tint' }); } });
+  </script></Fragment>
+</Note>

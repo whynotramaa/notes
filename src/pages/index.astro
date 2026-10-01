@@ -1,0 +1,41 @@
+---
+import Note from '../layouts/Note.astro';
+import { series } from '../data/notes.js';
+---
+<Note title="Notes, drawn by hand" description="Visual teaching notes on machine learning, drawn one stroke at a time.">
+  <header class="hero">
+    <div>
+      <h1><span>Notes</span>, drawn by hand</h1>
+      <p class="lede">Things I am learning, explained with drawings more than words.</p>
+    </div>
+  </header>
+
+  <div class="cards">
+    {series.map(s => (
+      <a class="card redraw" href={s.base} id={`s-${s.slug}`} style={`--h:${s.hue}`} data-hue={s.hue} data-pages={JSON.stringify(s.notes.map(n => n.day))}>
+        <div class="art"></div>
+        <small>{s.notes.length} notes · {s.notes.reduce((a, n) => a + n.chapters.length - 1, 0)} chapters</small>
+        <strong>{s.title}</strong>
+        <span>{s.sub}</span>
+      </a>
+    ))}
+  </div>
+  <Fragment slot="scripts"><script is:inline>
+const { fig, box } = Ink;
+document.querySelectorAll('.card[data-pages]').forEach(el => {
+  const pages = JSON.parse(el.dataset.pages);
+  fig(el.id, {
+    view: '0 0 240 120', hue: +el.dataset.hue,
+    label: `A stack of ${pages.length} drawn pages`,
+    draw(sk) {
+      pages.forEach((d, i) => {
+        const j = pages.length - 1 - i, x = 52 + j * 14, y = 18 + j * 8;
+        (j ? sk.paper : sk.accent).call(sk, box(x, y, 120, 84, i));
+        sk.ink(box(x, y, 120, 84, i));
+        if (!j) sk.hand(x + 60, y + 50, d, 22, -3);
+      });
+    }
+  });
+});
+</script></Fragment>
+</Note>

@@ -1,0 +1,250 @@
+---
+import Note from '../../../layouts/Note.astro';
+---
+<Note ch={6} description="Queries, keys and values drawn: the library analogy, the three projections, matching a query to keys, mixing values, shapes, and self versus cross attention.">
+  <header class="hero">
+    <div>
+      <p class="kicker">chapter 06</p>
+      <h1><span>Q, K and V</span></h1>
+      <p class="lede">Every token plays three roles at once.</p>
+    </div>
+  </header>
+
+  <h2>The intuition</h2>
+  <figure class="fig" id="library">
+    <div class="fig-head"><h3>A library, very quickly</h3></div>
+  </figure>
+
+  <h2>Making Q, K and V</h2>
+
+  <figure class="fig" id="proj">
+    <div class="fig-head"><h3>Same x, three lenses</h3></div>
+    <div class="formula">Q = x W<sub>Q</sub> &nbsp; K = x W<sub>K</sub> &nbsp; V = x W<sub>V</sub> &nbsp; &nbsp; [T × d] · [d × d<sub>k</sub>] = <em>[T × d<sub>k</sub>]</em></div>
+  </figure>
+
+  <figure class="fig" id="fan">
+    <div class="fig-head"><h3>Every token gets all three</h3></div>
+  </figure>
+
+  <h2>Matching and mixing</h2>
+
+  <figure class="fig" id="match">
+    <div class="fig-head"><h3>“it” looks for its antecedent</h3></div>
+  </figure>
+
+  <figure class="fig" id="mix">
+    <div class="fig-head"><h3>Mixing the values</h3></div>
+    <div class="formula">out<sub>i</sub> = Σ<sub>j</sub> <em>w<sub>ij</sub></em> · v<sub>j</sub></div>
+  </figure>
+
+  <figure class="fig" id="whyk">
+    <div class="fig-head"><h3>Why keys and values are separate</h3></div>
+  </figure>
+
+  <figure class="fig" id="shapes">
+    <div class="fig-head"><h3>Shapes cheat sheet</h3></div>
+  </figure>
+
+  <figure class="fig" id="cross">
+    <div class="fig-head"><h3>Self-attention vs cross-attention</h3></div>
+  </figure>
+
+  <h2>Exceptions and sharp edges</h2>
+  <div class="edges">
+    <article class="edge redraw" id="e-asym"><div class="art"></div><h4>Scores are not symmetric</h4><span class="fix">read attention maps row by row: one row is one query.</span></article>
+    <article class="edge redraw" id="e-self"><div class="art"></div><h4>Tokens attend to themselves</h4><span class="fix">nothing to fix, the residual connection relies on it too.</span></article>
+    <article class="edge redraw" id="e-dk"><div class="art"></div><h4>d<sub>k</sub> must match</h4><span class="fix">assert q.shape[-1] == k.shape[-1].</span></article>
+    <article class="edge redraw" id="e-explain"><div class="art"></div><h4>Weights are not explanations</h4><span class="fix">treat attention maps as hints, not proof.</span></article>
+    <article class="edge redraw" id="e-bias"><div class="art"></div><h4>Bias or no bias</h4><span class="fix">check the config before loading weights.</span></article>
+  </div>
+
+  <Fragment slot="scripts"><script is:inline>
+const { fig, box, rect, o, arr, carr, ln, node, chip, heat, vec, bars, axes, smooth, cross, check, squig, clamp, map, gauss, dot, softmax, matmul } = Ink;
+const toks = ['The', '␠cat', '␠sat', '␠because', '␠it', '␠was', '␠tired'];
+const K = [[0, 0.2, 0, 1], [1, 0.9, 0, 0], [0, 0, 1, 0.1], [0, 0, 0.2, 0.9], [0.3, 0.4, 0, 0.5], [0, 0, 0.8, 0.4], [0.2, 0, 0.5, 0.1]];
+const Q = [[0, 1.2, 0, 0.3], [0, 0, 1.4, 0], [1.3, 1, 0, 0], [0, 0, 1.2, 0.2], [2.2, 1.6, 0, 0], [1, 1.2, 0, 0], [1.2, 0.6, 0.6, 0]];
+const V = [[0.1, 0, -0.2, 0.3, 0], [0.9, 0.8, 0.1, -0.3, 0.6], [-0.2, 0.1, 0.9, 0.4, -0.1], [0, -0.3, 0.2, 0.7, 0.1], [0.4, 0.3, 0, 0.2, 0.2], [-0.1, 0.2, 0.6, 0.3, -0.2], [0.3, -0.4, 0.5, 0.1, 0.7]];
+const scale = 1 / Math.sqrt(4);
+const scores = i => K.map(k => dot(Q[i], k) * scale);
+const pick = c => c.choice('q', 'Query token', toks.map((t, i) => [i, t.replace('␠', '')]));
+
+fig('library', {
+  view: '0 0 960 340', hue: 85,
+  label: 'Library drawing. A reader holds a slip labelled query: who is it. A shelf of books has spine labels as keys. The matching book, cat, is open and pours its contents, the value, toward the reader.',
+  draw(sk) {
+    sk.paper('M60 120 200 116 204 196 58 200Z'); sk.ink('M60 120 200 116 204 196 58 200Z');
+    sk.hand(130, 150, 'who is “it”?', 21, -4); sk.mono(130, 180, 'QUERY', { s: 11 });
+    sk.ink(o(130, 250, 22)); sk.ink('M130 272V310M130 286 104 300M130 286 158 300');
+    sk.ink(arr(210, 158, 310, 158));
+    sk.ink('M320 250H900'); sk.ink('M320 90H900');
+    const books = [['the', 0], ['cat', 1], ['sat', 0], ['because', 0], ['it', 0], ['was', 0], ['tired', 0]];
+    books.forEach(([t, hi], i) => {
+      const x = 340 + i * 78, h = 130 + (i % 3) * 12, y = 250 - h;
+      const d = `M${x} ${y} ${x + 58} ${y - 2} ${x + 60} 250 ${x - 1} 250Z`;
+      hi ? sk.accent(d) : sk.paper(d); sk.ink(d);
+      sk.text(x + 30, y + h / 2, t, { f: 'mono', s: 12, r: -90 });
+      sk.mono(x + 30, 272, 'KEY', { s: 9, c: 'muted' });
+    });
+    sk.pop(carr(447, 112, 300, 120, 30));
+    sk.hand(400, 60, 'match!', 24, -6, { c: 'tint' });
+    sk.hand(640, 320, 'read cat the most, the rest a little → VALUE', 20, -1);
+  }
+});
+
+fig('proj', {
+  view: '0 0 960 360', hue: 85,
+  label: 'The input matrix x of shape T by d multiplied by three weight matrices W_Q, W_K and W_V produce Q, K and V. One projection is highlighted at a time.',
+  draw(sk, st) {
+    const X = toks.map((_, i) => Array.from({ length: 6 }, (_, j) => gauss(i + 3, j + 1) * 0.6));
+    heat(sk, X, 40, 70, 20, 24, { rows: toks, labS: 10 });
+    sk.mono(100, 60, 'x  [7 × 6]', { s: 11 });
+    ['Q', 'K', 'V'].forEach((t, r) => {
+      const y = 22 + r * 110, on = st.step === r;
+      const W = Array.from({ length: 6 }, (_, i) => Array.from({ length: 4 }, (_, j) => gauss(i + r * 9, j + 5) * 0.5));
+      sk.ink(carr(166, 150, 300, y + 40, r === 1 ? 0 : (r ? 18 : -18)));
+      heat(sk, W, 310, y, 18, 13, { alpha: on ? 0.95 : 0.4 });
+      sk.mono(346, y + 92, `W_${t} [6 × 4]`, { s: 10.5 });
+      sk.hand(410, y + 46, '=', 26);
+      const R = matmul(X, W);
+      heat(sk, R, 440, y + 2, 18, 11, { alpha: on ? 0.95 : 0.35 });
+      sk.serif(540, y + 46, t, 30, { c: on ? 'tint' : '' });
+      if (on) sk.pop(box(304, y - 6, 230, 96, r));
+    });
+    sk.hand(760, 120, ['queries: what am I looking for?', 'keys: what do I contain?', 'values: what will I pass on?'][st.step], 22, -3, { c: 'tint' });
+    sk.mono(760, 160, 'one learned d × d_k matrix each', { s: 12 });
+  },
+  controls: c => c.player('step', 3, { ms: 1400, name: 'projection', loop: true })
+});
+
+fig('fan', {
+  view: '0 0 960 330', hue: 85,
+  label: 'Seven token chips in a row. The selected token emits three small vectors labelled q, k and v.',
+  draw(sk, st) {
+    toks.forEach((t, i) => {
+      const x = 30 + i * 132, on = i === st.step;
+      chip(sk, x, 40, 100, 34, t, { hi: on, dim: i > st.step, s: 13 });
+      if (i <= st.step) {
+        [['q', Q[i]], ['k', K[i]], ['v', V[i]]].forEach(([n, v], r) => {
+          const y = 120 + r * 56;
+          if (on) sk.ink(carr(x + 50, 78, x + 10 + v.length * 9, y - 4, (r - 1) * 10));
+          vec(sk, v, x + 6, y, 18, 26, { max: 2.2, label: n, labS: 12 });
+        });
+      }
+    });
+  },
+  controls: c => c.player('step', 7, { ms: 700, name: 'token' })
+});
+
+fig('match', {
+  view: '0 0 960 380', hue: 85, state: { q: 4 },
+  label: 'Two bar charts for the selected query token: raw dot-product scores against each of the seven keys, and the softmax attention weights. For it, the highest bar is cat.',
+  draw(sk, st) {
+    const s = scores(st.q), w = softmax(s), best = w.indexOf(Math.max(...w));
+    chip(sk, 30, 40, 110, 40, toks[st.q], { hi: true, s: 15, sub: 'query' });
+    sk.hand(85, 140, 'compares with', 19, -4);
+    sk.hand(85, 164, 'every key', 19, -4);
+    const labs = toks.map(t => t.replace('␠', ''));
+    sk.mono(180, 30, 'score = q · k / √d_k', { a: 'start', s: 12 });
+    const mn = Math.min(0, ...s), mx = Math.max(...s);
+    s.forEach((v, j) => {
+      const x = 200 + j * 100, h = map(v, mn, mx, 2, 120), y = 160 - h;
+      const d = `M${x} ${y} ${x + 60} ${y - 1} ${x + 60} 160 ${x} 160Z`;
+      sk.cell(d, 0.3); sk.ink(d); sk.mono(x + 30, y - 6, v.toFixed(2), { s: 11 });
+    });
+    sk.thin('M190 160H900');
+    sk.hand(160, 230, 'softmax', 22, -6, { c: 'tint' }); sk.ink(arr(200, 214, 200, 236));
+    sk.mono(180, 236, 'weights (sum = 1)', { a: 'start', s: 12 });
+    w.forEach((v, j) => {
+      const x = 200 + j * 100, h = v * 110, y = 356 - h;
+      const d = `M${x} ${y} ${x + 60} ${y - 1} ${x + 60} 356 ${x} 356Z`;
+      j === best ? sk.accent(d) : sk.cell(d, 0.3); sk.ink(d); sk.mono(x + 30, y - 6, v.toFixed(2), { s: 11 });
+      sk.mono(x + 30, 374, labs[j], { s: 11 });
+    });
+    sk.thin('M190 356H900');
+  },
+  controls: c => pick(c)
+});
+
+fig('mix', {
+  view: '0 0 960 400', hue: 85, state: { q: 4 },
+  label: 'Seven value vectors, each scaled by its attention weight for the selected query, summed into a single output vector.',
+  draw(sk, st) {
+    const w = softmax(scores(st.q)), out = V[0].map((_, d) => w.reduce((s, wi, j) => s + wi * V[j][d], 0));
+    toks.forEach((t, j) => {
+      const y = 24 + j * 48;
+      sk.mono(110, y + 20, t, { a: 'end', s: 12 });
+      vec(sk, V[j], 124, y, 30, 30, { max: 1 });
+      sk.mono(300, y + 20, `× ${w[j].toFixed(2)}`, { a: 'start', s: 12 });
+      vec(sk, V[j].map(v => v * w[j]), 380, y, 30, 30, { max: 1 });
+      sk.thin(`M532 ${y + 15}Q600 ${y + 15} 640 200`);
+    });
+    sk.hand(700, 150, 'Σ', 40);
+    vec(sk, out, 690, 186, 44, 40, { nums: true, max: 1, fmt: v => v.toFixed(2) });
+    sk.pop(box(686, 182, 228, 48, 2));
+    sk.hand(800, 270, `output for “${toks[st.q].replace('␠', '')}”`, 22, -3, { c: 'tint' });
+  },
+  controls: c => pick(c)
+});
+
+fig('whyk', {
+  view: '0 0 960 300', hue: 85,
+  label: 'A box representing the cat token. Its outside label, the key, says singular animal noun. Its contents, the value, are furry, purrs, subject of sat.',
+  draw(sk) {
+    sk.paper('M300 110 560 104 566 250 296 256Z'); sk.ink('M300 110 560 104 566 250 296 256Z');
+    sk.ink('M300 110 360 60 620 56 560 104'); sk.ink('M620 56 626 200 566 250');
+    sk.accent('M380 74 520 70 524 96 382 98Z'); sk.ink('M380 74 520 70 524 96 382 98Z');
+    sk.mono(452, 90, 'KEY: animal noun', { s: 11 });
+    sk.hand(430, 170, 'furry', 22, -6); sk.hand(500, 210, 'purrs', 22, 4); sk.hand(390, 230, 'subject of sat', 18, -2);
+    sk.mono(430, 280, 'VALUE: what gets copied', { s: 11 });
+    sk.hand(160, 90, 'what you search by', 21, -4); sk.ink(arr(220, 100, 372, 86));
+    sk.hand(790, 200, 'what you get back', 21, 3); sk.ink(arr(720, 200, 560, 196));
+    sk.text(82, 200, 'cat', { f: 'serif', s: 40 });
+  }
+});
+
+fig('shapes', {
+  view: '0 0 960 330', hue: 85,
+  label: 'Shapes drawn to scale: Q is T by d_k, K transpose is d_k by T, their product is T by T, which multiplies V of T by d_v to give an output of T by d_v.',
+  draw(sk) {
+    const T = 7, u = 18, dk = 4, dv = 5;
+    const M = (x, y, w, h, t, sub, acc) => { acc ? sk.accent(box(x, y, w, h, x)) : sk.paper(box(x, y, w, h, x)); sk.ink(box(x, y, w, h, x)); sk.serif(x + w / 2, y + h / 2 + 7, t, 20); sk.mono(x + w / 2, y + h + 16, sub, { s: 10.5 }); };
+    M(40, 100, dk * u, T * u, 'Q', 'T × d_k');
+    sk.hand(132, 170, '·', 30);
+    M(150, 130, T * u, dk * u, 'Kᵀ', 'd_k × T');
+    sk.hand(300, 170, '=', 30);
+    M(320, 100, T * u, T * u, 'S', 'T × T', true);
+    sk.ink(arr(450, 160, 490, 160)); sk.mono(470, 148, 'softmax', { s: 10 });
+    M(500, 100, T * u, T * u, 'W', 'T × T', true);
+    sk.hand(640, 170, '·', 30);
+    M(660, 100, dv * u, T * u, 'V', 'T × d_v');
+    sk.hand(770, 170, '=', 30);
+    M(790, 100, dv * u, T * u, 'out', 'T × d_v');
+    sk.hand(420, 60, 'the square one grows with T²', 21, -2, { c: 'tint' });
+  }
+});
+
+fig('cross', {
+  view: '0 0 960 300', hue: 85,
+  label: 'Two panels. Self-attention: one sequence provides Q, K and V. Cross-attention: a decoder sequence provides Q, an encoder sequence provides K and V.',
+  draw(sk) {
+    sk.hand(240, 36, 'self-attention', 24, -2);
+    for (let i = 0; i < 5; i++) chip(sk, 80 + i * 64, 210, 56, 30, 'tok', { s: 10 });
+    ['Q', 'K', 'V'].forEach((t, i) => { node(sk, 110 + i * 90, 90, 60, 40, t, { font: 'serif', fill: i ? 'paper' : 'accent' }); sk.ink(arr(140 + i * 90, 206, 140 + i * 90, 134)); });
+    sk.hand(720, 36, 'cross-attention', 24, -2);
+    for (let i = 0; i < 4; i++) chip(sk, 520 + i * 48, 210, 42, 30, 'fr', { s: 10, hi: true });
+    for (let i = 0; i < 4; i++) chip(sk, 740 + i * 48, 210, 42, 30, 'en', { s: 10 });
+    node(sk, 570, 90, 60, 40, 'Q', { font: 'serif', fill: 'accent' }); sk.ink(arr(600, 206, 600, 134));
+    node(sk, 770, 90, 60, 40, 'K', { font: 'serif' }); node(sk, 850, 90, 60, 40, 'V', { font: 'serif' });
+    sk.ink(arr(800, 206, 800, 134)); sk.ink(arr(880, 206, 880, 134));
+    sk.mono(600, 264, 'decoder (writing French)', { s: 10.5 }); sk.mono(830, 264, 'encoder (reading English)', { s: 10.5 });
+  }
+});
+
+const Ed = { view: '0 0 240 110', hue: 85 };
+fig('e-asym', { ...Ed, draw(sk) { chip(sk, 30, 40, 54, 30, 'it', { hi: true, s: 12 }); chip(sk, 156, 40, 54, 30, 'cat', { s: 12 }); sk.pop(carr(86, 48, 154, 48, -18)); sk.thin(`M154 64Q120 84 86 64`); sk.mono(120, 30, '0.76', { s: 10 }); sk.mono(120, 96, '0.08', { s: 10 }); } });
+fig('e-self', { ...Ed, draw(sk) { heat(sk, [[0.7, 0.1, 0.1, 0.1], [0.2, 0.6, 0.1, 0.1], [0.1, 0.2, 0.6, 0.1], [0.1, 0.1, 0.2, 0.6]], 80, 14, 20, 20, { max: 1 }); } });
+fig('e-dk', { ...Ed, draw(sk) { vec(sk, [1, 1, 1, 1], 30, 30, 14, 24); sk.hand(108, 48, '·', 26); vec(sk, [1, 1, 1, 1, 1, 1, 1], 124, 30, 12, 24); sk.red(cross(120, 80, 9)); } });
+fig('e-explain', { ...Ed, draw(sk) { bars(sk, [0.8, 0.1, 0.1], 40, 16, 80, 60, { hi: 0 }); sk.hand(176, 40, 'used it?', 20, -6); sk.hand(176, 76, 'maybe', 20, 4, { c: 'redt' }); } });
+fig('e-bias', { ...Ed, draw(sk) { sk.mono(120, 42, 'xW + b   (GPT-2)', { s: 12 }); sk.mono(120, 72, 'xW       (Llama)', { s: 12 }); } });
+  </script></Fragment>
+</Note>
