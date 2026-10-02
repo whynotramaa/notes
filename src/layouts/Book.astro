@@ -13,13 +13,13 @@ import '@fontsource/caveat/600.css';
 import '@fontsource/caveat/700.css';
 import 'katex/dist/katex.min.css';
 import '../styles/site.css';
+import { inline } from '../lib/md.js';
 
 const { title, description = '', note = null, series = null, current = -1 } = Astro.props;
 const chapters = note?.chapters ?? [];
 const prev = current > 0 ? chapters[current - 1] : current === 0 ? { href: note.base, title: 'Front matter' } : null;
 const next = note && current >= -1 ? chapters[current + 1] : null;
 const kicker = note ? `${series.title} · ${note.day} · chapter ${note.chapterNumber}` : 'hand-drawn field guides';
-const link = (c, id, i) => (i === current ? `#${id}` : `${c.href}#${id}`);
 ---
 <!doctype html>
 <html lang="en">
@@ -35,7 +35,6 @@ const link = (c, id, i) => (i === current ? `#${id}` : `${c.href}#${id}`);
   <a class="skip" href="#top">Skip to content</a>
   <div class="progress" aria-hidden="true"><div class="progress-bar"></div></div>
   <header class="topbar">
-    {note && <button class="toc-toggle" type="button" aria-expanded="false" aria-controls="sidebar">Contents</button>}
     <nav class="crumbs" aria-label="Breadcrumb">
       <a href="/">notes</a>
       {series && <a href={series.base}>{series.title}</a>}
@@ -49,22 +48,31 @@ const link = (c, id, i) => (i === current ? `#${id}` : `${c.href}#${id}`);
   </header>
   <div class="layout">
     {note && (
-      <nav class="sidebar" id="sidebar" aria-label="Table of contents">
-        <div class="sidebar-inner">
-          <div class="kicker">Contents</div>
-          <ol class="nav">
-            <li class="nav-part"><a href={current === -1 ? '#top' : note.base} aria-current={current === -1 ? 'page' : undefined}><span class="np-num">0</span><span>Front matter</span></a></li>
-            {chapters.map((c, i) => (
-              <li class="nav-part">
-                <a href={i === current ? '#top' : c.href} aria-current={i === current ? 'page' : undefined}><span class="np-num">{c.part ? c.part.num : '+'}</span><span>{c.title}</span></a>
-                <ol>
-                  {c.sections.map((s) => <li><a href={link(c, s.id, i)}><span class="ns-num">{s.num}</span><span>{s.title}</span></a></li>)}
-                  {c.extras.map((s) => <li><a href={link(c, s.id, i)}><span class="ns-num">·</span><span>{s.title}</span></a></li>)}
-                </ol>
-              </li>
-            ))}
-          </ol>
-        </div>
+      <nav class="preview-rail" aria-label="Chapter navigation">
+        <ol class="rail-list">
+          <li class="rail-slot">
+            <a class="rail-item" href={current === -1 ? '#top' : note.base} aria-label="Front matter" aria-current={current === -1 ? 'page' : undefined}>
+              <span class="rail-tick" aria-hidden="true"></span>
+              <span class="rail-preview" aria-hidden="true">
+                <span class="rail-preview-meta">Start here</span>
+                <strong>Front matter</strong>
+                <span>{note.description}</span>
+              </span>
+            </a>
+          </li>
+          {chapters.map((c, i) => (
+            <li class="rail-slot">
+              <a class="rail-item" href={i === current ? '#top' : c.href} aria-label={`${c.part ? `Part ${c.part.num}` : 'Interview'}: ${c.title}`} aria-current={i === current ? 'page' : undefined}>
+                <span class="rail-tick" aria-hidden="true"></span>
+                <span class="rail-preview" aria-hidden="true">
+                  <span class="rail-preview-meta">{c.part ? `Part ${c.part.num} · sections ${c.sections[0]?.num} to ${c.sections.at(-1)?.num}` : 'Interview page'}</span>
+                  <strong set:html={inline(c.title)} />
+                  <span set:html={inline(c.blurb || 'Question bank, graded exercises, and worked solutions.')} />
+                </span>
+              </a>
+            </li>
+          ))}
+        </ol>
       </nav>
     )}
     <main class="content" id="top" tabindex="-1">
@@ -77,7 +85,6 @@ const link = (c, id, i) => (i === current ? `#${id}` : `${c.href}#${id}`);
       )}
     </main>
   </div>
-  <div class="scrim" hidden></div>
   <script is:inline src="/site.js"></script>
 </body>
 </html>
