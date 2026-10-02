@@ -70,7 +70,7 @@ export function rope_pairing() {
   };
   row(70, 'interleaved', 'original paper, Meta Llama code', [[0, 1], [2, 3], [4, 5], [6, 7]]);
   row(170, 'half-split (rotate_half)', 'Hugging Face transformers', [[0, 4], [1, 5], [2, 6], [3, 7]]);
-  d.hand(520, 236, 'same model quality, incompatible weights', { size: 15, color: C.red });
+  d.hand(496, 236, 'same model quality, incompatible weights', { size: 15, color: C.red });
   return d.svg();
 }
 
@@ -137,7 +137,7 @@ export function rope_scaling() {
   const ntk = (i) => s ** (-2 * i / (dd - 2));
   const yarn = (i) => { const r = L / (2 * Math.PI / th(i)); const g = r < 1 ? 0 : r > 32 ? 1 : (r - 1) / 31; return (1 - g) / s + g; };
   const M = d.axes(70, 40, 480, 160, { xmin: 0, xmax: 31, ymin: 0, ymax: 1.05, xl: 'pair i (fast → slow)', yl: 'new speed ÷ old speed' });
-  [[pi, C.ink2, 'linear interpolation'], [ntk, C.slate, 'NTK-aware'], [yarn, C.acc, 'YaRN']].forEach(([f, col, lab], k) => {
+  [[pi, C.ink2, 'linear (PI)'], [ntk, C.slate, 'NTK-aware'], [yarn, C.acc, 'YaRN']].forEach(([f, col, lab], k) => {
     const pts = []; for (let i = 0; i <= 31; i++) pts.push([M.X(i), M.Y(f(i))]);
     d.lines(pts, { stroke: col, sw: 1.6, rough: 0.3, single: true });
     d.text(560, 70 + k * 20, lab, { cls: 'sm', a: 'start', color: col });

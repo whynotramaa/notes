@@ -5,7 +5,10 @@
   const tick = () => new Promise(resolve => setTimeout(resolve, 30));
   const refresh = () => window.dispatchEvent(new StorageEvent('storage', { key }));
   const saved = () => JSON.parse(localStorage.getItem(key) || '[]');
-  const paragraphs = [...document.querySelectorAll('.guide-content > p')];
+  const blocks = [...document.querySelectorAll('.guide-content > p')];
+  const start = blocks.findIndex((p, i) => p.nextElementSibling === blocks[i + 1]
+    && [p, blocks[i + 1]].every(b => b.firstChild?.nodeType === Node.TEXT_NODE && b.firstChild.length >= 45));
+  const paragraphs = start < 0 ? [] : blocks.slice(start, start + 2);
   assert(paragraphs.length > 1, 'Run this check on a guide part.');
   function select(block, from = 0, to = 24) {
     const walker = document.createTreeWalker(block, NodeFilter.SHOW_TEXT);
@@ -30,7 +33,7 @@
     assert(saved()[1].segments.length === 2, 'A selection across paragraphs must preserve both segments.');
     select(paragraphs[1], 25, 45); await tick();
     document.querySelector('[data-highlight-color=cyan]').click();
-    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'a', code: 'KeyA', altKey: true })); await tick();
+    document.body.dispatchEvent(new KeyboardEvent('keydown', { key: 'a', code: 'KeyA', altKey: true, bubbles: true })); await tick();
     assert(saved().at(-1).color === 'cyan', 'Alt+A must use the selected color.');
     assert(localStorage.getItem('fg-highlight-color') === 'cyan', 'Color preference must persist.');
     assert(CSS.highlights.get('saved-cyan').size === 1, 'Chosen color must be painted.');
@@ -39,7 +42,7 @@
     localStorage.setItem(key, '[]'); refresh();
     assert([...CSS.highlights.values()].reduce((sum, h) => sum + h.size, 0) === 0, 'Clearing storage must remove painted ranges.');
     select(paragraphs[0]); await tick();
-    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
+    document.body.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
     assert(document.getElementById('highlight-toolbar').hidden, 'Escape must dismiss the action.');
     localStorage.setItem(key, '{broken'); refresh();
     select(paragraphs[0]); await tick(); document.getElementById('save-highlight').click();

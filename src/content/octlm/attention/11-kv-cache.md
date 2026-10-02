@@ -61,7 +61,7 @@ That number, not the size of the weights, is often what limits how many users a 
 
 ### Sharing keys and values shrinks the cache
 
-Look at the formula again: the cache is proportional to $H_{kv}$, the number of key/value heads. With the grouped-query attention previewed in Section 52, many query heads share one key/value head. Llama 3 8B has 32 query heads but only 8 key/value heads, which is why its cache is 128 KiB per token rather than 512 KiB. Going from 32 to 8 key/value heads cuts the cache to a quarter; going to 1 (multi-query attention) cuts it to a thirty-second. That is the main reason nearly every modern model uses GQA, and Day 2 covers it in depth.
+Look at the formula again: the cache is proportional to $H_{kv}$, the number of key/value heads. With the grouped-query attention previewed in Section 52, many query heads share one key/value head. Llama 3 8B has 32 query heads but only 8 key/value heads, which is why its cache is 128 KiB per token rather than 512 KiB. Going from 32 to 8 key/value heads cuts the cache to a quarter; going to 1 (multi-query attention) cuts it to a thirty-second. That is the main reason nearly every modern model uses GQA, and Unit II covers it in depth.
 
 ## 62. Prefill, Then Decode
 

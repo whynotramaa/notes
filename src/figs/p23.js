@@ -84,7 +84,7 @@ export function gate_surface() {
   d.text(x0 + n * cs / 2, y0 + n * cs + 16, 'gate g →', { cls: 'xs' });
   d.text(x0 - 16, y0 + n * cs / 2, 'up u', { cls: 'xs', rot: -90 });
   d.text(x0 - 4, y0, '3', { cls: 'xs', a: 'end' }); d.text(x0 - 4, y0 + n * cs, '−3', { cls: 'xs', a: 'end' });
-  d.text(x0, y0 + n * cs + 30, '−3', { cls: 'xs' }); d.text(x0 + n * cs, y0 + n * cs + 30, '3', { cls: 'xs' });
+  d.text(x0, y0 + n * cs + 16, '−3', { cls: 'xs' }); d.text(x0 + n * cs, y0 + n * cs + 16, '3', { cls: 'xs' });
   d.text(400, 80, 'left half: gate closed,', { cls: 'sm', a: 'start' });
   d.text(400, 98, 'output near zero whatever u is', { cls: 'sm', a: 'start' });
   d.text(400, 140, 'right half: gate open,', { cls: 'sm', a: 'start' });

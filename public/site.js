@@ -29,4 +29,30 @@
   };
   document.addEventListener('scroll', onScroll, { passive: true });
   onScroll();
+
+  const map = document.querySelector('.part-opener .part-art');
+  const focus = map?.querySelector('[style*="var(--f-acc-soft)"]');
+  if (focus && map.scrollWidth > map.clientWidth) {
+    const box = focus.getBoundingClientRect();
+    map.scrollLeft = box.left - map.getBoundingClientRect().left + box.width / 2 - map.clientWidth / 2;
+  }
+
+  const contents = document.getElementById('contents-dialog');
+  if (contents?.showModal) {
+    document.getElementById('contents-open').addEventListener('click', () => contents.showModal());
+    document.getElementById('contents-close').addEventListener('click', () => contents.close());
+    contents.addEventListener('click', event => {
+      if (event.target.closest('a')) contents.close();
+      if (event.target === contents && event.clientX < contents.getBoundingClientRect().left) contents.close();
+    });
+    const links = [...contents.querySelectorAll('[data-section-link]')];
+    const headings = links.map(a => document.getElementById(a.dataset.sectionLink)).filter(Boolean);
+    const selectSection = () => {
+      const active = headings.filter(h => h.getBoundingClientRect().top <= 150).at(-1) || headings[0];
+      links.forEach(a => active?.id === a.dataset.sectionLink ? a.setAttribute('aria-current', 'location') : a.removeAttribute('aria-current'));
+    };
+    const observer = new IntersectionObserver(selectSection, { rootMargin: '-80px 0px -60% 0px' });
+    headings.forEach(h => observer.observe(h));
+    selectSection();
+  }
 })();

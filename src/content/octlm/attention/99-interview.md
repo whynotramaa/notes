@@ -200,7 +200,7 @@ Text is tokenized with byte-level BPE into ids; ids index an embedding table; po
 
 **Q48. What changed between the 2017 Transformer and a 2019 GPT-2 block?**
 
-Decoder-only instead of encoder-decoder, so no cross-attention; pre-norm instead of post-norm, with a final LayerNorm; learned positions instead of sinusoidal; GELU instead of ReLU; byte-level BPE; and residual-branch initialization scaled by $1/\sqrt{N_{\text{res}}}$. Day 2 covers the changes from GPT-2 to Llama 3.
+Decoder-only instead of encoder-decoder, so no cross-attention; pre-norm instead of post-norm, with a final LayerNorm; learned positions instead of sinusoidal; GELU instead of ReLU; byte-level BPE; and residual-branch initialization scaled by $1/\sqrt{N_{\text{res}}}$. Unit II covers the changes from GPT-2 to Llama 3.
 
 @chapter exercises | Exercises | Thirty-five problems in the order of the chapter. ● is quick arithmetic, ●● is multi-step or an explanation, ●●● is a derivation, a proof or code. Every answer is worked in the next section.
 

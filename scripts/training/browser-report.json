@@ -1,0 +1,486 @@
+{
+  "pages": 48,
+  "errors": [],
+  "results": [
+    {
+      "path": "",
+      "width": 1280,
+      "theme": "light",
+      "overflow": 0,
+      "failedImages": [],
+      "svgCount": 2,
+      "missing": [],
+      "badGeometry": 0
+    },
+    {
+      "path": "01-feature-mixing/",
+      "width": 1280,
+      "theme": "light",
+      "overflow": 0,
+      "failedImages": [],
+      "svgCount": 5,
+      "missing": [],
+      "badGeometry": 0
+    },
+    {
+      "path": "02-output/",
+      "width": 1280,
+      "theme": "light",
+      "overflow": 0,
+      "failedImages": [],
+      "svgCount": 7,
+      "missing": [],
+      "badGeometry": 0
+    },
+    {
+      "path": "03-examples-loss-gradients/",
+      "width": 1280,
+      "theme": "light",
+      "overflow": 0,
+      "failedImages": [],
+      "svgCount": 8,
+      "missing": [],
+      "badGeometry": 0
+    },
+    {
+      "path": "04-optimizer/",
+      "width": 1280,
+      "theme": "light",
+      "overflow": 0,
+      "failedImages": [],
+      "svgCount": 7,
+      "missing": [],
+      "badGeometry": 0
+    },
+    {
+      "path": "05-initialization-precision-memory/",
+      "width": 1280,
+      "theme": "light",
+      "overflow": 0,
+      "failedImages": [],
+      "svgCount": 10,
+      "missing": [],
+      "badGeometry": 0
+    },
+    {
+      "path": "06-checkpoints-loop/",
+      "width": 1280,
+      "theme": "light",
+      "overflow": 0,
+      "failedImages": [],
+      "svgCount": 6,
+      "missing": [],
+      "badGeometry": 0
+    },
+    {
+      "path": "07-evaluation/",
+      "width": 1280,
+      "theme": "light",
+      "overflow": 0,
+      "failedImages": [],
+      "svgCount": 6,
+      "missing": [],
+      "badGeometry": 0
+    },
+    {
+      "path": "08-experiments/",
+      "width": 1280,
+      "theme": "light",
+      "overflow": 0,
+      "failedImages": [],
+      "svgCount": 5,
+      "missing": [],
+      "badGeometry": 0
+    },
+    {
+      "path": "09-decoding/",
+      "width": 1280,
+      "theme": "light",
+      "overflow": 0,
+      "failedImages": [],
+      "svgCount": 8,
+      "missing": [],
+      "badGeometry": 0
+    },
+    {
+      "path": "10-complete-pipeline/",
+      "width": 1280,
+      "theme": "light",
+      "overflow": 0,
+      "failedImages": [],
+      "svgCount": 6,
+      "missing": [],
+      "badGeometry": 0
+    },
+    {
+      "path": "99-interview/",
+      "width": 1280,
+      "theme": "light",
+      "overflow": 0,
+      "failedImages": [],
+      "svgCount": 0,
+      "missing": [],
+      "badGeometry": 0
+    },
+    {
+      "path": "",
+      "width": 1280,
+      "theme": "dark",
+      "overflow": 0,
+      "failedImages": [],
+      "svgCount": 2,
+      "missing": [],
+      "badGeometry": 0
+    },
+    {
+      "path": "01-feature-mixing/",
+      "width": 1280,
+      "theme": "dark",
+      "overflow": 0,
+      "failedImages": [],
+      "svgCount": 5,
+      "missing": [],
+      "badGeometry": 0
+    },
+    {
+      "path": "02-output/",
+      "width": 1280,
+      "theme": "dark",
+      "overflow": 0,
+      "failedImages": [],
+      "svgCount": 7,
+      "missing": [],
+      "badGeometry": 0
+    },
+    {
+      "path": "03-examples-loss-gradients/",
+      "width": 1280,
+      "theme": "dark",
+      "overflow": 0,
+      "failedImages": [],
+      "svgCount": 8,
+      "missing": [],
+      "badGeometry": 0
+    },
+    {
+      "path": "04-optimizer/",
+      "width": 1280,
+      "theme": "dark",
+      "overflow": 0,
+      "failedImages": [],
+      "svgCount": 7,
+      "missing": [],
+      "badGeometry": 0
+    },
+    {
+      "path": "05-initialization-precision-memory/",
+      "width": 1280,
+      "theme": "dark",
+      "overflow": 0,
+      "failedImages": [],
+      "svgCount": 10,
+      "missing": [],
+      "badGeometry": 0
+    },
+    {
+      "path": "06-checkpoints-loop/",
+      "width": 1280,
+      "theme": "dark",
+      "overflow": 0,
+      "failedImages": [],
+      "svgCount": 6,
+      "missing": [],
+      "badGeometry": 0
+    },
+    {
+      "path": "07-evaluation/",
+      "width": 1280,
+      "theme": "dark",
+      "overflow": 0,
+      "failedImages": [],
+      "svgCount": 6,
+      "missing": [],
+      "badGeometry": 0
+    },
+    {
+      "path": "08-experiments/",
+      "width": 1280,
+      "theme": "dark",
+      "overflow": 0,
+      "failedImages": [],
+      "svgCount": 5,
+      "missing": [],
+      "badGeometry": 0
+    },
+    {
+      "path": "09-decoding/",
+      "width": 1280,
+      "theme": "dark",
+      "overflow": 0,
+      "failedImages": [],
+      "svgCount": 8,
+      "missing": [],
+      "badGeometry": 0
+    },
+    {
+      "path": "10-complete-pipeline/",
+      "width": 1280,
+      "theme": "dark",
+      "overflow": 0,
+      "failedImages": [],
+      "svgCount": 6,
+      "missing": [],
+      "badGeometry": 0
+    },
+    {
+      "path": "99-interview/",
+      "width": 1280,
+      "theme": "dark",
+      "overflow": 0,
+      "failedImages": [],
+      "svgCount": 0,
+      "missing": [],
+      "badGeometry": 0
+    },
+    {
+      "path": "",
+      "width": 390,
+      "theme": "light",
+      "overflow": 0,
+      "failedImages": [],
+      "svgCount": 2,
+      "missing": [],
+      "badGeometry": 0
+    },
+    {
+      "path": "01-feature-mixing/",
+      "width": 390,
+      "theme": "light",
+      "overflow": 0,
+      "failedImages": [],
+      "svgCount": 5,
+      "missing": [],
+      "badGeometry": 0
+    },
+    {
+      "path": "02-output/",
+      "width": 390,
+      "theme": "light",
+      "overflow": 0,
+      "failedImages": [],
+      "svgCount": 7,
+      "missing": [],
+      "badGeometry": 0
+    },
+    {
+      "path": "03-examples-loss-gradients/",
+      "width": 390,
+      "theme": "light",
+      "overflow": 0,
+      "failedImages": [],
+      "svgCount": 8,
+      "missing": [],
+      "badGeometry": 0
+    },
+    {
+      "path": "04-optimizer/",
+      "width": 390,
+      "theme": "light",
+      "overflow": 0,
+      "failedImages": [],
+      "svgCount": 7,
+      "missing": [],
+      "badGeometry": 0
+    },
+    {
+      "path": "05-initialization-precision-memory/",
+      "width": 390,
+      "theme": "light",
+      "overflow": 0,
+      "failedImages": [],
+      "svgCount": 10,
+      "missing": [],
+      "badGeometry": 0
+    },
+    {
+      "path": "06-checkpoints-loop/",
+      "width": 390,
+      "theme": "light",
+      "overflow": 0,
+      "failedImages": [],
+      "svgCount": 6,
+      "missing": [],
+      "badGeometry": 0
+    },
+    {
+      "path": "07-evaluation/",
+      "width": 390,
+      "theme": "light",
+      "overflow": 0,
+      "failedImages": [],
+      "svgCount": 6,
+      "missing": [],
+      "badGeometry": 0
+    },
+    {
+      "path": "08-experiments/",
+      "width": 390,
+      "theme": "light",
+      "overflow": 0,
+      "failedImages": [],
+      "svgCount": 5,
+      "missing": [],
+      "badGeometry": 0
+    },
+    {
+      "path": "09-decoding/",
+      "width": 390,
+      "theme": "light",
+      "overflow": 0,
+      "failedImages": [],
+      "svgCount": 8,
+      "missing": [],
+      "badGeometry": 0
+    },
+    {
+      "path": "10-complete-pipeline/",
+      "width": 390,
+      "theme": "light",
+      "overflow": 0,
+      "failedImages": [],
+      "svgCount": 6,
+      "missing": [],
+      "badGeometry": 0
+    },
+    {
+      "path": "99-interview/",
+      "width": 390,
+      "theme": "light",
+      "overflow": 0,
+      "failedImages": [],
+      "svgCount": 0,
+      "missing": [],
+      "badGeometry": 0
+    },
+    {
+      "path": "",
+      "width": 390,
+      "theme": "dark",
+      "overflow": 0,
+      "failedImages": [],
+      "svgCount": 2,
+      "missing": [],
+      "badGeometry": 0
+    },
+    {
+      "path": "01-feature-mixing/",
+      "width": 390,
+      "theme": "dark",
+      "overflow": 0,
+      "failedImages": [],
+      "svgCount": 5,
+      "missing": [],
+      "badGeometry": 0
+    },
+    {
+      "path": "02-output/",
+      "width": 390,
+      "theme": "dark",
+      "overflow": 0,
+      "failedImages": [],
+      "svgCount": 7,
+      "missing": [],
+      "badGeometry": 0
+    },
+    {
+      "path": "03-examples-loss-gradients/",
+      "width": 390,
+      "theme": "dark",
+      "overflow": 0,
+      "failedImages": [],
+      "svgCount": 8,
+      "missing": [],
+      "badGeometry": 0
+    },
+    {
+      "path": "04-optimizer/",
+      "width": 390,
+      "theme": "dark",
+      "overflow": 0,
+      "failedImages": [],
+      "svgCount": 7,
+      "missing": [],
+      "badGeometry": 0
+    },
+    {
+      "path": "05-initialization-precision-memory/",
+      "width": 390,
+      "theme": "dark",
+      "overflow": 0,
+      "failedImages": [],
+      "svgCount": 10,
+      "missing": [],
+      "badGeometry": 0
+    },
+    {
+      "path": "06-checkpoints-loop/",
+      "width": 390,
+      "theme": "dark",
+      "overflow": 0,
+      "failedImages": [],
+      "svgCount": 6,
+      "missing": [],
+      "badGeometry": 0
+    },
+    {
+      "path": "07-evaluation/",
+      "width": 390,
+      "theme": "dark",
+      "overflow": 0,
+      "failedImages": [],
+      "svgCount": 6,
+      "missing": [],
+      "badGeometry": 0
+    },
+    {
+      "path": "08-experiments/",
+      "width": 390,
+      "theme": "dark",
+      "overflow": 0,
+      "failedImages": [],
+      "svgCount": 5,
+      "missing": [],
+      "badGeometry": 0
+    },
+    {
+      "path": "09-decoding/",
+      "width": 390,
+      "theme": "dark",
+      "overflow": 0,
+      "failedImages": [],
+      "svgCount": 8,
+      "missing": [],
+      "badGeometry": 0
+    },
+    {
+      "path": "10-complete-pipeline/",
+      "width": 390,
+      "theme": "dark",
+      "overflow": 0,
+      "failedImages": [],
+      "svgCount": 6,
+      "missing": [],
+      "badGeometry": 0
+    },
+    {
+      "path": "99-interview/",
+      "width": 390,
+      "theme": "dark",
+      "overflow": 0,
+      "failedImages": [],
+      "svgCount": 0,
+      "missing": [],
+      "badGeometry": 0
+    }
+  ]
+}

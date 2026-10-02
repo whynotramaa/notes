@@ -76,7 +76,7 @@ This gives exactly the same answer, because subtracting a constant from every sc
 
 @fig softmax_stable | The overflow trap. Naively exponentiating large scores overflows to infinity and then to NaN. Subtracting the maximum first gives the same weights with every intermediate number small.
 
-Every serious implementation, including PyTorch's `torch.softmax`, does this subtraction for you. You need to know it because you will write it yourself in kernels, in loss functions, and in interviews, and because Day 2's FlashAttention is built on a clever extension of it.
+Every serious implementation, including PyTorch's `torch.softmax`, does this subtraction for you. You need to know it because you will write it yourself in kernels, in loss functions, and in interviews, and because Unit II's FlashAttention is built on a clever extension of it.
 
 ## 42. What the Scores and the Output Mean
 

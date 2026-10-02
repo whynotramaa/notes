@@ -66,7 +66,7 @@ If you want to write the whole rotation as one matrix for a 64-wide head, it is 
 
 @fig rope_matrix | The rotation for position m written as a matrix, for a toy 8-wide head. Each orange block rotates one pair by its own angle; everything off the blocks is zero.
 
-Real code never builds that matrix, because multiplying by thousands of zeros is wasted work. It multiplies by precomputed tables of $\cos(m\theta_i)$ and $\sin(m\theta_i)$ directly, using a little helper called `rotate_half`, which Day 2 walks through line by line. The answer is identical.
+Real code never builds that matrix, because multiplying by thousands of zeros is wasted work. It multiplies by precomputed tables of $\cos(m\theta_i)$ and $\sin(m\theta_i)$ directly, using a little helper called `rotate_half`, which Unit II walks through line by line. The answer is identical.
 
 ## 31. Far-Apart Tokens Get a Weaker Pull
 
@@ -86,7 +86,7 @@ RoPE has a neat escape hatch. **Position interpolation**, published by Shouyuan 
 
 @fig rope_pi | The angles the slowest pair sees. Training covered 0 to 0.136 radians. Running on four times the length pushes it to 0.546, unseen territory; dividing positions by four squeezes it back inside.
 
-Interpolation slows every pair down equally, including the fast ones that did not need it, which blurs their fine view of nearby words. Better methods, NTK-aware scaling and YaRN, slow the pairs unevenly, leaving fast pairs nearly alone and stretching the slow ones the most. Day 2 compares them in detail.
+Interpolation slows every pair down equally, including the fast ones that did not need it, which blurs their fine view of nearby words. Better methods, NTK-aware scaling and YaRN, slow the pairs unevenly, leaving fast pairs nearly alone and stretching the slow ones the most. Unit II compares them in detail.
 
 | | Learned (Part III) | Sinusoidal (Part IV) | RoPE (Part V) |
 |---|---|---|---|
@@ -102,7 +102,7 @@ That last row, plus the exact relative behaviour and zero parameters, is why RoP
 
 **Never rotate v.** Only queries and keys get rotated. If the values are rotated too, the content passed between tokens depends on absolute position, and output quality drops in confusing ways. If outputs drift with absolute position, check this first.
 
-**Which numbers form a pair?** Some code pairs neighbours (entry 0 with entry 1, 2 with 3). Other code pairs the first half of the head with the second half (entry 0 with entry 32 in a 64-wide head). Both train equally well, but weights trained one way give garbage in code written the other way. Day 2 shows the conversion.
+**Which numbers form a pair?** Some code pairs neighbours (entry 0 with entry 1, 2 with 3). Other code pairs the first half of the head with the second half (entry 0 with entry 32 in a 64-wide head). Both train equally well, but weights trained one way give garbage in code written the other way. Unit II shows the conversion.
 
 **Rotated keys in the cache.** During generation (Part XI), old keys are stored already rotated. The new token must be rotated by its true position, which is the number of tokens already stored, not 0.
 

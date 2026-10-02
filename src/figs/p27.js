@@ -15,7 +15,7 @@ export function block_diff() {
     });
   };
   col(10, 'Finch-19 (2019 recipe)', [['tokens + learned positions', false], ['LayerNorm', false], ['MHA, 8 K/V heads, by hand', false], ['+ residual', false], ['LayerNorm', false], ['GELU MLP, 2,048', false], ['+ residual', false]]);
-  col(330, 'Finch-24 (2024 recipe)', [['tokens only (RoPE in attention)', true, 'I'], ['RMSNorm', true, 'II'], ['GQA 8 q / 2 kv + RoPE, SDPA', true, 'IV, V, VI'], ['+ residual', false], ['RMSNorm', true, 'II'], ['SwiGLU MLP, 1,536', true, 'III'], ['+ residual', false]]);
+  col(330, 'Finch-24 (2024 recipe)', [['tokens only (RoPE in attention)', true, 'I'], ['RMSNorm', true, 'II'], ['GQA 8 q / 2 kv + RoPE, SDPA', true, 'IV,V,VI'], ['+ residual', false], ['RMSNorm', true, 'II'], ['SwiGLU MLP, 1,536', true, 'III'], ['+ residual', false]]);
   d.line(322, 34, 322, 390, { stroke: C.line, sw: 0.8, dash: [3, 4], single: true });
   d.text(320, 396, 'biases removed everywhere on the right', { cls: 'xs' });
   return d.svg();

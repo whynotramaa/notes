@@ -123,7 +123,7 @@ export function grad_clip() {
 
 export function loss_curves() {
   const d = new D(640, 250, 'loss_curves');
-  d.text(10, 16, 'TRAINING LOSS KEEPS FALLING; VALIDATION LOSS TURNS UP WHEN THE MODEL STARTS MEMORIZING  (ILLUSTRATIVE)', { cls: 'cap', a: 'start' });
+  d.text(10, 16, 'TRAINING LOSS FALLS; VALIDATION LOSS TURNS UP ONCE THE MODEL MEMORIZES (ILLUSTRATIVE)', { cls: 'cap', a: 'start' });
   const M = d.axes(70, 40, 500, 160, { xmin: 0, xmax: 100, ymin: 1.5, ymax: 10.5, xl: 'training step (×100)', yl: 'loss' });
   const tr = (t) => 2.0 + 8.37 * Math.exp(-t / 9) - 0.004 * t;
   const va = (t) => 2.35 + 8.0 * Math.exp(-t / 9) + 0.00012 * Math.max(0, t - 45) ** 2;

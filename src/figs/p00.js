@@ -9,7 +9,7 @@ function dots(d, w, h) {
 export function cover_attn() {
   const d = new D(750, 975, 'cover_attn');
   dots(d, 750, 975);
-  d.text(62, 92, 'A HAND-DRAWN FIELD GUIDE  /  OCTLM DAY 1', { cls: 'cap', a: 'start', size: 10, color: C.acc });
+  d.text(62, 92, 'A HAND-DRAWN FIELD GUIDE  /  OCTLM UNIT I', { cls: 'cap', a: 'start', size: 10, color: C.acc });
   d.text(58, 158, 'Inside', { cls: 'big', a: 'start', size: 66, w: 600 });
   d.text(58, 230, 'Attention', { cls: 'big', a: 'start', size: 66, w: 600 });
   d.hl(60, 252, 360, 252, { th: 9, op: 0.35 });
@@ -63,7 +63,7 @@ export function cover_attn() {
 export function cover_modern() {
   const d = new D(750, 975, 'cover_modern');
   dots(d, 750, 975);
-  d.text(62, 92, 'A HAND-DRAWN FIELD GUIDE  /  OCTLM DAY 2', { cls: 'cap', a: 'start', size: 10, color: C.acc });
+  d.text(62, 92, 'A HAND-DRAWN FIELD GUIDE  /  OCTLM UNIT II', { cls: 'cap', a: 'start', size: 10, color: C.acc });
   d.text(58, 158, 'The Modern', { cls: 'big', a: 'start', size: 66, w: 600 });
   d.text(58, 230, 'Block', { cls: 'big', a: 'start', size: 66, w: 600 });
   d.hl(60, 252, 230, 252, { th: 9, op: 0.35 });

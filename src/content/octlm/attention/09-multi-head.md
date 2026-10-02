@@ -72,9 +72,9 @@ Count the attention parameters for one Finch-19 layer. $W_Q$, $W_K$, $W_V$ and $
 
 ## 52. Heads Can Share Keys and Values
 
-Day 2 extends this idea. In standard multi-head attention, called **MHA**, every query head has its own keys and values. But the keys and values have to be stored during generation, in the KV cache of Part XI, and that storage is often what limits how long a conversation can be or how many users a server can handle.
+Unit II extends this idea. In standard multi-head attention, called **MHA**, every query head has its own keys and values. But the keys and values have to be stored during generation, in the KV cache of Part XI, and that storage is often what limits how long a conversation can be or how many users a server can handle.
 
-So people asked: what if several query heads shared one set of keys and values? Each head still asks its own question with its own query, but they all look it up in the same keys and read the same values. With 8 query heads sharing 2 key/value heads in groups of 4, that is **grouped-query attention**, **GQA**. With all 8 sharing a single key/value head, it is **multi-query attention**, **MQA**. Noam Shazeer proposed MQA in 2019; Joshua Ainslie and colleagues at Google introduced GQA in 2023. Nearly every modern model uses GQA: Llama 3 8B has 32 query heads and 8 key/value heads. Day 2 covers it in depth, and Finch-24 will use 8 query heads with 2 key/value heads.
+So people asked: what if several query heads shared one set of keys and values? Each head still asks its own question with its own query, but they all look it up in the same keys and read the same values. With 8 query heads sharing 2 key/value heads in groups of 4, that is **grouped-query attention**, **GQA**. With all 8 sharing a single key/value head, it is **multi-query attention**, **MQA**. Noam Shazeer proposed MQA in 2019; Joshua Ainslie and colleagues at Google introduced GQA in 2023. Nearly every modern model uses GQA: Llama 3 8B has 32 query heads and 8 key/value heads. Unit II covers it in depth, and Finch-24 will use 8 query heads with 2 key/value heads.
 
 @fig mha_gqa_mqa | Multi-head, grouped-query and multi-query attention. Query heads always stay separate; what changes is how many key/value heads they share. The KV cache shrinks in proportion.
 
@@ -93,5 +93,5 @@ When reading an attention visualization, check which layer and head you are look
 :::
 
 :::key In one breath
-Multi-head attention runs $H$ attention computations in parallel on slices of width $d_{\text{head}} = d_{\text{model}}/H$ (8 heads of 64 for Finch-19), so different heads can attend for different reasons without blurring into one average. Outputs are concatenated and mixed by $W_O$, and the four projections cost $4 d_{\text{model}}^2$ weights (1,048,576 in Finch-19) regardless of $H$, though each head adds its own $T \times T$ map. Trained heads show recurring habits (previous-token, coreference, sink, broad, induction), and sharing keys and values across query heads (GQA, MQA) shrinks the KV cache, the subject of Day 2.
+Multi-head attention runs $H$ attention computations in parallel on slices of width $d_{\text{head}} = d_{\text{model}}/H$ (8 heads of 64 for Finch-19), so different heads can attend for different reasons without blurring into one average. Outputs are concatenated and mixed by $W_O$, and the four projections cost $4 d_{\text{model}}^2$ weights (1,048,576 in Finch-19) regardless of $H$, though each head adds its own $T \times T$ map. Trained heads show recurring habits (previous-token, coreference, sink, broad, induction), and sharing keys and values across query heads (GQA, MQA) shrinks the KV cache, the subject of Unit II.
 :::

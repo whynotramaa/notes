@@ -69,7 +69,7 @@ Here $\mu$ is the average of the vector's entries, $\sigma^2$ their variance, $\
 
 @fig layernorm_steps | LayerNorm by hand. Subtract the mean, divide by the standard deviation, then apply the learned gain and shift.
 
-Finch-19 has two LayerNorms per block plus the final one, each with 512 gains and 512 shifts. Day 2 replaces LayerNorm with RMSNorm, which skips the mean subtraction.
+Finch-19 has two LayerNorms per block plus the final one, each with 512 gains and 512 shifts. Unit II replaces LayerNorm with RMSNorm, which skips the mean subtraction.
 
 ## 67. The MLP: Widen, Bend, Narrow
 
@@ -134,7 +134,7 @@ Per block, attention is $4d^2$ and the MLP is $8d^2$ (ignoring biases), so the M
 
 **The stream grows with depth.** Every layer adds to the stream, so without care the vectors grow with depth. GPT-2 scales the initial weights of the layers that write into the stream by $1/\sqrt{N_{\text{res}}}$, where $N_{\text{res}}$ is the number of residual additions (two per block), so the sum of all contributions starts at a sensible size.
 
-**Never assume the MLP is $4d$.** Finch-19 and GPT-2 use $4d$, but Day 2's SwiGLU uses three matrices and a hidden width near $\tfrac{8}{3}d$, rounded. Read the hidden size from the config.
+**Never assume the MLP is $4d$.** Finch-19 and GPT-2 use $4d$, but Unit II's SwiGLU uses three matrices and a hidden width near $\tfrac{8}{3}d$, rounded. Read the hidden size from the config.
 
 **Norm epsilon and precision.** Normalization divides by a standard deviation. Compute it in 32-bit precision and keep $\varepsilon$ at what the model was trained with, typically $10^{-5}$ or $10^{-6}$; too small an epsilon in 16-bit arithmetic causes blow-ups.
 

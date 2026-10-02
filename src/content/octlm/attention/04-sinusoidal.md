@@ -48,7 +48,7 @@ The frequencies are not arbitrary. Each wave is a constant factor slower than th
 
 @fig wavelength_ladder | Wavelengths of the 256 wave pairs in a 512-wide model, sampled every 32 pairs, on a log scale. They run from 6.3 tokens to about 60,600 tokens in even multiplicative steps.
 
-That range is the point. Some waves resolve "the word right next to me" and others resolve "something thousands of words back". The number 10,000 is called the **base**, and it sets how slow the slowest wave is. There is nothing magic about it. Models that need very long contexts raise it so the slowest waves stretch further; Day 2 shows Llama 3 using 500,000 for exactly that reason.
+That range is the point. Some waves resolve "the word right next to me" and others resolve "something thousands of words back". The number 10,000 is called the **base**, and it sets how slow the slowest wave is. There is nothing magic about it. Models that need very long contexts raise it so the slowest waves stretch further; Unit II shows Llama 3 using 500,000 for exactly that reason.
 
 ## 25. The Dot Product Only Cares About Distance
 
@@ -91,7 +91,7 @@ Since the formula can be evaluated at any number, sinusoidal positions were ofte
 **Precision at huge positions.** At position 100,000 the angle for the fastest wave is 100,000 radians. In 16-bit floating point, numbers that large carry very few digits after the decimal point, so the rounding error in the angle is bigger than the wave's whole period and the sine comes out as noise. Compute angles in 32-bit precision and only convert the final sine and cosine.
 
 :::warn Watch out
-Do not confuse the **base** (10,000) with the **context length** (1,024 for Finch-19). The base sets the slowest wave's speed; the context length is how far training actually went. Raising the base does not, by itself, teach the model anything about longer texts. It only changes which angles long texts produce. Part V and Day 2 show how base changes are combined with extra training to stretch a model.
+Do not confuse the **base** (10,000) with the **context length** (1,024 for Finch-19). The base sets the slowest wave's speed; the context length is how far training actually went. Raising the base does not, by itself, teach the model anything about longer texts. It only changes which angles long texts produce. Part V and Unit II show how base changes are combined with extra training to stretch a model.
 :::
 
 :::key In one breath

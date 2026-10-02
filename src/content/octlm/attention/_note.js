@@ -1,6 +1,6 @@
 export const site = {
   order: 1,
-  day: 'day 1',
+  day: 'unit I',
   chapterNumber: 1,
   title: 'Inside Attention',
   description: 'How a decoder-only Transformer turns raw text into a guess for the next token: tokenization, embeddings, positions, attention, masking, heads, the KV cache, the decoder block and training, explained from zero with hand-drawn diagrams.',

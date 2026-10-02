@@ -100,7 +100,7 @@ The causal triangle is not the only shape. **Encoders** such as BERT use no mask
 
 **Padding rows with nothing to see.** With left padding, a padding token's own row might have every key masked, giving NaN. Let pad rows see something harmless, such as themselves, and drop them from the loss.
 
-**Generation needs no triangle for the new token.** When generating one new token at a time (Part XI), the new token is the last one and may see everything before it. There is nothing to hide. Applying a triangle aligned to the wrong corner at this step is a classic bug, which Day 2's SDPA chapter looks at closely.
+**Generation needs no triangle for the new token.** When generating one new token at a time (Part XI), the new token is the last one and may see everything before it. There is nothing to hide. Applying a triangle aligned to the wrong corner at this step is a classic bug, which Unit II's SDPA chapter looks at closely.
 
 **Sliding windows add, never replace.** Some models let each token see only the last few thousand tokens. That is another mask, and it must be combined with the causal mask by AND. Overwriting one with the other lets tokens see the future again.
 

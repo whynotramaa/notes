@@ -46,7 +46,7 @@ For Finch-19 at its full context of 1,024 tokens, one layer's 8 grids take $8 \t
 
 @fig score_memory | Memory needed to store one layer's full score grids in 16-bit, for 8 and 32 heads, on a log scale. Past about 32k tokens, a 32-head layer no longer fits on one 80 GB GPU.
 
-There is a subtler cost hiding here too. Even when the grid fits, writing gigabytes of scores out to the GPU's main memory and reading them back for softmax takes time, and on modern GPUs that data movement, not the arithmetic, is usually what makes attention slow. Day 2's FlashAttention chapter is built entirely on that observation.
+There is a subtler cost hiding here too. Even when the grid fits, writing gigabytes of scores out to the GPU's main memory and reading them back for softmax takes time, and on modern GPUs that data movement, not the arithmetic, is usually what makes attention slow. Unit II's FlashAttention chapter is built entirely on that observation.
 
 ## 57. How Real Systems Cope
 
@@ -68,7 +68,7 @@ Take one query whose scores arrive in two chunks. The first chunk is $[2.0, 1.0,
 
 @fig online_softmax | Online softmax with two chunks. When a larger maximum arrives, the old running sum is rescaled by e to the power of (old max minus new max) before adding the new terms. The result equals the all-at-once sum.
 
-This technique is called **online softmax**, described by Maxim Milakov and Natalia Gimelshein in 2018. FlashAttention combines it with tiling. Day 2 gives FlashAttention a whole part, including what happens during training.
+This technique is called **online softmax**, described by Maxim Milakov and Natalia Gimelshein in 2018. FlashAttention combines it with tiling. Unit II gives FlashAttention a whole part, including what happens during training.
 
 ### Or compute fewer scores
 

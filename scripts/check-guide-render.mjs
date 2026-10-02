@@ -46,7 +46,7 @@ runInNewContext(await readFile('public/site.js', 'utf8'), {
   document: {
     documentElement: { scrollHeight: 100, clientHeight: 100 },
     getElementById: () => ({ addEventListener() {} }),
-    querySelector: () => ({ style: {} }),
+    querySelector: selector => selector === '.progress-bar' ? { style: {} } : null,
     addEventListener: (type, callback) => { handlers[type] = callback; },
   }, navigator, setTimeout: callback => { reset = callback; },
 });

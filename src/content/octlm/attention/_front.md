@@ -22,7 +22,7 @@ At the back there is an interview question bank, a set of graded exercises and w
 
 # Meet Finch-19
 
-Abstract shapes like `T × d_model` are easy to nod along to and hard to remember. So we carry one concrete model through the whole chapter and compute everything for it. **Finch-19** is a small language model built the way GPT-2 was built in 2019: learned position vectors, LayerNorm before each sub-layer, a GELU MLP four times wider than the model, biases on every layer, and full multi-head attention. It is shrunk down until every number fits on a page. Day 2 rebuilds it with the 2024 recipe as Finch-24, so you can watch every number change.
+Abstract shapes like `T × d_model` are easy to nod along to and hard to remember. So we carry one concrete model through the whole chapter and compute everything for it. **Finch-19** is a small language model built the way GPT-2 was built in 2019: learned position vectors, LayerNorm before each sub-layer, a GELU MLP four times wider than the model, biases on every layer, and full multi-head attention. It is shrunk down until every number fits on a page. Unit II rebuilds it with the 2024 recipe as Finch-24, so you can watch every number change.
 
 | Setting | Symbol | Finch-19 | What it controls |
 |---|---|---|---|
