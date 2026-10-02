@@ -86,9 +86,14 @@ const next = note && current >= -1 ? chapters[current + 1] : null;
       )}
     </main>
   </div>
-  <div class="highlight-toolbar" id="highlight-toolbar" hidden>
-    <button type="button" id="save-highlight">Save highlight</button>
-    <button type="button" id="cancel-highlight" aria-label="Dismiss highlight action">Cancel</button>
+  <div class="highlight-toolbar" id="highlight-toolbar" role="toolbar" aria-label="Highlight selected text" hidden>
+    <button type="button" id="save-highlight" aria-keyshortcuts="Alt+A" title="Save highlight (Alt+A)">Save highlight <kbd>Alt A</kbd></button>
+    <div class="highlight-colors" role="group" aria-label="Highlight color">
+      {['yellow', 'red', 'pink', 'cyan', 'green', 'violet'].map(color => (
+        <button type="button" class="highlight-swatch" data-highlight-color={color} aria-label={`${color} highlight`} aria-pressed="false" title={color}><span /></button>
+      ))}
+    </div>
+    <button type="button" id="cancel-highlight" aria-label="Dismiss highlight action" title="Dismiss (Escape)"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="m4 4 8 8M12 4l-8 8" /></svg></button>
   </div>
   <p class="highlight-status" id="highlight-status" role="status" hidden></p>
   <script is:inline src="/site.js"></script>

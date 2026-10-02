@@ -1,7 +1,7 @@
 // Run in the browser console on a guide page. Existing highlights are restored afterward.
 (async () => {
   const assert = (condition, message) => { if (!condition) throw new Error(message); };
-  const key = 'fg-highlights', original = localStorage.getItem(key);
+  const key = 'fg-highlights', original = localStorage.getItem(key), originalColor = localStorage.getItem('fg-highlight-color');
   const tick = () => new Promise(resolve => setTimeout(resolve, 30));
   const refresh = () => window.dispatchEvent(new StorageEvent('storage', { key }));
   const saved = () => JSON.parse(localStorage.getItem(key) || '[]');
@@ -21,17 +21,23 @@
     document.getElementById('save-highlight').click(); await tick();
     assert(saved().length === 1, 'Save must persist one highlight.');
     assert(saved()[0].segments[0].context.slice(saved()[0].segments[0].start, saved()[0].segments[0].end) === quote, 'Saved quote must match selection.');
-    assert(CSS.highlights.get('saved-passages').size === 1, 'Saved selection must be painted.');
+    assert([...CSS.highlights.values()].reduce((sum, h) => sum + h.size, 0) === 1, 'Saved selection must be painted.');
     select(paragraphs[0]); await tick(); document.getElementById('save-highlight').click(); await tick();
     assert(saved().length === 1, 'Repeated selection must not duplicate the highlight.');
     const range = document.createRange(); range.setStart(paragraphs[0].firstChild, 0); range.setEnd(paragraphs[1].firstChild, 20);
     window.getSelection().removeAllRanges(); window.getSelection().addRange(range); await tick();
     document.getElementById('save-highlight').click(); await tick();
     assert(saved()[1].segments.length === 2, 'A selection across paragraphs must preserve both segments.');
+    select(paragraphs[1], 25, 45); await tick();
+    document.querySelector('[data-highlight-color=cyan]').click();
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'a', code: 'KeyA', altKey: true })); await tick();
+    assert(saved().at(-1).color === 'cyan', 'Alt+A must use the selected color.');
+    assert(localStorage.getItem('fg-highlight-color') === 'cyan', 'Color preference must persist.');
+    assert(CSS.highlights.get('saved-cyan').size === 1, 'Chosen color must be painted.');
     assert(saved()[0].section.startsWith('Section '), 'Highlights must carry section metadata.');
     assert(saved()[0].before && saved()[0].after, 'Highlights must retain surrounding text.');
     localStorage.setItem(key, '[]'); refresh();
-    assert(CSS.highlights.get('saved-passages').size === 0, 'Clearing storage must remove painted ranges.');
+    assert([...CSS.highlights.values()].reduce((sum, h) => sum + h.size, 0) === 0, 'Clearing storage must remove painted ranges.');
     select(paragraphs[0]); await tick();
     document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
     assert(document.getElementById('highlight-toolbar').hidden, 'Escape must dismiss the action.');
@@ -42,6 +48,8 @@
     return true;
   } finally {
     if (original === null) localStorage.removeItem(key); else localStorage.setItem(key, original);
+    if (originalColor === null) localStorage.removeItem('fg-highlight-color'); else localStorage.setItem('fg-highlight-color', originalColor);
+    window.dispatchEvent(new StorageEvent('storage', { key: 'fg-highlight-color', newValue: originalColor }));
     window.getSelection().removeAllRanges(); refresh();
   }
 })();

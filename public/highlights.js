@@ -1,5 +1,8 @@
 (() => {
   const key = 'fg-highlights';
+  const colorKey = 'fg-highlight-color';
+  const colors = ['yellow', 'red', 'pink', 'cyan', 'green', 'violet'];
+  const colorOf = h => colors.includes(h.color) ? h.color : 'yellow';
   const path = `${location.pathname.replace(/\/+$/, '')}/`;
   const guide = document.querySelector('.guide-content');
   const list = document.getElementById('highlights-list');
@@ -8,7 +11,26 @@
   const filter = document.getElementById('highlight-filter');
   const clear = document.getElementById('clear-highlights');
   const excluded = 'svg, math, .katex-mathml, .code-header, button, .anchor, .fignum';
-  let pending = null, statusTimer;
+  let pending = null, selectionRange = null, statusTimer, selectedColor = 'yellow';
+  try { selectedColor = colorOf({ color: localStorage.getItem(colorKey) }); } catch {}
+
+  function updateColor() {
+    toolbar.dataset.color = selectedColor;
+    toolbar.querySelectorAll('[data-highlight-color]').forEach(button => {
+      button.setAttribute('aria-pressed', String(button.dataset.highlightColor === selectedColor));
+    });
+  }
+  function positionToolbar() {
+    if (!pending || !selectionRange) return;
+    const rects = [...selectionRange.getClientRects()];
+    const anchor = rects.at(-1);
+    if (!anchor || anchor.bottom < 56 || anchor.top > innerHeight) { toolbar.hidden = true; return; }
+    toolbar.hidden = false;
+    const { width, height } = toolbar.getBoundingClientRect();
+    const top = anchor.bottom + 10 + height <= innerHeight - 12 ? anchor.bottom + 10 : anchor.top - height - 10;
+    toolbar.style.top = `${Math.max(56, Math.min(top, innerHeight - height - 12))}px`;
+    toolbar.style.left = `${Math.max(12, Math.min(anchor.left + anchor.width / 2 - width / 2, innerWidth - width - 12))}px`;
+  }
 
   function notify(message) {
     status.textContent = message;
@@ -67,13 +89,14 @@
     }
     return template.content;
   }
-  function markSegment(block, segment) {
+  function markSegment(block, segment, color) {
     let offset = 0;
     for (const n of nodes(block)) {
       const length = n.length, from = Math.max(0, segment.start - offset), to = Math.min(length, segment.end - offset);
       if (to > from) {
         const range = document.createRange(); range.setStart(n, from); range.setEnd(n, to);
-        range.surroundContents(document.createElement('mark'));
+        const mark = document.createElement('mark'); mark.dataset.color = color;
+        range.surroundContents(mark);
       }
       offset += length;
     }
@@ -98,8 +121,10 @@
   }
   function restore(saved) {
     if (!guide || !CSS.highlights || typeof Highlight === 'undefined') return;
-    const ranges = saved.filter(h => h.path === path).flatMap(h => h.segments.map(rangeFor).filter(Boolean));
-    CSS.highlights.set('saved-passages', new Highlight(...ranges));
+    for (const color of colors) {
+      const ranges = saved.filter(h => h.path === path && colorOf(h) === color).flatMap(h => h.segments.map(rangeFor).filter(Boolean));
+      CSS.highlights.set(`saved-${color}`, new Highlight(...ranges));
+    }
   }
   function element(tag, value, className) {
     const el = document.createElement(tag);
@@ -148,7 +173,7 @@
             const p = element('p', null, s.isCode ? 'highlight-code-context' : 'highlight-context');
             if (typeof s.html === 'string') p.append(formatted(s.html));
             if (text(p) !== s.context) p.textContent = s.context;
-            markSegment(p, s);
+            markSegment(p, s, colorOf(h));
             article.append(p);
           }
           if (h.before || h.after) {
@@ -192,7 +217,7 @@
   if (guide) {
     document.addEventListener('selectionchange', () => {
       if (toolbar.contains(document.activeElement)) return;
-      pending = null; toolbar.hidden = true;
+      pending = null; selectionRange = null; toolbar.hidden = true;
       const selection = window.getSelection();
       if (!selection || selection.isCollapsed || !selection.rangeCount) return;
       const selected = selection.getRangeAt(0);
@@ -224,22 +249,37 @@
         beforeHtml: first > 0 ? excerpt(blocks[first - 1]) : '', afterHtml: last < blocks.length - 1 ? excerpt(blocks[last + 1]) : '',
       };
       status.hidden = true;
-      toolbar.hidden = false;
+      selectionRange = selected.cloneRange();
+      positionToolbar();
     });
-    document.getElementById('save-highlight').addEventListener('pointerdown', e => e.preventDefault());
-    document.getElementById('save-highlight').addEventListener('click', () => {
+    toolbar.addEventListener('pointerdown', e => e.preventDefault());
+    toolbar.querySelectorAll('[data-highlight-color]').forEach(button => button.addEventListener('click', () => {
+      selectedColor = button.dataset.highlightColor;
+      updateColor();
+      try { localStorage.setItem(colorKey, selectedColor); } catch { notify('Color chosen for this page. Browser storage is unavailable.'); }
+    }));
+    const save = () => {
       if (!pending) return;
       try {
         if (!CSS.highlights || typeof Highlight === 'undefined') { notify('This browser cannot display saved highlights. Try a current browser.'); return; }
         const saved = read();
-        if (!saved.some(h => h.path === pending.path && JSON.stringify(h.segments) === JSON.stringify(pending.segments))) saved.push(pending);
+        pending.color = selectedColor;
+        const existing = saved.find(h => h.path === pending.path && JSON.stringify(h.segments) === JSON.stringify(pending.segments));
+        if (existing) existing.color = selectedColor; else saved.push(pending);
         write(saved); pending = null; toolbar.hidden = true; window.getSelection().removeAllRanges();
         notify('Highlight saved in this browser.');
       } catch { notify('Could not save the highlight. Browser storage is unavailable.'); }
-    });
+    };
+    document.getElementById('save-highlight').addEventListener('click', save);
     const dismiss = () => { pending = null; toolbar.hidden = true; window.getSelection().removeAllRanges(); };
     document.getElementById('cancel-highlight').addEventListener('click', dismiss);
-    document.addEventListener('keydown', e => { if (e.key === 'Escape' && pending) dismiss(); });
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape' && pending) dismiss();
+      if (e.altKey && !e.ctrlKey && !e.metaKey && !e.shiftKey && e.code === 'KeyA' && !e.repeat && pending &&
+        !e.target.closest('input, textarea, select, [contenteditable="true"]')) { e.preventDefault(); save(); }
+    });
+    document.addEventListener('scroll', positionToolbar, { passive: true, capture: true });
+    window.addEventListener('resize', positionToolbar);
   }
   filter?.addEventListener('change', refresh);
   clear?.addEventListener('click', () => {
@@ -247,7 +287,11 @@
     try { write([]); notify('All highlights cleared.'); }
     catch { notify('Could not clear highlights. Browser storage is unavailable.'); }
   });
-  window.addEventListener('storage', e => { if (e.key === key || e.key === null) refresh(); });
+  window.addEventListener('storage', e => {
+    if (e.key === colorKey || e.key === null) { selectedColor = colorOf({ color: e.newValue }); updateColor(); }
+    if (e.key === key || e.key === null) refresh();
+  });
+  updateColor();
   refresh();
   if (guide) {
     try {
