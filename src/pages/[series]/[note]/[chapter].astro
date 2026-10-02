@@ -1,0 +1,17 @@
+---
+import Book from '../../../layouts/Book.astro';
+import { allNotes } from '../../../data/notes.js';
+import { render } from '../../../lib/md.js';
+
+export const getStaticPaths = () => allNotes.flatMap((n) => n.chapters.map((c, i) => ({
+  params: { series: n.series.slug, note: n.slug, chapter: c.slug },
+  props: { n, i },
+})));
+const { n, i } = Astro.props;
+const c = n.chapters[i];
+const html = render(c.md, { where: n.where, figStart: c.figStart, chapterNumber: n.chapterNumber });
+const title = c.part ? `Part ${c.part.num}: ${c.title} · ${n.title}` : `${c.title} · ${n.title}`;
+---
+<Book title={title} description={c.blurb || n.description} note={n} series={n.series} current={i}>
+  <Fragment set:html={html} />
+</Book>

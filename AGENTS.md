@@ -1,27 +1,26 @@
-# Notes for teaching on X
+# Field guides for teaching on X
 
-This workspace holds visual teaching notes for sharing on X. The rules below apply to every folder in it.
+This workspace holds long-form, hand-drawn field guides in the style of the `field-guide-explainer` skill. The rules below apply to every folder in it.
 
 ## Direction
 
-- Visuals first, with full plain-language explanations. A page is a large title, a short lede, an intro (`.say.intro`) on where the chapter fits, and diagrams. Every `h2` gets a short `.say` lead-in, every diagram a `figcaption.say` saying what it shows, what to try and how it fits the whole model, and every edge card a `<p>` on what goes wrong.
-- Write explanations conversationally, as a person would explain it to a friend. Easy words, jargon explained the first time it appears, enough context and no more. Skip what is already obvious.
-- No frames. Diagrams sit directly on the page with no border, card, background or dot grid.
-- Spacious and cinematic. Heroes fill the first screen and rise in on load, sections sit a full `--gap` apart.
-- Hand-drawn style lives only inside diagrams: SVG ink strokes, wobble filter, Gaegu labels. Type, navigation, buttons and controls stay clean and crisp.
-- Generous space. Large gaps between sections and figures, wide diagrams (up to 1280px), text capped near 680px.
-- Show data with room to breathe. Prefer tiles, rounded bars and large labels over dense grids and small numbers.
+- Each note is a book chapter: a cover, front matter ("How to read this chapter", running-example spec table), 7 to 13 parts, and an interview page (question bank, graded exercises, worked solutions).
+- Each part opens with `@part` (roman numeral, title, three-sentence blurb, `where:N` map) and ends with a `:::key In one breath` box.
+- Sections are numbered `## N. Title`, continuous across the whole note. Each climbs the explanation ladder: hook, problem, intuition, mechanism, worked example with computed numbers, formula read out loud, figure, costs, edge cases, history, interview lens.
+- Write for a smart reader from another field: plain words, every term defined in bold once, prose not bullets, no em or en dashes, none of the banned phrases in the skill.
+- Every number in prose, figures, tables and solutions is computed, never estimated. Illustrative values are labelled as such in the caption.
+- Running examples: Finch-19 (2019 recipe, 42,128,384 parameters) in day 1, Finch-24 (2024 recipe, 40,509,952) in day 2. Real-model numbers use Llama 3 8B.
 
-## Type and colour
+## Figures
 
-- Poppins for body text and UI. Behind The Nineties for titles, headings, card names and diagram titles. Neither has an italic, so do not italicise them. Geist Mono for data. Gaegu only inside SVG. All self-hosted woff2 in `public/fonts`.
-- Colours are OKLCH tokens in `public/ink.css`. Dark mode is not an inverted light mode: the background shifts to a cool blue-black (hue 265), accents rotate about 12° in hue, drop chroma by about 25% and gain lightness, and text is warm off-white rather than pure white.
+- Figures are functions in `src/figs/pNN.js` that return SVG strings, drawn with rough.js through `src/lib/draw.js`. Canvas width 640, a `cap` kicker at (10, 16), labels beside what they label, at most two `hand` notes.
+- Colours come from the `C` object, which maps to CSS variables (`--f-*` in `src/styles/site.css`), so every figure follows light and dark mode. One accent (orange) per figure; slate only for a second series.
+- Ids are snake_case and unique across all figure files. Each note has one `where_*` map and one `cover_*`.
 
 ## Structure
 
-- One Astro project at the workspace root, deployed to notes.ramaa.tech. URLs follow folders: `/` lists series, `/octlm/` lists that series' notes, `/octlm/attention/` is a note's map, `/octlm/attention/05-rope` a chapter.
-- A series is `src/pages/<series>/_series.js` (title, sub, hue). A note is a folder `src/pages/<series>/<note>/` with `_note.js` (site and chapters) plus one `.astro` page per chapter. `src/data/notes.js` finds both by glob, so adding a folder is enough.
-- Every page uses `src/layouts/Note.astro`, `public/ink.css` and `public/ink.js`. The layout reads the URL to pick the note, the breadcrumb, contents and pager.
-- Navigation is a slim top bar with breadcrumbs (notes / series / note), a contents overlay (native `<dialog>`) on note pages, a motion pause button and a theme toggle.
-- Respect reduced motion and keep every teaching diagram complete without animation.
+- One Astro project, deployed to notes.ramaa.tech. URLs: `/` lists series, `/octlm/` lists its guides, `/octlm/attention/` is a guide's front matter and map, `/octlm/attention/05-rope` a part.
+- Content lives in `src/content/<series>/<note>/`: `_note.js` (metadata, cover and map figure names), `_front.md`, and one `NN-slug.md` per part, built in filename order. `src/content/<series>/_series.js` describes a series. `src/data/notes.js` finds everything by glob, so adding a folder is enough.
+- `src/lib/md.js` renders the markdown dialect (`@part`, `@fig`, `@chapter`, `:::box`, KaTeX math) at build time. `src/layouts/Book.astro` provides the top bar, contents sidebar with scrollspy, theme toggle and pager; `public/site.js` drives them.
+- Fonts are Syne, IBM Plex Sans and Mono, and Caveat, self-hosted through `@fontsource` packages.
 - `octlm/octlm-day01` is the old static prototype and is not part of the site.

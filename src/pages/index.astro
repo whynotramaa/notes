@@ -1,41 +1,20 @@
 ---
-import Note from '../layouts/Note.astro';
+import Book from '../layouts/Book.astro';
 import { series } from '../data/notes.js';
+import { figs } from '../lib/md.js';
 ---
-<Note title="Notes, drawn by hand" description="Visual teaching notes on machine learning, drawn one stroke at a time.">
-  <header class="hero">
-    <div>
-      <h1><span>Notes</span>, drawn by hand</h1>
-      <p class="lede">Things I am learning, explained with drawings more than words.</p>
-    </div>
-  </header>
-
-  <div class="cards">
-    {series.map(s => (
-      <a class="card redraw" href={s.base} id={`s-${s.slug}`} style={`--h:${s.hue}`} data-hue={s.hue} data-pages={JSON.stringify(s.notes.map(n => n.day))}>
-        <div class="art"></div>
-        <small>{s.notes.length} notes · {s.notes.reduce((a, n) => a + n.chapters.length - 1, 0)} chapters</small>
-        <strong>{s.title}</strong>
-        <span>{s.sub}</span>
-      </a>
-    ))}
-  </div>
-  <Fragment slot="scripts"><script is:inline>
-const { fig, box } = Ink;
-document.querySelectorAll('.card[data-pages]').forEach(el => {
-  const pages = JSON.parse(el.dataset.pages);
-  fig(el.id, {
-    view: '0 0 240 120', hue: +el.dataset.hue,
-    label: `A stack of ${pages.length} drawn pages`,
-    draw(sk) {
-      pages.forEach((d, i) => {
-        const j = pages.length - 1 - i, x = 52 + j * 14, y = 18 + j * 8;
-        (j ? sk.paper : sk.accent).call(sk, box(x, y, 120, 84, i));
-        sk.ink(box(x, y, 120, 84, i));
-        if (!j) sk.hand(x + 60, y + 50, d, 22, -3);
-      });
-    }
-  });
-});
-</script></Fragment>
-</Note>
+<Book title="Notes, drawn by hand" description="Hand-drawn field guides to how machine learning systems work, written from first principles.">
+  <section class="front">
+    <div class="part-kicker">Hand-drawn field guides</div>
+    <h1>Notes, drawn by hand</h1>
+    <p class="lede">Long-form explainers on how modern machine learning systems work inside. Every idea starts from a problem you can feel, gets worked through with real numbers, and ends with the question an interviewer would ask about it. No background assumed.</p>
+    <ul class="shelf">
+      {series.map((s) => (
+        <li><a href={s.base}>
+          <span class="thumb" set:html={s.notes[0] && figs[s.notes[0].cover] ? figs[s.notes[0].cover]() : ''} />
+          <span><span class="k">{s.notes.length} guides · {s.notes.reduce((a, n) => a + n.chapters.filter((c) => c.part).length, 0)} parts</span><strong>{s.title}</strong><p>{s.sub}</p></span>
+        </a></li>
+      ))}
+    </ul>
+  </section>
+</Book>

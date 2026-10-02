@@ -1,46 +1,23 @@
 ---
-import Note from '../../layouts/Note.astro';
+import Book from '../../layouts/Book.astro';
 import { series } from '../../data/notes.js';
+import { figs } from '../../lib/md.js';
 
-export const getStaticPaths = () => series.map(s => ({ params: { series: s.slug }, props: { s } }));
+export const getStaticPaths = () => series.map((s) => ({ params: { series: s.slug }, props: { s } }));
 const { s } = Astro.props;
 ---
-<Note title={`${s.title} · notes`} description={s.sub} hue={s.hue}>
-  <header class="hero">
-    <div>
-      <p class="kicker">notes · {s.notes.length} so far</p>
-      <h1><span>{s.title}</span></h1>
-      <p class="lede">{s.sub}</p>
-    </div>
-  </header>
-
-  <div class="cards">
-    {s.notes.map(n => (
-      <a class="card redraw" href={n.base} id={`n-${n.slug}`} style={`--h:${n.hue}`} data-hue={n.hue} data-ch={n.chapters.length - 1}>
-        <div class="art"></div>
-        <small>{n.day} · {n.chapters.length - 1} chapters</small>
-        <strong>{n.title}</strong>
-        <span>{n.sub}</span>
-      </a>
-    ))}
-  </div>
-  <Fragment slot="scripts"><script is:inline>
-const { fig, box } = Ink;
-document.querySelectorAll('.card[data-ch]').forEach(el => {
-  const k = +el.dataset.ch, per = Math.ceil(k / Math.ceil(k / 7));
-  fig(el.id, {
-    view: '0 0 240 120', hue: +el.dataset.hue,
-    label: `${k} chapters drawn as a row of tiles`,
-    draw(sk) {
-      const rows = Math.ceil(k / per), x0 = 120 - per * 14, y0 = 60 - rows * 15;
-      for (let i = 0; i < k; i++) {
-        const x = x0 + (i % per) * 28, y = y0 + Math.floor(i / per) * 30;
-        (i ? sk.paper : sk.accent).call(sk, box(x, y, 24, 24, i));
-        sk.ink(box(x, y, 24, 24, i));
-        sk.mono(x + 12, y + 16, String(i + 1).padStart(2, '0'), { s: 9.5 });
-      }
-    }
-  });
-});
-</script></Fragment>
-</Note>
+<Book title={`${s.title} · notes`} description={s.sub} series={s}>
+  <section class="front">
+    <div class="part-kicker">{s.notes.length} field guides</div>
+    <h1>{s.title}</h1>
+    <p class="lede">{s.sub}</p>
+    <ul class="shelf">
+      {s.notes.map((n) => (
+        <li><a href={n.base}>
+          <span class="thumb" set:html={figs[n.cover] ? figs[n.cover]() : ''} />
+          <span><span class="k">{n.day} · chapter {n.chapterNumber} · {n.chapters.filter((c) => c.part).length} parts</span><strong>{n.title}</strong><p>{n.description}</p></span>
+        </a></li>
+      ))}
+    </ul>
+  </section>
+</Book>

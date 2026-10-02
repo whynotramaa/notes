@@ -1,0 +1,26 @@
+---
+import Book from '../../../layouts/Book.astro';
+import { allNotes } from '../../../data/notes.js';
+import { render, figs, inline } from '../../../lib/md.js';
+
+export const getStaticPaths = () => allNotes.map((n) => ({ params: { series: n.series.slug, note: n.slug }, props: { n } }));
+const { n } = Astro.props;
+const cover = figs[n.cover] ? figs[n.cover]() : '';
+const front = render(n.front, { chapterNumber: n.chapterNumber });
+const map = figs[n.where] ? figs[n.where](99) : '';
+---
+<Book title={`${n.title} · a hand-drawn field guide`} description={n.description} note={n} series={n.series} current={-1}>
+  <section class="hero"><div class="cover-art" set:html={cover} /></section>
+  <Fragment set:html={front} />
+  <section class="front" id="contents">
+    <div class="part-kicker">The map</div>
+    <h1>What is inside</h1>
+    <p>{n.mapIntro}</p>
+    {map && <div class="part-art fig-scroll" set:html={map} />}
+    <ol class="parts">
+      {n.chapters.map((c) => (
+        <li><a href={c.href}><span class="pn">{c.part ? String(c.part.n).padStart(2, '0') : '+'}</span><span><strong set:html={inline(c.title)} /><span set:html={inline(c.part ? `Sections ${c.sections[0]?.num} to ${c.sections.at(-1)?.num}. ${c.blurb.split('. ')[0]}.` : 'Interview question bank, graded exercises and worked solutions.')} /></span></a></li>
+      ))}
+    </ol>
+  </section>
+</Book>
