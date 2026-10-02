@@ -1,5 +1,19 @@
 import { marked } from 'marked';
 import katex from 'katex';
+import { createHighlighter } from 'shiki';
+
+const highlighter = await createHighlighter({
+  langs: ['python'],
+  themes: [{ name: 'field-guide', settings: [
+    { settings: { foreground: 'var(--ink)', background: 'var(--code-paper)' } },
+    { scope: ['comment'], settings: { foreground: 'var(--code-muted)' } },
+    { scope: ['keyword', 'storage'], settings: { foreground: 'var(--code-accent)' } },
+    { scope: ['keyword.operator'], settings: { foreground: 'var(--code-muted)' } },
+    { scope: ['string'], settings: { foreground: 'var(--code-string)' } },
+    { scope: ['entity.name.function', 'entity.name.type'], settings: { foreground: 'var(--ink-strong)', fontStyle: 'bold' } },
+    { scope: ['constant.numeric', 'constant.language'], settings: { foreground: 'var(--code-accent)' } },
+  ] }],
+});
 
 const mods = import.meta.glob('../figs/*.js', { eager: true });
 export const figs = Object.assign({}, ...Object.keys(mods).sort().map((k) => mods[k]));
@@ -34,7 +48,12 @@ export function render(md, { where, figStart = 0, chapterNumber = 1 } = {}) {
   let figNo = figStart;
   const ph = [];
   const put = (html) => { ph.push(html); return `XPHX${ph.length - 1}XPHX`; };
-  md = md.replace(/```(\w*)\n([\s\S]*?)```/g, (m, lang, code) => '\n\n' + put(`<div class="code-wrap"><pre class="code ${lang}"><code>${escHtml(code.replace(/\n$/, ''))}</code></pre></div>`) + '\n\n');
+  md = md.replace(/```(\w*)\n([\s\S]*?)```/g, (m, lang, code) => {
+    const html = highlighter.codeToHtml(code.replace(/\n$/, ''), {
+      lang: highlighter.getLoadedLanguages().includes(lang) ? lang : 'text', theme: 'field-guide',
+    }).replace('class="shiki', 'class="code shiki');
+    return '\n\n' + put(`<div class="code-wrap"><div class="code-header"><span class="code-lang">${lang || 'code'}</span><button class="code-copy" type="button" aria-label="Copy ${lang || ''} code"><svg viewBox="0 0 16 16" aria-hidden="true"><rect x="5.5" y="5.5" width="7" height="8" rx="1.5"/><path d="M9.5 3H4a1.5 1.5 0 0 0-1.5 1.5V10"/></svg><span role="status">Copy</span></button></div>${html}</div>`) + '\n\n';
+  });
   md = md.replace(/`([^`\n]+)`/g, (m, code) => put(`<code>${escHtml(code)}</code>`));
   md = md.replace(/\$\$([\s\S]+?)\$\$/g, (m, t) => '\n\n' + put(`<div class="eq">${renderMath(t.trim(), true)}</div>`) + '\n\n');
   md = md.replace(/\$([^$\n]+?)\$/g, (m, t) => put(renderMath(t, false)));

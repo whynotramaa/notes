@@ -8,6 +8,20 @@
     try { localStorage.setItem('fg-theme', t); } catch {}
   });
 
+  document.addEventListener('click', async (event) => {
+    const button = event.target.closest('.code-copy');
+    if (!button || button.disabled) return;
+    const label = button.querySelector('span');
+    button.disabled = true;
+    try {
+      await navigator.clipboard.writeText(button.closest('.code-wrap').querySelector('code').textContent);
+      label.textContent = 'Copied';
+    } catch {
+      label.textContent = 'Copy failed';
+    }
+    setTimeout(() => { label.textContent = 'Copy'; button.disabled = false; }, 1800);
+  });
+
   const bar = document.querySelector('.progress-bar');
   const onScroll = () => {
     const max = root.scrollHeight - root.clientHeight;

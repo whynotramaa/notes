@@ -14,7 +14,7 @@ What we want instead is a description of each token: a list of numbers where tok
 
 The model keeps one big table, called the **embedding matrix** and written $E$. A matrix is a grid of numbers with rows and columns. $E$ has one row per token in the vocabulary and one column per dimension of the embedding. For Finch-19 that is 32,000 rows and 512 columns, so $E \in \mathbb{R}^{32{,}000 \times 512}$. (Read that as "E is a grid of real numbers, 32,000 by 512".) Row 8415 is the vector for *␠cat*. Row 433 is the vector for *␠it*.
 
-Turning an id into a vector is exactly as simple as it sounds: go to the row with that number and copy it out. Nothing is computed. For our sentence, seven ids fetch seven rows, and stacking them gives a grid with 7 rows and 512 columns. That grid is called $x$, and it is the input to everything that follows.
+To turn an id into a vector, copy the row with that number. Nothing is computed. For our sentence, seven ids fetch seven rows, and stacking them gives a grid with 7 rows and 512 columns. That grid is called $x$, and it is the input to everything that follows.
 
 $$x_i = E[\text{id}_i] \qquad x \in \mathbb{R}^{T \times d_{\text{model}}}$$
 
@@ -37,7 +37,7 @@ A hotel front desk keeps a binder with one page per guest, filed by room number.
 
 ## 11. Why a Lookup Counts as a Matrix Multiply
 
-You will often read that the embedding layer "is a matrix multiply". This is true, and seeing why makes it obvious how training can adjust the table like any other weight.
+An embedding lookup equals a matrix multiply, which explains how training adjusts the table like any other weight.
 
 Write the id as a **one-hot vector**: a row of $V$ zeros with a single 1 in the position of the id. For id 2 in a toy vocabulary of 5, that is `[0, 0, 1, 0, 0]`. Now multiply that row by the table. Matrix multiplication takes each entry of the row, multiplies it by the matching row of the table, and adds the results. Every row of the table gets multiplied by zero except row 2, which gets multiplied by 1. What comes out is exactly row 2.
 
@@ -73,7 +73,7 @@ Let us compute one. Give *cat* the toy vector $[0.8, 0.6, 0.1, 0.0]$ and *kitten
 
 @fig cosine_heat | Six toy embeddings as colour strips (left) and every pairwise cosine similarity (right). The animals form one bright block, the vehicles another, and *the* resembles nothing.
 
-Hold on to the dot product. It is the single most important operation in this chapter. In Part VI, attention decides how much one token should listen to another by taking exactly this dot product between two vectors, just without dividing by the lengths.
+The dot product is central to this chapter. In Part VI, attention uses it to decide how much one token listens to another, without dividing by the vector lengths.
 
 ## 13. Where the Map Comes From
 
@@ -88,6 +88,8 @@ This idea has a name in linguistics, the **distributional hypothesis**, usually 
 :::warn Watch out
 One token gets one vector, regardless of context. *bank* gets the same row whether the sentence is about rivers or money, and *it* gets the same row whether it refers to a cat or a car. The embedding cannot know the context, because it is a lookup. Fixing that is precisely what attention does: it mixes in information from the surrounding tokens so the vector for *it* can come to mean "the cat" in our sentence. Do not expect embeddings alone to handle ambiguity.
 :::
+
+@fig embedding_context_fork | The token bank fetches the same embedding in both phrases. Attention can then produce different vectors because river and savings supply different context. Phrase fragments are illustrative.
 
 ## 14. The Size of the Table, and Sharing It
 

@@ -2,7 +2,7 @@
 
 ## 15. The Blind Spot
 
-"Dog bites man" is not news. "Man bites dog" is. The two sentences contain exactly the same three words, and the only thing that separates a boring headline from a front page is order. Any model of language must care about order. Here is the strange fact this part is built around: the attention mechanism, on its own, does not.
+"Dog bites man" is not news. "Man bites dog" is. The two sentences contain exactly the same three words, and the only thing that separates a boring headline from a front page is order. Any model of language must care about order. Attention on its own does not.
 
 We have not built attention yet (that is Part VI), so take one property on trust for now and we will prove it there. Attention works by letting each token look at every other token and blend in information from the ones it finds relevant. The amount each token takes from another depends only on *what* the two tokens are, never on *where* they are. If you shuffle the input tokens, attention shuffles its outputs in exactly the same way and changes nothing else. Mathematicians call this being **permutation equivariant**: rearrange the input, and the output is rearranged identically.
 
@@ -32,7 +32,7 @@ $$x_i = E[\text{id}_i] + P[i]$$
 
 Read it out loud: the input vector at position $i$ is the token's own vector plus the vector for position $i$. For Finch-19, $P$ has 1,024 rows (the context length) and 512 columns (the model width), so it holds $1{,}024 \times 512 = 524{,}288$ learned numbers. Like $E$, it starts random and is learned during training.
 
-Let us add one by hand. *␠cat* sits at position 1. Its token vector begins $[0.12, -0.40, 0.33, 0.05, -0.21, 0.18, \dots]$ and row 1 of $P$ begins $[0.02, 0.10, -0.05, 0.20, 0.07, -0.11, \dots]$ (illustrative values). Adding entry by entry gives $[0.14, -0.30, 0.28, 0.25, -0.14, 0.07, \dots]$. The same addition happens for all 512 numbers, for all seven tokens. Now *dog* at position 0 and *dog* at position 2 produce different inputs, and the shuffle test fails, which is what we wanted.
+Add one by hand for *␠cat* at position 1. Its token vector begins $[0.12, -0.40, 0.33, 0.05, -0.21, 0.18, \dots]$ and row 1 of $P$ begins $[0.02, 0.10, -0.05, 0.20, 0.07, -0.11, \dots]$ (illustrative values). Adding entry by entry gives $[0.14, -0.30, 0.28, 0.25, -0.14, 0.07, \dots]$. The same addition happens for all 512 numbers, for all seven tokens. Now *dog* at position 0 and *dog* at position 2 produce different inputs, and the shuffle test fails, which is what we wanted.
 
 @fig pos_add | Adding a position. The token's row from E and the position's row from P are added entry by entry. The result carries both "which token" and "which seat" in the same 512 numbers.
 
@@ -80,7 +80,7 @@ Position schemes are baked into the trained weights. You cannot take a model tra
 
 ## 20. Three Answers, Three Injection Points
 
-Here is the map the next two parts will fill in. There are three main families of position scheme, and the clearest way to tell them apart is *where* they inject position into the model.
+The next two parts cover three main position schemes, distinguished by *where* they inject position into the model.
 
 **Learned absolute positions** (this part) add a trained table $P$ to the token vectors once, at the very bottom, before the first layer. **Sinusoidal positions** (Part IV) also add a vector at the bottom, but compute it from a fixed formula of sine and cosine waves instead of learning it, so there are no parameters and no table to run out of. **RoPE** (Part V) does something different in kind. It never touches the input at all. Instead, inside every attention layer, it rotates the vectors used for comparing tokens by an angle that depends on their positions, in such a way that the comparison only sees the distance between them.
 

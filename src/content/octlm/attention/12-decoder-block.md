@@ -16,7 +16,7 @@ On the first side trip, a copy of $x$ is normalized and fed to multi-head attent
 
 $$h = x + \text{Attn}\big(\text{LN}(x)\big) \qquad \text{out} = h + \text{MLP}\big(\text{LN}(h)\big)$$
 
-Read the formula left to right: the new vector is the old vector plus a correction computed from a normalized copy of it. Notice what the formula guarantees. The shape going out is the shape coming in, $T \times 512$, so blocks can be stacked as many times as you like. And nothing is ever overwritten: each part only adds.
+Read the formula left to right: the new vector is the old vector plus a correction computed from a normalized copy of it. The formula preserves the input shape, $T \times 512$, so blocks can be stacked as many times as you like. And nothing is ever overwritten: each part only adds.
 
 @fig block_trip | One pre-norm decoder block. The residual stream runs straight up; attention and the MLP sit on side trips that read a normalized copy and add their result back at the plus signs.
 
@@ -113,7 +113,7 @@ Take logits $[2.0, 1.0, 0.1, -1.0]$ for *tea*, *coffee*, *water* and *rocks*. At
 
 ### Counting every parameter
 
-Here is the promise from the front matter. Every learned number in Finch-19:
+Every learned number in Finch-19, as promised in the front matter:
 
 | Component | Count | Share |
 |---|---|---|

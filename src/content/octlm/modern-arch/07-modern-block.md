@@ -2,7 +2,7 @@
 
 ## 33. The Full Diff
 
-Here is every design choice that changed between GPT-2 (2019) and Llama 3 (2024), with the part of this chapter that covers it.
+Every design choice that changed between GPT-2 (2019) and Llama 3 (2024), with the part of this chapter that covers it.
 
 | Choice | GPT-2 / Finch-19 | Llama 3 / Finch-24 | Part |
 |---|---|---|---|
@@ -113,7 +113,7 @@ For each generated token, one Llama 3 8B block does about 436 million floating-p
 
 @fig compute_split | Forward FLOPs per generated token for one Llama 3 8B block. Attention is a thin slice at short contexts and the majority at 128k.
 
-That is why long-context work focuses so much on attention (FlashAttention, GQA, sparse and sliding-window patterns), while short-context work focuses on the MLP and the matrix multiplies (quantization, batching, better kernels).
+Long-context work therefore focuses on attention (FlashAttention, GQA, sparse and sliding-window patterns), while short-context work focuses on the MLP and the matrix multiplies (quantization, batching, better kernels).
 
 ## 37. The Porting Checklist
 

@@ -79,7 +79,7 @@ Look at the box for *cat*. The label on the outside, the key, might encode "sing
 
 @fig kv_separate | A token's key is the label that makes it findable; its value is what it contributes once found. Two separate vectors let the model learn each without compromise.
 
-Two separate matrices, $W_K$ and $W_V$, let the model learn each role without compromise. There is a practical consequence too: queries and keys must have the same length, because they are dotted together, but values can be a different length, because they are only ever scaled and summed. In standard multi-head attention all three are the same size (64 per head in Finch), but nothing forces it.
+Two separate matrices, $W_K$ and $W_V$, let the model learn each role without compromise. Queries and keys must have the same length, because they are dotted together, but values can be a different length, because they are only ever scaled and summed. In standard multi-head attention all three are the same size (64 per head in Finch), but nothing forces it.
 
 ### Shapes, to scale
 
@@ -87,11 +87,13 @@ Here is the whole computation for one head, as shapes. $Q$ is $T \times d_k$. $K
 
 @fig shapes_sheet | The shapes of one attention head, drawn to scale for seven tokens and four-number heads. The score grid is T × T, one entry per pair of tokens.
 
-Look hard at that $T \times T$ grid. It grows with the *square* of the text length: 49 entries for our sentence, a million for a thousand tokens, ten billion for a hundred thousand. Part X is entirely about it.
+The $T \times T$ grid matters. It grows with the *square* of the text length: 49 entries for our sentence, a million for a thousand tokens, ten billion for a hundred thousand. Part X is entirely about it.
 
 ### Self-attention and cross-attention
 
 In **self-attention**, the version in GPT-style models and in Finch, the queries, keys and values all come from the same sequence: the text looks at itself. In **cross-attention**, the queries come from one sequence and the keys and values from another. The original 2017 Transformer was built for translation and used cross-attention in its decoder: the sentence being written asked questions of the sentence being translated. Decoder-only models such as GPT, Llama and Finch use only self-attention.
+
+@fig self_cross_attention | Self-attention takes Q, K and V from one sequence. Cross-attention takes Q from the target and K and V from the source. Illustrative lengths give 3 × 3 = 9 scores and 2 × 4 = 8 scores; masking, if needed, happens after scoring.
 
 ### Sharp edges of Q, K and V
 

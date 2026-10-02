@@ -34,7 +34,7 @@ First apply SiLU to the gate: $\text{SiLU}(2.0) = 1.762$, $\text{SiLU}(-3.0) = -
 
 @fig gate_elementwise | One token through the gate. Where the gate is strongly negative (unit 1), SiLU nearly closes it and the large up value of 2.0 barely gets through.
 
-Look at unit 1. The up projection wanted to send a strong value, 2.0. But the gate for that unit was $-3.0$, SiLU turned it into $-0.142$, and the product is a small $-0.285$. The gate decided that this feature should mostly not pass for this token, whatever the content said. Now look at unit 0: gate open (1.762), content 1.5, and a strong 2.642 goes through. The gate decides *whether*; the up vector decides *what*.
+In unit 1, the up projection sent a strong value, 2.0. But the gate for that unit was $-3.0$, SiLU turned it into $-0.142$, and the product is a small $-0.285$. The gate decided that this feature should mostly not pass for this token, whatever the content said. In unit 0: gate open (1.762), content 1.5, and a strong 2.642 goes through. The gate decides *whether*; the up vector decides *what*.
 
 ### The gate surface
 
@@ -103,6 +103,8 @@ class SwiGLU(nn.Module):
 **The hidden size is not 4d.** It is usually between 2.7 and 3.5 times $d$. Guessing it from $d$ gives the wrong shapes, and the weights will not load.
 
 **Swapped halves.** With a fused matrix, which half is the gate and which is the up projection depends on how the checkpoint was saved. Swap them and the model still runs, because both halves have the same shape, but it computes $\text{SiLU}(u) \odot g$ and quality collapses.
+
+@fig swiglu_swap_effect | Swapping gate and up changes the answer even though their shapes match. With illustrative scalar projections g = −3 and u = 2, SiLU(g) × u is −0.285, while SiLU(u) × g is −5.285, rounded to three decimals. These are hidden activations before the down projection.
 
 **More activation memory.** During training, the backward pass needs both $g$ and $u$, so SwiGLU stores two hidden-width vectors per token instead of one. Activation checkpointing or fused kernels that recompute the gate help.
 

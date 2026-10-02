@@ -2,7 +2,7 @@
 
 ## 38. One Line Runs Every Head
 
-Here is the line:
+The attention formula:
 
 $$\text{Attention}(Q, K, V) = \text{softmax}\!\left(\frac{QK^\top}{\sqrt{d_k}} + M\right) V$$
 
@@ -12,7 +12,7 @@ The name, **scaled dot-product attention**, is just a description of the formula
 
 ## 39. Six Stages, With Real Numbers
 
-Let us run the formula on the first four tokens of our sentence, *The cat sat because*, with toy vectors four numbers long. Then $d_k = 4$ and $\sqrt{d_k} = 2$.
+Run the formula on the first four tokens of our sentence, *The cat sat because*, with toy vectors four numbers long. Then $d_k = 4$ and $\sqrt{d_k} = 2$.
 
 **Stage 1: scores.** Multiplying $Q$ ($4 \times 4$) by $K^\top$ ($4 \times 4$) gives the score grid $S$ ($4 \times 4$), where row $i$, column $j$ is $q_i \cdot k_j$. For example, the query of *sat* is $[0.2, 1.0, 0.6, 0.1]$ and the key of *sat* is $[0.1, 0.9, 0.8, 0.2]$, so $S_{2,2} = 0.02 + 0.90 + 0.48 + 0.02 = 1.42$.
 
@@ -90,7 +90,7 @@ So an attention score is "how much do they point the same way" times "how big ar
 
 ### The output never leaves the values
 
-Here is a constraint people often miss. Because softmax weights are all positive and sum to one, the output of attention is a **convex combination** of the value vectors: a weighted average. Geometrically, the output always lies inside the shape whose corners are the values. With three values, it lies inside their triangle, whatever the scores are.
+Because softmax weights are all positive and sum to one, the output of attention is a **convex combination** of the value vectors: a weighted average. Geometrically, the output always lies inside the shape whose corners are the values. With three values, it lies inside their triangle, whatever the scores are.
 
 @fig convex_blend | Three value vectors form a triangle. Whatever the weights, the output (orange dots) lands inside it, because the weights are positive and sum to one.
 

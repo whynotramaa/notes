@@ -8,7 +8,7 @@ Follow the data through one Finch-24 attention layer. The input $x$ has shape $(
 
 @fig rope_shapes | RoPE inside one Finch-24 attention layer, with the shape of every tensor. Rotation happens after the projections and head reshape, on queries and keys only, before the cache and before attention.
 
-Three details in that picture cause most RoPE bugs. RoPE comes *after* the reshape into heads, because each head's 64 numbers are rotated as 32 pairs of their own. The cache stores keys *already rotated*, so they never need rotating again. And values are never rotated at all. Notice also what is absent: the token embeddings are no longer touched by any position information, and there is no position table, so Finch-24's context of 4,096 is a training choice, not a table size.
+Three details cause most RoPE bugs. RoPE comes *after* the reshape into heads, because each head's 64 numbers are rotated as 32 pairs of their own. The cache stores keys *already rotated*, so they never need rotating again. And values are never rotated at all. Also, the token embeddings are no longer touched by any position information, and there is no position table, so Finch-24's context of 4,096 is a training choice, not a table size.
 
 ## 2. The Frequency Table and the Base
 
@@ -56,7 +56,7 @@ The half-split convention leads to a neat trick that avoids building any rotatio
 
 $$\text{rotate\_half}([x_1, x_2]) = [-x_2,\ x_1], \qquad q' = q \odot \cos + \text{rotate\_half}(q) \odot \sin$$
 
-where $\odot$ is entry-by-entry multiplication and $\cos$, $\sin$ are rows from the tables. Let us check it on a 4-wide head, $q = [1, 2, 3, 4]$, at position $m = 1$, with pair speeds $\theta_0 = 1$ and $\theta_1 = 0.01$ (base 10,000 for a 4-wide head). The pairs are dimensions (0, 2) and (1, 3). The cos row is $[\cos 1, \cos 0.01, \cos 1, \cos 0.01] = [0.5403, 1.0000, 0.5403, 1.0000]$ and the sin row is $[0.8415, 0.0100, 0.8415, 0.0100]$. $\text{rotate\_half}(q) = [-3, -4, 1, 2]$.
+where $\odot$ is entry-by-entry multiplication and $\cos$, $\sin$ are rows from the tables. Check it on a 4-wide head, $q = [1, 2, 3, 4]$, at position $m = 1$, with pair speeds $\theta_0 = 1$ and $\theta_1 = 0.01$ (base 10,000 for a 4-wide head). The pairs are dimensions (0, 2) and (1, 3). The cos row is $[\cos 1, \cos 0.01, \cos 1, \cos 0.01] = [0.5403, 1.0000, 0.5403, 1.0000]$ and the sin row is $[0.8415, 0.0100, 0.8415, 0.0100]$. $\text{rotate\_half}(q) = [-3, -4, 1, 2]$.
 
 Now multiply and add: $q \odot \cos = [0.5403, 2.0000, 1.6209, 3.9998]$, $\text{rotate\_half}(q) \odot \sin = [-2.5244, -0.0400, 0.8415, 0.0200]$, and the sum is $q' = [-1.9841, 1.9599, 2.4624, 4.0198]$. Check pair (0, 2) the long way, rotating $(1, 3)$ by 1 radian: $(1 \cdot \cos 1 - 3 \sin 1,\ 1 \cdot \sin 1 + 3 \cos 1) = (-1.9841, 2.4624)$. It matches.
 
@@ -123,6 +123,8 @@ Meta's Llama 3.1 used its own variant of the same idea to go from 8,192 to 128,0
 **Converted checkpoints.** Moving weights between Meta's interleaved format and Hugging Face's half-split format requires permuting the Q and K projection rows. Skip it and the model talks nonsense. Use the conversion script that ships with the model.
 
 **Partial rotary.** GPT-NeoX, Phi and some others rotate only part of each head, a fraction set in the config (`rotary_pct` or `partial_rotary_factor`). Rotating the whole head breaks them.
+
+@fig partial_rotary_head | An illustrative eight-wide head with a rotary fraction of 0.5 rotates four dimensions and copies four unchanged. Two interleaved pairs each turn by 90 degrees for this arithmetic demonstration; actual RoPE pairs use their own frequencies.
 
 **Scaling config fields.** Long-context checkpoints carry a `rope_scaling` entry in their config (type, factor, and for Llama 3.1 the low and high frequency factors). Code that ignores it computes the original, unstretched speeds and degrades past the original context.
 

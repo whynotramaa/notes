@@ -6,11 +6,11 @@ Training is one loop, repeated tens of thousands of times. Grab a **batch** of t
 
 @fig train_loop | One training step. Every model you have heard of was trained by running these six moves over and over, with the line of code for each move beside it.
 
-That is the whole algorithm. Everything else in this part is about doing each move well: how to measure "wrong", how to compute the downhill direction for 42 million weights at once, how big a step to take, and how to keep the process stable and repeatable.
+The rest of this part explains how to measure "wrong", how to compute the downhill direction for 42 million weights at once, how big a step to take, and how to keep the process stable and repeatable.
 
 ## 70. Measuring a Miss: Cross-Entropy
 
-At every position the model outputs a probability for each of the 32,000 tokens. We know the correct next token. The loss used for language models is the **cross-entropy**, which for one position is beautifully simple: take the probability the model gave to the correct token, and compute minus its natural logarithm.
+At every position the model outputs a probability for each of the 32,000 tokens. We know the correct next token. The loss used for language models is **cross-entropy**. For one position, it is minus the natural logarithm of the probability assigned to the correct token.
 
 $$\text{loss} = -\ln p(\text{correct token})$$
 
@@ -62,6 +62,8 @@ Here $g$ is the current gradient for this weight, $\beta_1$ and $\beta_2$ (typic
 
 **AdamW**, by Ilya Loshchilov and Frank Hutter in 2017, adds **weight decay** done correctly: every step, each weight is also shrunk slightly toward zero, separately from the gradient step, which discourages weights from growing large without reason. AdamW trains almost every large language model today. Its cost is memory: two extra numbers per weight. For Finch-19 in 32-bit precision, weights, gradients, $m$ and $v$ together take $42{,}128{,}384 \times 16$ bytes, about 674 megabytes.
 
+@fig adam_memory_ledger | Finch-19 has 42,128,384 parameters. In fp32, weights, gradients and the two AdamW moments each take 168,513,536 bytes, or 160.707 MiB rounded to three decimals. Together they take 674,054,144 bytes. This ledger excludes activations and other runtime storage.
+
 ## 73. Warmup, Decay and Clipping
 
 ### The schedule
@@ -91,7 +93,7 @@ If the gradient is short enough it is left alone. If it is longer than $c$, it i
 
 ## 74. Reading Loss Curves
 
-The most important diagnostic tool in training is a plot of loss against steps. Always plot two curves. The **training loss** is measured on the batches the model is learning from. The **validation loss** is measured on held-out text the model never trains on.
+To diagnose training, plot loss against steps with two curves. The **training loss** is measured on the batches the model is learning from. The **validation loss** is measured on held-out text the model never trains on.
 
 Early on both fall fast, from about 10.37 toward 3. Then they flatten. If training continues long enough on data that is small compared to the model, the validation loss stops falling and starts *rising* while the training loss keeps going down. That is **overfitting**: the model has begun memorizing its training text instead of learning patterns that carry over to new text. The best checkpoint to keep is the one where validation loss was lowest.
 

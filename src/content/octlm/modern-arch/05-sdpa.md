@@ -2,7 +2,7 @@
 
 ## 22. Six Lines Become One
 
-Here is Chapter 1's attention, as most people first write it:
+Chapter 1's hand-written attention:
 
 ```python
 s = q @ k.transpose(-2, -1)            # scores        (B, H, T, T)
@@ -68,7 +68,7 @@ PyTorch's `is_causal=True` aligns the triangle with the **top-left** corner: que
 
 @fig causal_align | Causal alignment when queries are fewer than keys. Top-left alignment, which is what is_causal=True does, lets the single decode query see only the first key; bottom-right alignment lets it see them all.
 
-There are two fixes. For a single new token, pass `is_causal=False`: the newest token may see everything before it, so no mask is needed. For several new tokens at once, such as speculative decoding or chunked prefill, use PyTorch's `torch.nn.attention.bias.causal_lower_right(L, S)` helper, which builds the bottom-right-aligned mask in a form the fast kernels still accept.
+Two fixes cover these cases. For a single new token, pass `is_causal=False`: the newest token may see everything before it, so no mask is needed. For several new tokens at once, such as speculative decoding or chunked prefill, use PyTorch's `torch.nn.attention.bias.causal_lower_right(L, S)` helper, which builds the bottom-right-aligned mask in a form the fast kernels still accept.
 
 :::interview Interview lens
 **"What goes wrong if you pass is_causal=True during decoding with a KV cache?"** PyTorch aligns the causal mask to the top-left, so with one query and $S$ cached keys the query is treated as position 0 and can only attend to the first key. Decode needs bottom-right alignment, where the newest query sees all keys. For one new token pass `is_causal=False`; for several, use a lower-right causal mask. It does not raise an error, it just produces wrong outputs.
@@ -102,6 +102,8 @@ If the inputs are not supported by FlashAttention, this raises an error instead 
 **attn_mask and is_causal together.** Passing both is an error in PyTorch, and ambiguous anyway. Fold the causal pattern into your mask, or use only `is_causal`.
 
 **dropout_p at evaluation.** SDPA does not know whether the model is training. A fixed `dropout_p` drops weights during evaluation too. Pass `dropout_p=self.p if self.training else 0.0`.
+
+@fig sdpa_eval_dropout | Illustrative attention weights are 0.1, 0.2, 0.3 and 0.4. One possible dropout draw at p = 0.5 drops the first and third and scales survivors by 1 / (1 − p), giving 0, 0.4, 0 and 0.8. Dropout does not renormalize the row. Passing dropout_p = 0.0 retains every weight during evaluation.
 
 **Rows with nothing to see.** If a mask hides every key from some query, softmax divides zero by zero and returns NaN, as in Chapter 1, Section 42. Make sure every query can attend to at least one key.
 

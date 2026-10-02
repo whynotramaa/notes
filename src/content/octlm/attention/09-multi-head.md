@@ -16,7 +16,7 @@ Two people each reading one book do better than one person trying to read two bo
 
 ## 49. Split the Width, Do Not Multiply It
 
-Here is the part people find surprising: heads do not make the model bigger. Finch-19's query for one token is 512 numbers long. With 8 heads, those 512 numbers are simply cut into 8 slices of 64. Head 0 uses numbers 0 to 63, head 1 uses 64 to 127, and so on. The same happens for keys and values. Each head runs the whole Part VII formula on its own slice, with $d_k = 64$.
+Heads do not make the model bigger. Finch-19's query for one token is 512 numbers long. With 8 heads, those 512 numbers are simply cut into 8 slices of 64. Head 0 uses numbers 0 to 63, head 1 uses 64 to 127, and so on. The same happens for keys and values. Each head runs the whole Part VII formula on its own slice, with $d_k = 64$.
 
 $$d_{\text{head}} = \frac{d_{\text{model}}}{H} = \frac{512}{8} = 64$$
 
@@ -72,7 +72,7 @@ Count the attention parameters for one Finch-19 layer. $W_Q$, $W_K$, $W_V$ and $
 
 ## 52. Heads Can Share Keys and Values
 
-Here is a preview of Day 2. In standard multi-head attention, called **MHA**, every query head has its own keys and values. But the keys and values have to be stored during generation, in the KV cache of Part XI, and that storage is often what limits how long a conversation can be or how many users a server can handle.
+Day 2 extends this idea. In standard multi-head attention, called **MHA**, every query head has its own keys and values. But the keys and values have to be stored during generation, in the KV cache of Part XI, and that storage is often what limits how long a conversation can be or how many users a server can handle.
 
 So people asked: what if several query heads shared one set of keys and values? Each head still asks its own question with its own query, but they all look it up in the same keys and read the same values. With 8 query heads sharing 2 key/value heads in groups of 4, that is **grouped-query attention**, **GQA**. With all 8 sharing a single key/value head, it is **multi-query attention**, **MQA**. Noam Shazeer proposed MQA in 2019; Joshua Ainslie and colleagues at Google introduced GQA in 2023. Nearly every modern model uses GQA: Llama 3 8B has 32 query heads and 8 key/value heads. Day 2 covers it in depth, and Finch-24 will use 8 query heads with 2 key/value heads.
 

@@ -12,7 +12,7 @@ The fix is the **causal mask**. It hides the future: each token may attend only 
 
 ## 44. One Pass, Seven Lessons
 
-Before building the mask, it is worth seeing why training on the whole sentence at once is worth the trouble. Take a chunk of $T + 1$ consecutive tokens from the training data. The input is the first $T$ tokens. The **targets**, the correct answers, are the same chunk shifted one position to the left: the last $T$ tokens. Line them up column by column. At position 0 the model sees *The* and should predict *␠cat*. At position 1 it sees *The cat* and should predict *␠sat*. At position 6 it sees the whole input and should predict the full stop.
+Training on the whole sentence at once gives many predictions per pass. Take a chunk of $T + 1$ consecutive tokens from the training data. The input is the first $T$ tokens. The **targets**, the correct answers, are the same chunk shifted one position to the left: the last $T$ tokens. Line them up column by column. At position 0 the model sees *The* and should predict *␠cat*. At position 1 it sees *The cat* and should predict *␠sat*. At position 6 it sees the whole input and should predict the full stop.
 
 @fig shift_targets | Shifted targets. One chunk of text yields one prediction per position. The target row is the input row moved one step left, so position 3 sees four tokens and must predict *␠it*.
 
@@ -74,7 +74,7 @@ The damage is subtle. The output vector shrinks by a different amount at each po
 
 ### A live causality test
 
-Here is a handy way to check that a mask works, and you can run it on any model. Feed in the sentence, record the attention outputs at every position, then change only the last word (*tired* to *hungry*) and run it again. If the mask is right, the outputs at positions 0 to 5 stay exactly the same, bit for bit. Only position 6 changes. That is the definition of causal: changing the future must not change the past.
+To check a mask on any model: Feed in the sentence, record the attention outputs at every position, then change only the last word (*tired* to *hungry*) and run it again. If the mask is right, the outputs at positions 0 to 5 stay exactly the same, bit for bit. Only position 6 changes. That is the definition of causal: changing the future must not change the past.
 
 @fig causality_test | The causality test. Changing the last token must leave every earlier output identical. If any earlier row changes, information is leaking backwards.
 

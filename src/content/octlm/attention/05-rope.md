@@ -12,7 +12,7 @@ $$\begin{bmatrix} q'_0 \\ q'_1 \end{bmatrix} = \begin{bmatrix} \cos\phi & -\sin\
 
 Read it out loud: the new first number is the old first number times $\cos\phi$ minus the old second number times $\sin\phi$, and the new second number is the old first times $\sin\phi$ plus the old second times $\cos\phi$. The angle $\phi$ is the token's position $m$ times a fixed rotation speed $\theta$ (the Greek letter theta) for this pair.
 
-Let us do one. Take a query pair $q = (1.00, 0.50)$ for a token at position $m = 2$, with a toy speed of $\theta = 0.5$ radians per position. The angle is $\phi = 2 \times 0.5 = 1.0$ radian, and $\cos 1 = 0.540$, $\sin 1 = 0.841$. The new first number is $1.00 \times 0.540 - 0.50 \times 0.841 = 0.12$. The new second number is $1.00 \times 0.841 + 0.50 \times 0.540 = 1.11$. So the rotated pair is $(0.12, 1.11)$.
+Take a query pair $q = (1.00, 0.50)$ for a token at position $m = 2$, with a toy speed of $\theta = 0.5$ radians per position. The angle is $\phi = 2 \times 0.5 = 1.0$ radian, and $\cos 1 = 0.540$, $\sin 1 = 0.841$. The new first number is $1.00 \times 0.540 - 0.50 \times 0.841 = 0.12$. The new second number is $1.00 \times 0.841 + 0.50 \times 0.540 = 1.11$. So the rotated pair is $(0.12, 1.11)$.
 
 @fig rope_pair | One query pair rotated by its position. The dashed arrow is the pair before rotation; the orange arrow is the same pair at position 2. Dots mark where it would point at positions 1, 3 and 4. The length never changes, only the direction.
 
@@ -36,13 +36,13 @@ Picture two runners on a set of circular tracks of different sizes, one track pe
 
 ## 29. The Trick: Only the Gap Survives
 
-Here is why anyone bothers. Rotate the query by its position $m$ and the key by its position $n$, then take their dot product. Using $R(\phi)$ for "rotate by angle $\phi$", the result can be rewritten as:
+Rotate the query by its position $m$ and the key by its position $n$, then take their dot product. Using $R(\phi)$ for "rotate by angle $\phi$", the result can be rewritten as:
 
 $$\big(R(m\theta)\,q\big) \cdot \big(R(n\theta)\,k\big) = q \cdot \big(R((n - m)\theta)\,k\big)$$
 
 Read the right-hand side: it is the dot product of the *unrotated* query with the key rotated by the *difference* of the positions. The absolute positions $m$ and $n$ have disappeared; only $n - m$, the distance between the two tokens, remains. The reason is the same as Part IV's clock hands. Rotating both arrows by the same extra amount does not change the angle between them, and the dot product of two arrows depends only on their lengths and the angle between them.
 
-Let us check it with numbers. Keep $q = (1.00, 0.50)$ and take a key pair $k = (0.80, -0.60)$, with $\theta = 0.5$. Put the query at position 2 and the key at position 5, a gap of 3. Rotating and taking the dot product gives 1.0329. Now move both tokens ten places later, to positions 12 and 15. The score is again 1.0329, identical to four decimal places. Move them to 0 and 3: still 1.0329. Change the gap to 1 (positions 2 and 3) and the score changes to 0.9182. Without any rotation the score would be 0.5000, so the rotation genuinely reshapes the score, but in a way that depends only on the gap.
+To check with numbers, keep $q = (1.00, 0.50)$ and take a key pair $k = (0.80, -0.60)$, with $\theta = 0.5$. Put the query at position 2 and the key at position 5, a gap of 3. Rotating and taking the dot product gives 1.0329. Now move both tokens ten places later, to positions 12 and 15. The score is again 1.0329, identical to four decimal places. Move them to 0 and 3: still 1.0329. Change the gap to 1 (positions 2 and 3) and the score changes to 0.9182. Without any rotation the score would be 0.5000, so the rotation genuinely reshapes the score, but in a way that depends only on the gap.
 
 @fig rope_shift | Shifting both tokens by ten positions. Both arrows turn by the same extra angle, so the angle between them, and therefore the score, is unchanged at 1.0329.
 

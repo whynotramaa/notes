@@ -1,0 +1,16 @@
+---
+import Book from '../layouts/Book.astro';
+---
+<Book title="Your highlights · Notes" description="Passages saved from your field guides, with their context and links back to the source.">
+  <section class="front highlights-front">
+    <h1>Your highlights</h1>
+    <p class="lede">The passages you want to come back to.</p>
+    <p class="highlights-storage">Saved in this browser until you remove them or clear browser data.</p>
+    <div class="highlights-tools">
+      <label for="highlight-filter">Guide <select id="highlight-filter"><option value="">All guides</option></select></label>
+      <button type="button" class="text-button" id="clear-highlights" hidden>Clear all highlights</button>
+    </div>
+  </section>
+  <div id="highlights-list" aria-live="polite"></div>
+  <noscript><p>Enable JavaScript to view highlights saved in this browser.</p></noscript>
+</Book>

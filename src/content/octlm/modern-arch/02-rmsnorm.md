@@ -16,7 +16,7 @@ $$\text{LayerNorm}(x) = \frac{x - \mu}{\sqrt{\sigma^2 + \varepsilon}} \odot \gam
 
 Read the right-hand one slowly. Square every entry, take the average of the squares, add a tiny $\varepsilon$, take the square root, and divide the vector by the result. That denominator is the **root mean square**, RMS, of the vector: literally the square **root** of the **mean** of the **squares**, a way of measuring its typical size. Then multiply each entry by its learned gain. No mean is subtracted and there is no $\beta$.
 
-Let us run both on $x = [2, -1, 4, 3]$. LayerNorm needs the mean, 2, in one pass over the numbers; then the variance of the centred values $[0, -3, 2, 1]$, which is $(0 + 9 + 4 + 1)/4 = 3.5$, in a second pass. Dividing by $\sqrt{3.5} = 1.871$ gives $[0, -1.604, 1.069, 0.535]$. RMSNorm needs only the mean of the squares, $(4 + 1 + 16 + 9)/4 = 7.5$, in a single pass. Dividing by $\sqrt{7.5} = 2.739$ gives $[0.730, -0.365, 1.461, 1.095]$.
+Run both on $x = [2, -1, 4, 3]$. LayerNorm needs the mean, 2, in one pass over the numbers; then the variance of the centred values $[0, -3, 2, 1]$, which is $(0 + 9 + 4 + 1)/4 = 3.5$, in a second pass. Dividing by $\sqrt{3.5} = 1.871$ gives $[0, -1.604, 1.069, 0.535]$. RMSNorm needs only the mean of the squares, $(4 + 1 + 16 + 9)/4 = 7.5$, in a single pass. Dividing by $\sqrt{7.5} = 2.739$ gives $[0.730, -0.365, 1.461, 1.095]$.
 
 @fig norm_side_by_side | The same input through both norms. LayerNorm takes two passes over the vector and centres it; RMSNorm takes one pass and keeps its direction.
 

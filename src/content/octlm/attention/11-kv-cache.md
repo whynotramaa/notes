@@ -12,7 +12,7 @@ Is the repeated work really identical each time? Yes, and the reason is the caus
 
 ## 59. The Cache: Compute One Row, Append, Look Up the Rest
 
-The fix follows directly: save the keys and values of every token, in every layer, the first time they are computed, and reuse them. This saved store is the **KV cache**. At each generation step, only the newest token goes through the model. In each layer, it computes its own query, key and value; appends its key and value to that layer's cache; and then uses its query to score against *all* the cached keys, old and new, and to blend all the cached values.
+Save each token's keys and values in every layer when first computed, then reuse them. This saved store is the **KV cache**. At each generation step, only the newest token goes through the model. In each layer, it computes its own query, key and value; appends its key and value to that layer's cache; and then uses its query to score against *all* the cached keys, old and new, and to blend all the cached values.
 
 @fig with_cache | Generation with a cache. The new token computes its own q, k and v, appends k and v to the shelf, and scores its query against every key on the shelf. Nothing old is recomputed.
 
@@ -65,7 +65,7 @@ Look at the formula again: the cache is proportional to $H_{kv}$, the number of 
 
 ## 62. Prefill, Then Decode
 
-Generation has two phases with very different characters.
+Generation has two phases.
 
 First, **prefill**. The whole prompt is processed in one forward pass, all tokens in parallel, exactly like a training step without the backward pass. This fills the cache for every prompt token. A GPU loves prefill: each weight it loads from memory is used for every prompt token, so it does a lot of arithmetic per byte moved. Prefill is **compute-bound**: limited by how fast the GPU can multiply.
 
@@ -78,6 +78,8 @@ That is why making the cache smaller makes generation *faster*, not just cheaper
 ### Sharp edges of the KV cache
 
 **Editing an earlier token invalidates everything after it.** The cache assumes the past never changes. If a user edits a word in the middle of a conversation, every cached key and value after that point is wrong. Truncate the cache at the edit and recompute from there.
+
+@fig cache_edit_boundary | Editing position 1 preserves the cache at position 0 and invalidates positions 1 through 6 in every layer. Later words may be unchanged, but their context has changed. Token labels and positions are illustrative.
 
 **The position offset.** A new token's position is the number of tokens already in the cache, not 0. Get this wrong with RoPE (Part V) and the new token is rotated as if it were at the start of the text. Pass the cache length as the position offset.
 

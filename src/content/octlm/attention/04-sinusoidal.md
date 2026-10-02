@@ -6,7 +6,7 @@ Part III ended with two complaints about the learned table: it stops dead at its
 
 The formula uses sine and cosine waves, the smooth up-and-down curves from school trigonometry. If those feel rusty, here is all you need. A sine wave rises from 0 to 1, falls through 0 to $-1$, and comes back, forever, always between $-1$ and 1. The cosine wave is the same shape shifted by a quarter turn. How fast a wave wiggles is set by its **frequency**, written $\omega$ (the Greek letter omega). A wave with $\omega = 1$ wiggles quickly; a wave with $\omega = 0.001$ crawls.
 
-Here is the idea in one sentence: give each pair of numbers in the position vector its own wave, from very fast to very slow, and to get the vector for position $p$, read off the height of every wave at the point $p$.
+Give each pair of numbers in the position vector its own wave, from very fast to very slow, and to get the vector for position $p$, read off the height of every wave at the point $p$.
 
 $$\text{PE}(p, 2i) = \sin(p \cdot \omega_i) \qquad \text{PE}(p, 2i+1) = \cos(p \cdot \omega_i) \qquad \omega_i = \frac{1}{10000^{2i/d}}$$
 
@@ -28,7 +28,7 @@ The left side flickers because those columns come from fast waves: going down on
 
 ## 23. Clock Hands and Binary Counting
 
-Here is the most useful way to think about it. Treat each (sine, cosine) pair as the tip of a clock hand. The cosine is how far the tip is to the right of the centre and the sine is how far it is up, so the pair always sits on a circle of radius 1. Every time the position goes up by one, hand $i$ turns by $\omega_i$ radians. (A radian is a unit of angle; a full turn is $2\pi \approx 6.283$ radians.) The first hand spins fast, a whole radian per step. The fourth hand turns only 0.032 radians per step and needs about 200 steps to go once around.
+Treat each (sine, cosine) pair as the tip of a clock hand. The cosine is how far the tip is to the right of the centre and the sine is how far it is up, so the pair always sits on a circle of radius 1. Every time the position goes up by one, hand $i$ turns by $\omega_i$ radians. (A radian is a unit of angle; a full turn is $2\pi \approx 6.283$ radians.) The first hand spins fast, a whole radian per step. The fourth hand turns only 0.032 radians per step and needs about 200 steps to go once around.
 
 @fig clock_binary | Position 7 on four clock hands. Each hand turns by its own frequency per step, so at position 7 hand 0 has turned 7 radians (a little more than one full turn) while hand 3 has turned only 0.22. The binary counter below works on the same principle with on/off digits.
 
@@ -68,7 +68,7 @@ Why does $p$ cancel? Go back to the clock picture. Moving forward $k$ positions 
 
 @fig shift_rotation | One wave pair as a point on a circle. Moving three positions turns the point by the same angle whether you start at position 2 or position 10. The arrows move; the gap between them does not.
 
-Hold on to this picture, because it is the whole idea behind Part V. "Moving forward in position is a rotation" is exactly what RoPE takes and applies in a smarter place. Sinusoidal positions have the rotation property but then throw it partly away by *adding* the position vector to the token vector, which mixes the two and muddies the clean distance-only comparison once the vectors pass through the model's learned weights. RoPE keeps the rotation and never adds.
+This picture leads to Part V. "Moving forward in position is a rotation" is exactly what RoPE takes and applies in a smarter place. Sinusoidal positions have the rotation property but then throw it partly away by *adding* the position vector to the token vector, which mixes the two and muddies the clean distance-only comparison once the vectors pass through the model's learned weights. RoPE keeps the rotation and never adds.
 
 :::interview Interview lens
 **"Why did the original Transformer use sine and cosine for positions?"** Because they give every position a unique, bounded vector without any parameters, they can be computed for any length, and the dot product between two position vectors depends only on their offset: $\text{PE}(p) \cdot \text{PE}(p+k) = \sum_i \cos(k\omega_i)$. Equivalently, shifting position is a rotation of each (sin, cos) pair, which the authors hoped would let the model attend by relative position easily.

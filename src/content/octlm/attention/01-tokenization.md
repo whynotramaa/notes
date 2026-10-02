@@ -2,7 +2,7 @@
 
 ## 1. The One Job a Language Model Has
 
-Think about the keyboard on your phone. You type "see you" and it offers three suggestions above the keys: *tomorrow*, *soon*, *there*. That little strip is a language model. It has read a lot of text, it has a sense of which words tend to follow "see you", and it shows you its best guesses. A model like GPT or Llama is the same idea pushed to an absurd scale. It has read a large share of the public internet, it looks at far more than the last two words, and instead of three suggestions it produces a probability for every single piece of text it knows. But the job is identical: given what came before, how likely is each possible next piece?
+On your phone, you type "see you" and it offers three suggestions above the keys: *tomorrow*, *soon*, *there*. That little strip is a language model. It has read a lot of text, it has a sense of which words tend to follow "see you", and it shows you its best guesses. A model like GPT or Llama is the same idea pushed to an absurd scale. It has read a large share of the public internet, it looks at far more than the last two words, and instead of three suggestions it produces a probability for every single piece of text it knows. But the job is identical: given what came before, how likely is each possible next piece?
 
 That is worth saying slowly, because everything in this chapter serves that one sentence. A language model does not "understand the question" and then "write an answer" as two separate steps. It predicts the next piece of text. Then it predicts the one after that. Answering questions, writing code and holding a conversation all fall out of doing that one thing extremely well.
 
@@ -32,7 +32,7 @@ All of this assumes the model can read text in the first place. It cannot. A neu
 
 ## 2. Text Is Already Numbers
 
-Here is the good news: your computer already stores every character as numbers. When you save the word *café* in a file, the disk holds a short list of numbers between 0 and 255, one per **byte**. A byte is the computer's basic unit of storage, eight on/off switches, which gives exactly 256 possible values. The rule that says which bytes stand for which character is called **UTF-8**, and almost all text on the web uses it.
+Your computer already stores every character as numbers. When you save the word *café* in a file, the disk holds a short list of numbers between 0 and 255, one per **byte**. A byte is the computer's basic unit of storage, eight on/off switches, which gives exactly 256 possible values. The rule that says which bytes stand for which character is called **UTF-8**, and almost all text on the web uses it.
 
 UTF-8 is clever about size. Plain English letters, digits and common punctuation take one byte each: *n* is the number 110, written in hexadecimal (base 16, using the digits 0 to 9 and A to F) as `6E`. Accented Latin letters like *ï* and *é* take two bytes. Most Chinese, Japanese and Hindi characters take three. Emoji take four. So "characters" and "bytes" are not the same thing, and the gap matters.
 
@@ -91,7 +91,7 @@ Llama 3 and GPT-4 use slightly different patterns. One notable change: they spli
 
 BPE stands for byte pair encoding, and the training procedure is simple enough to do with a pencil. Start with every chunk spelled out as bytes. Count every pair of neighbouring tokens across the whole training text. Find the most frequent pair. Glue it into one new token, give it the next free id, and record the rule. Repeat until you have as many tokens as you want. The ordered list of rules is the tokenizer.
 
-Let us do it on a toy corpus. After pre-tokenization, imagine our training text contains four distinct words: *banana* three times, *bandana* twice, *band* twice and *bad* once. That is eight words and 43 bytes, so before any merging the corpus is 43 tokens long. The 256 possible bytes already have ids 0 to 255, so the first merge we learn will get id 256.
+Take a toy corpus that, after pre-tokenization, contains four distinct words: *banana* three times, *bandana* twice, *band* twice and *bad* once. That is eight words and 43 bytes, so before any merging the corpus is 43 tokens long. The 256 possible bytes already have ids 0 to 255, so the first merge we learn will get id 256.
 
 ### Step 0: count the pairs
 
@@ -123,7 +123,7 @@ Try the word *bandanas*, which never appeared in training. It starts as eight by
 
 @fig bpe_encode | Encoding "bandanas" with the six learned merges. Each row applies one more rule. Merge 260 finds no match because "ban" was already absorbed into "band". The final encoding is two tokens.
 
-Notice what happened. A word the tokenizer had never seen came out as a familiar token plus one byte. That is the whole promise of byte-level BPE: common things are cheap, new things are a few familiar pieces, and nothing is ever unknown.
+An unseen word came out as a familiar token plus one byte. That is the whole promise of byte-level BPE: common things are cheap, new things are a few familiar pieces, and nothing is ever unknown.
 
 The order matters because merges compete for the same bytes. If you applied *ban + d* before *b + an*, there would be no *ban* token yet and the rule would never fire, giving a different, longer encoding. This is why the tokenizer file stores merges as an ordered list, and why "the same vocabulary with merges in a different order" is a different tokenizer. **Decoding**, turning ids back into text, is simpler: look up the bytes for each id, join them, and interpret the result as UTF-8.
 

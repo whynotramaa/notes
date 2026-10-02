@@ -32,7 +32,7 @@ Attention code written for MHA expects as many key and value heads as query head
 
 $$(B, H_{kv}, T, d_h) \xrightarrow{\ \texttt{repeat\_interleave}(H / H_{kv},\ \texttt{dim}=1)\ } (B, H, T, d_h)$$
 
-Key/value head 0 is copied into slots 0 to 3 and key/value head 1 into slots 4 to 7. Now the shapes match and attention runs exactly as before. Query head $i$ ends up reading key/value head $\lfloor i / g \rfloor$, where $g = H / H_{kv}$ is the group size: heads 0, 1, 2 and 3 read key/value head 0, heads 4 to 7 read key/value head 1.
+Key/value head 0 is copied into slots 0 to 3 and key/value head 1 into slots 4 to 7. The shapes now match for attention. Query head $i$ ends up reading key/value head $\lfloor i / g \rfloor$, where $g = H / H_{kv}$ is the group size: heads 0, 1, 2 and 3 read key/value head 0, heads 4 to 7 read key/value head 1.
 
 @fig repeat_kv | Expanding two key/value heads to eight. Each one is repeated four times in a row, so query heads 0 to 3 read the first and 4 to 7 read the second.
 
@@ -81,7 +81,7 @@ The GQA paper measured the trade-off on T5 models. With 8 key/value heads, GQA c
 
 ### Converting an MHA checkpoint
 
-You do not have to train from scratch to get GQA. The GQA paper's recipe, called **uptraining**, converts an existing MHA model: split the key heads into groups and replace each group by the **mean** of its heads, do the same for the value heads, then continue training for a short while, about 5% of the original pretraining compute in the paper, so the model adapts to the shared heads. The query heads and everything else stay as they were.
+GQA can reuse an MHA checkpoint. The GQA paper's recipe, called **uptraining**, converts an existing MHA model: split the key heads into groups and replace each group by the **mean** of its heads, do the same for the value heads, then continue training for a short while, about 5% of the original pretraining compute in the paper, so the model adapts to the shared heads. The query heads and everything else stay as they were.
 
 @fig uptrain | Uptraining. Each group of key heads is averaged into one new key head (values likewise), then training continues briefly to adapt.
 
@@ -92,6 +92,8 @@ You do not have to train from scratch to get GQA. The GQA paper's recipe, called
 **`.repeat` versus `repeat_interleave`.** Covered above, and worth repeating: correct shapes, wrong pairing, no error. Test it once by checking that query head 0 and query head 3 receive identical keys and query head 4 receives different ones.
 
 **Caching the repeated tensor.** If you expand the key/value heads first and then store the expanded tensor in the cache, you have thrown away the entire memory saving. Cache the small $(B, H_{kv}, T, d_h)$ version and expand on the fly, or let the kernel handle it.
+
+@fig gqa_cache_storage | Finch-24 stores two KV heads per token per layer. At 64 numbers per head and two bytes per number, K and V together take 512 bytes. Storing eight expanded heads takes 2,048 bytes and loses the fourfold saving. Across eight layers these become 4,096 and 16,384 bytes per token.
 
 **More GPUs than key/value heads.** Large models split heads across GPUs (tensor parallelism). With 8 GPUs and only 4 key/value heads, some key/value heads must be duplicated onto more than one GPU. Serving frameworks handle this, but it affects memory planning.
 
