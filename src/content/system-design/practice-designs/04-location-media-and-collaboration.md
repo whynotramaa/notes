@@ -10,7 +10,7 @@ Assume 50,000 active drivers report every five seconds. Location ingestion is 10
 
 Two riders can receive the same nearby driver in their candidate lists. That is allowed until assignment commits, because discovery is a derived view and not ownership. The assignment authority compares current driver and request state before creating the accepted relation. A stale location can suggest an unusable candidate; skip or refresh it without treating it as a commitment. A driver reply that arrives after assignment expiry must match the current offer identity before advancing the trip. Preserve location sequence and freshness separately from assignment generation so late telemetry cannot reopen an obsolete offer.
 
-@fig sd_practice_designs_13 | Illustrative uber-style matching: candidates and assignment. Fresh locations identify candidates while conditional assignment chooses the committed match. Orange marks the conditional assignment that turns a candidate into a commitment.
+@fig sd_practice_designs_13 | Illustrative spatial buckets and search radius. Fresh locations identify possible drivers; conditional assignment turns a candidate into one committed match.
 
 A driver can receive two concurrent offers; the winner must be decided by the assignment authority rather than by which dispatcher happens to reply first.
 

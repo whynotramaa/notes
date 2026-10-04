@@ -56,7 +56,7 @@ At the illustrative 1,000 reads per second across four perfectly balanced shards
 
 The illustrated 250 reads per shard is a mean under equal distribution, not a routing rule. A match-keyed owner keeps its score and version check together while all readers of that match converge on it. A user-keyed representation spreads viewer reads but creates maintenance work whenever a score changes for many users. Those are different state models, so the choice cannot be made by dividing the fleet total alone. Draw the authoritative update separately from any user-keyed projection. This preserves local write correctness while exposing the distribution and lag costs of the alternative read shape.
 
-@fig sd_scaling_patterns_04 | Illustrative partitioning and ownership. Shard demand depends on balance and on the operation kept local by the key. Orange marks the key choice that trades match locality against viewer distribution.
+@fig sd_scaling_patterns_04 | Illustrative balanced demand. Four owners split 1,000 reads per second into a mean of 250 reads/s each. A partition key can still concentrate real demand on one owner.
 
 A cross-shard transaction is a new coordination problem. Adding shards without changing the ownership rule can spread storage while leaving the hottest request on one node.
 

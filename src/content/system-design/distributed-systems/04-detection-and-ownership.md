@@ -12,7 +12,7 @@ The threshold must be tied to observations and the consequences of suspicion. Su
 
 Monitor both detection delay and false takeovers. Repeated leadership churn can make a cluster unavailable even while most machines remain alive. A detector is useful input to a protocol, not the safety proof of that protocol. We will make this distinction visible in the ownership record and resource-side checks in the following sections.
 
-@fig sd_ds_trace_13 | The heartbeat trace moves from recent contact to suspicion without proving the worker is dead; orange marks the resumed old worker that can still issue requests.
+@fig sd_ds_trace_13 | Illustrative heartbeat timeline. Recent contact, silence, suspicion and resumed execution are different observations; suspicion does not stop an old worker from issuing requests.
 
 :::story Picture this
 A building changes its entry code while an old employee sleeps. Printing the new code at headquarters does not update the door. The door rejects the old code only after its own authority record changes.

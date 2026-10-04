@@ -32,7 +32,7 @@ The red contributions may begin on different workers. To sum them by team, a **s
 
 The red owner receives `[2,4,1]` and computes 7. The blue owner receives `[3]` and computes 3. Their total is 10. The shuffle moves data across workers and can dominate a job even when each addition is cheap. A local pre-aggregation can combine red values within each worker before transfer, reducing records when the operation permits it.
 
-@fig sd_data_pipelines_shuffle | Computed illustrative grouping and sums. Unicode arrows describe transformation inside labels; all sums are in data-pipelines-numbers.py.
+@fig sd_data_pipelines_shuffle | Computed illustrative grouping. Values 2, 4 and 1 travel to the red group and sum to 7; the blue group contains 3. The shuffle groups keys before reduction.
 
 Pre-aggregation is safe for a compatible associative combination, such as sum. An average requires both sum and count, not an average of unequal-size local averages. A hot key can concentrate most intermediate work on one owner. Splitting or salting that key requires a final combination preserving the chosen result's semantics.
 

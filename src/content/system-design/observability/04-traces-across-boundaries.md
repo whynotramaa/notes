@@ -8,7 +8,7 @@ Create the server span at admission and close it after the response outcome is k
 
 Inspect what the database span includes before attributing its 120 milliseconds. If it begins before connection acquisition, it can contain pool waiting and query execution; if it begins after acquisition, that waiting remains in the parent's residual. In either case the illustrated parent ends after 200 milliseconds, not after the sum of parent and child. Name missing intervals as uninstrumented elapsed time until further evidence identifies them. A CPU profiler can answer a different question about executing instructions. This prevents a responder from optimizing application computation solely because the trace lacks spans around a network or queue wait.
 
-@fig sd_observability_13 | Illustrative spans and the trace tree. The child duration lies inside the parent; the residual is unclassified elapsed time. Orange marks the elapsed time outside the database span without attributing it to CPU.
+@fig sd_observability_13 | Illustrative span placement. The 120 ms database child lies inside a 200 ms parent, leaving 80 ms outside the child. That residual does not establish how much CPU work occurred.
 
 Instrumentation that closes the server span before a streaming response finishes measures handler setup rather than full delivery. State which boundary the span represents.
 
@@ -40,7 +40,7 @@ Both child calls begin together, so the request waits for the slower child. The 
 
 Imagine improving only the profile call while leaving the score call unchanged. In the illustrated trace, the profile already finishes before the 120-millisecond score result, so faster profile work leaves the join time unchanged. Reducing score time can help until another required child becomes the controlling wait. Check that both calls actually start together; connection acquisition or application scheduling can delay one start and change the overlap. Also check whether assembly can begin incrementally or requires both complete results. The critical path follows dependencies and start times, so a list of service durations alone cannot prove the expected response improvement.
 
-@fig sd_observability_15 | Illustrative parallel work and the critical path. Parallel children contribute their slower duration before response assembly extends the path. Orange marks response assembly after both required children complete.
+@fig sd_observability_15 | Illustrative parallel timeline. The 120 ms score read and 80 ms profile read start together; 20 ms of assembly after their join gives a 140 ms critical path.
 
 Clock skew between machines can create impossible-looking relationships. Use local span durations and propagation relationships carefully; do not infer exact cross-host ordering from wall clocks alone.
 

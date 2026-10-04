@@ -6,7 +6,7 @@ Finch has 1,000 open connections but only 2 cores, so a program cannot simply cl
 
 The kernel gives the application abstractions such as a process, a file descriptor and a virtual address. These abstractions hide physical placement without hiding the cost. A socket descriptor still consumes a table entry, and an idle connection still consumes memory. The running example separates 980 idle connections from 20 ready ones because the OS can wait for readiness instead of giving every connection a running thread.
 
-@fig os_boundary | Illustrative map follows one request from application intent to a hardware action. The orange system-call step is where the privilege boundary is crossed.
+@fig os_boundary | Illustrative machine cutaway. Application intent crosses the controlled system-call boundary before the kernel validates the request and acts on cores, memory or devices.
 
 Resource management answers who runs, where bytes live and which device receives a request. **Isolation** keeps those answers local to each process or container. Protection fails if a user process can write a page-table entry or program a device without a kernel check.
 
@@ -18,7 +18,7 @@ Finch's server needs several programs to make progress while others wait. **Mult
 
 These terms describe different axes. A one-core machine can multitask without parallel execution. A two-core machine can run two threads simultaneously, but it still needs scheduling and protection. Time-sharing emphasizes interactive response by dividing CPU time among users or tasks. Batch systems optimize throughput for queued jobs, while real-time systems make deadline guarantees part of the contract. Distributed operating systems coordinate multiple machines as a more unified system, though most modern distributed applications expose machine boundaries explicitly.
 
-@fig os_concurrency_parallel | Illustrative comparison separates overlapping progress from simultaneous execution. The orange card marks concurrency on one core, which is possible without parallelism.
+@fig os_concurrency_parallel | Illustrative execution strips. One core interleaves A and B, while separate cores can execute them together. The strips show the distinction rather than measured task durations.
 
 The distinction matters when a claim says "the server handles 1,000 connections at once." It may mean 1,000 descriptors exist, 20 descriptors are ready, or 2 callbacks are executing. Those are different counts with different memory and CPU costs. The OS turns the workload into states and queues before any performance claim is meaningful.
 
@@ -28,7 +28,7 @@ A faulty driver can damage shared privileged state or fail inside a separate ser
 
 The trade-off is not a simple speed-versus-safety slogan. A message between isolated services can add copying, scheduling and failure handling. A service inside the kernel can call internal data structures quickly, but a bug can corrupt the whole kernel. Modular kernels change the deployment unit without necessarily giving a driver the same isolation as a user process. The right comparison asks where a failure stops, how data crosses the boundary, and which latency the workload can afford.
 
-@fig os_kernel_types | Illustrative architecture cards compare placement of services and the cost of crossing between them. Orange marks the monolithic path used as the running reference.
+@fig os_kernel_types | Illustrative architecture cutaways compare placement of services and the cost of crossing between them. Orange marks the monolithic path used as the running reference.
 
 History explains why no design won universally. Early systems valued direct hardware control, while later systems needed drivers, portability and stronger fault boundaries. Modern operating systems also use hardware virtualization, sandboxing and namespaces, so a production system can combine monolithic kernel services with many user-space isolation layers.
 

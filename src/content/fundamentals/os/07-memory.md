@@ -6,7 +6,7 @@ If programs used physical addresses directly, one process could overwrite anothe
 
 The goals are isolation, relocation, protection, allocation and sharing. A private page can be mapped to different frames in different processes. A read-only code page can be shared. A missing page can be brought in only when used. These choices let the 32-bit model expose 1,048,576 virtual pages without requiring every page to occupy RAM at once.
 
-@fig os_virtual_memory | Illustrative cards separate private views, permissions, shared frames and demand residency. Orange marks the private address-space view, which does not require every mapped page to be resident.
+@fig os_virtual_memory | Illustrative address-space cutaway. Private maps may name the same shared physical frame, while a valid page can be absent from RAM. Residency and the virtual view are separate questions.
 
 Contiguous allocation makes placement simple but produces holes. Paging removes external fragmentation from physical placement, though the final page can still contain unused bytes.
 
@@ -26,6 +26,8 @@ The offset does not change during translation. The page table entry adds the fra
 
 @fig os_addresses | Illustrative translation splits 13,396 into VPN 3 and offset 1,108, then combines frame 9 with the unchanged offset to produce 37,972. Orange marks the final physical address.
 
+@fig os_paging | Illustrative placement. Consecutive virtual pages map to scattered physical frames; the page table supplies the correspondence. Orange follows virtual page 2 to its assigned frame.
+
 A page is the fixed-size unit in virtual memory, while a frame is the corresponding fixed-size physical unit. Compute the split explicitly: $13396=3\times4096+1108$. The quotient selects the virtual page and the remainder selects a byte within it. Translating to frame 9 changes only that quotient, giving $9\times4096=36864$ before adding the unchanged remainder. Read both equations as base-plus-offset calculations.
 
 The hardware cannot simply trust a frame number supplied by application code. It consults the translation and protection state installed by the kernel. A writable access to a read-only mapping can fault even when the frame is present. Conversely, a permitted virtual region can fault because its backing page is not resident yet. Separating permission from residency prevents the common mistake of treating every page fault as invalid memory.
@@ -43,7 +45,7 @@ $$
 Read this as hit probability h times hit cost plus miss probability times miss cost. E is the expected access time, t the 10 ns TLB lookup and m the 100 ns memory access. The example assumes one page-table memory lookup on a miss and excludes page faults.
 
 @fig os_page_table | Illustrative comparison of a flat table, which costs 4,194,304 bytes whatever is mapped, with a two-level tree that allocates a directory and only three populated branches, 16,384 bytes. Orange marks the populated branches.
-@fig os_tlb | Illustrative ten translations: nine hit the TLB and take the short path, one misses and walks the page table in memory first. Orange marks the miss path and the weighted 120 ns result.
+@fig os_tlb | Illustrative translation paths. A hit costs 10 + 100 = 110 ns; a miss costs 10 + 100 + 100 = 210 ns in the stated model. A 0.9 hit fraction gives 120 ns, and frame 9 is the translated destination.
 
 Context switches can flush or partition TLB state. ASIDs or PCIDs let supported hardware retain entries while tagging ownership.
 
@@ -71,7 +73,7 @@ With three frames and reference string 1,2,3,4,1,2,5,1,2,3,4,5, FIFO produces 9 
 
 FIFO evicts the oldest resident page, LRU the least recently used, and Clock approximates recency with a referenced bit. Replacement must also consider dirty state, sharing and working-set locality.
 
-@fig os_replacement_fifo | Illustrative early FIFO trace shows the supplied page references and the three-frame state. Orange marks the first hit after page 5 arrives.
+@fig os_replacement_fifo | Computed FIFO trace for the supplied references and three frames. Each column shows the resident pages after its reference; orange fault columns and dots identify the nine misses.
 @fig os_replacement_compare | Illustrative comparison shows FIFO's 9 versus 10 faults, LRU's 10 and OPT's 7. Orange marks the anomaly.
 
 The first references 1, 2 and 3 fill the three frames. Reference 4 evicts the oldest loaded page, 1. References 1 and 2 then fault because FIFO's earlier decisions removed them. After loading 5, the next references to 1 and 2 hit. The remaining references distinguish the policies because FIFO remembers admission order, LRU remembers recent use and OPT compares the next future use.

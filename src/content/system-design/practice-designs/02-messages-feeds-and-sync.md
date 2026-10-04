@@ -60,7 +60,7 @@ The illustrative file has 50 blocks of 100,000,000 bytes. Changing two uploads 2
 
 Keep version seven as the base while preparing the illustrated changed blocks. The client uploads and verifies missing content under stable block identities, then commits a new manifest only if the base revision is still current. A concurrent device change can reject that manifest without discarding the reusable uploaded blocks. Reconcile the conflict under the file policy rather than overwrite the other device's revision. A lost publication reply is resolved by the intended revision identity. Content reuse saves transfer bytes, while the manifest authority still protects namespace and version transitions from stale writers.
 
-@fig sd_practice_designs_08 | Illustrative dropbox-style sync: blocks and versions. Changed blocks are verified before the conditional manifest publishes a new revision. Orange marks conditional publication of the complete new manifest.
+@fig sd_practice_designs_08 | Illustrative 50-block file. Two changed blocks of 100,000,000 bytes each require 200,000,000 uploaded bytes; the new manifest references all blocks and is published against the expected revision.
 
 Content hashes must be verified and scoped safely; a guessed hash should not grant permission to another user’s file. The exercise does not claim Dropbox uses this exact block size.
 

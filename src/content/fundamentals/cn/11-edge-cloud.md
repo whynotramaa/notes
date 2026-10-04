@@ -6,7 +6,7 @@ Finch asks for a static object already copied near its region. Sending every req
 
 On a cache hit, the edge returns a stored representation under its freshness policy. On a miss, it fetches from the origin, returns the result and may store a copy. A cache key can include host, path, query and selected variant headers. Omitting a meaningful variant risks incorrect or private content reaching another user. An edge cache is therefore an application correctness boundary as well as a capacity tool.
 
-@fig cn_cdn | The hit path stops at the edge, while the miss path continues to the origin. Orange marks the stored object that removes origin traffic for an eligible request. | narrow
+@fig cn_cdn | Illustrative serving-site atlas. Nearby edges can answer reusable hits while misses fetch from the authoritative origin. The highlighted route shows one selected edge; map distance is not a latency measurement.
 
 DNS-based steering can choose a service address for a user, while **anycast** advertises the same service address from several locations and lets routing choose a reachable instance. The selected instance is determined by routing and policy, not guaranteed geographic proximity. Changes in routing may change the serving location, so long-lived stateful connections need suitable deployment design.
 

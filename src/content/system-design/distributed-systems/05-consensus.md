@@ -70,7 +70,7 @@ In an interview, draw a boundary around each atomic commit. A consensus group or
 
 @fig sd_ds_trace_20 | The external-effect trace carries event e9 from an authoritative commit through retry and consumer deduplication; orange marks one accepted effect despite uncertain delivery.
 
-@fig sd_distributed_systems_consensus | The flow turns a command into an agreed log entry and then the same state change on replicas; orange marks the shared state result.
+@fig sd_distributed_systems_consensus | An agreed history drives the same state changes at each replica under the protocol assumptions. Replication alone does not establish agreement.
 
 :::interview Interview lens
 **"Why can consensus stop safely?"** Without usable authority, refusing another decision can preserve the accepted history. Liveness needs suitable communication and timing conditions; violating agreement is not a valid progress strategy.

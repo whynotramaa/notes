@@ -24,7 +24,7 @@ For the illustrative keys zero through 99, the computed modulo comparison moves 
 
 Consistent hashing answers which owner should hold a key after membership changes. It does not send the key's bytes there or stop an old router from writing to the former owner. During handoff, copy a source snapshot, retain intervening changes, and bring the destination to the chosen switch boundary. Change the routing epoch only with the ownership rule that prevents competing commits. The ideal ring share in the figure describes a placement assumption, while the modulo trace counts actual keys in its specified sample. Neither number establishes migration duration, which also depends on bytes, write rate, and available transfer capacity.
 
-@fig sd_scaling_patterns_06 | Illustrative consistent hashing and movement. Lower placement movement still requires copying data and switching routing safely. Orange marks the copy and routing handoff still required after placement changes.
+@fig sd_scaling_patterns_06 | Illustrative equal-sector ring. A new owner receives one fifth of the ideal ring, while the stated modulo example moves 80 of 100 keys. Both schemes still require a safe copy and routing handoff.
 
 Moving a cache key can be a miss; moving authoritative database state needs a safe transfer protocol. The same hash function does not supply the same recovery contract.
 

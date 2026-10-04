@@ -6,7 +6,7 @@ Three jobs arrive at times 0, 1 and 2 with bursts 5, 3 and 1. **Completion time*
 
 For FCFS, A completes at 5, B at 8 and C at 9. B has turnaround 7 and waiting 4, while C has turnaround 7 and waiting 6. The mean waiting time is 3.333333. Those values come from the supplied trace, not a rounded diagram estimate.
 
-@fig os_schedule_metrics | Illustrative ledger keeps completion, turnaround, waiting and response distinct. Orange marks waiting because it is time ready work loses while another job runs.
+@fig os_schedule_metrics | Illustrative FCFS timeline keeps completion, turnaround, waiting and response distinct. Orange marks waiting because it is time ready work loses while another job runs.
 
 Response matters to an interactive server, while turnaround matters to a batch job. A scheduler that optimizes one can worsen another. Always draw the timeline first, then compute each row from its own arrival and burst.
 

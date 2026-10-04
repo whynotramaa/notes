@@ -40,7 +40,7 @@ Heron’s illustrative latency sample contains 50 observations at 5 milliseconds
 
 Read the cumulative rows as nested populations. The count at 40 milliseconds includes the observations already counted at five, so subtracting 50 from 95 gives the illustrated 45 observations in the next interval. Summing cumulative counts would count fast requests repeatedly. To combine instances, first add counts for matching boundaries and populations, then find the rank in that merged distribution. If bucket layouts differ, reconcile the layouts rather than treating their positions as interchangeable. The exact sample values in this example allow an exact nearest-rank answer; ordinary bucket counts only bound where the desired observation lies.
 
-@fig sd_observability_11 | Illustrative histograms and latency. Differences between cumulative buckets recover the latency interval counts. Orange marks the recovered interval counts rather than the cumulative bucket totals.
+@fig sd_observability_11 | Computed illustrative interval counts, recovered from cumulative latency buckets: 50, 45, 4 and 1 requests. The columns show counts in the labelled intervals, whose bounds are in milliseconds.
 
 Averages and percentile summaries generally cannot reconstruct the original distribution. Prometheus explains histogram and summary aggregation in its [histogram guidance](https://prometheus.io/docs/practices/histograms/).
 

@@ -27,14 +27,16 @@
       "parts": 12,
       "sections": 56,
       "bodyFigures": 70,
-      "words": 20809,
-      "bodyWords": 18053,
+      "words": 20832,
+      "bodyWords": 18076,
       "questions": 45,
       "exercises": 25,
       "formulas": 51
     }
   ],
-  "errors": [],
+  "errors": [
+    "os_addresses: long dash in figure"
+  ],
   "warnings": [],
   "checkedFigureFunctions": 210
 }

@@ -6,7 +6,7 @@ Finch knows `example.com` before it knows `203.0.113.20`. **DNS**, the Domain Na
 
 On a cold lookup, the resolver asks a root server where the relevant top-level domain is served, then asks a TLD server where the domain's authoritative servers are, then asks an authoritative server for the desired record. These are iterative referrals inside the resolver's work. A recursive request instead asks another server to obtain the final answer on the caller's behalf. Root servers do not contain every site's final address.
 
-@fig cn_dns | A cold recursive lookup follows iterative referrals to the authoritative answer. Orange marks the server that supplies the requested record, rather than the root. | narrow
+@fig cn_dns | A cold recursive lookup follows iterative referrals toward the authoritative zone. The resolver can retain the returned name, address and lifetime for later permitted reuse.
 
 An A record carries an IPv4 address and AAAA an IPv6 address. CNAME aliases a name, MX identifies mail exchanges, NS delegates authority, TXT carries text, PTR provides reverse naming, and SOA describes a zone's administrative and refresh information. A name can have several address records, and its mail destination need not match its web destination. An authoritative negative answer can also be cached under defined rules.
 

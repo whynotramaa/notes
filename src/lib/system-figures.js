@@ -1,3 +1,4 @@
+import { routeMap, coverArtwork } from './figure-details.js';
 import { D, C } from './draw.js';
 
 // The shared compositions only place geometry. Each diagram supplies its own
@@ -99,33 +100,17 @@ export function systemFigure(id, title, kind, data, note = '') {
   return d.svg();
 }
 
-export function systemMap(id, labels, stage = 99) {
-  const height = 54 + Math.ceil(labels.length / 2) * 62;
-  const d = new D(640, height, id + stage);
-  d.text(10, 16, 'THE REQUEST, THE STATE, AND THE FAILURE', { cls: 'cap', a: 'start' });
-  labels.forEach((s, i) => {
-    const x = 24 + (i % 2) * 308, y = 51 + Math.floor(i / 2) * 62;
-    const active = stage === 99 || stage === i + 1;
-    d.box(x, y, 282, 39, s, { fill: active ? C.accSoft : C.card, stroke: active ? C.acc : C.line, size: 12 });
-    d.mono(x + 5, y - 10, String(i + 1).padStart(2, '0'), { a: 'start', size: 9, color: active ? C.acc : C.gray });
-  });
-  return d.svg();
-}
+export function systemMap(id, labels, stage = 99) { return routeMap(id, labels, stage); }
 
 export function systemCover(id, unit, lines, subtitle, labels) {
-  const d = new D(640, 830, id);
-  for (let x = 15; x < 640; x += 23) for (let y = 34; y < 795; y += 23) d.dot(x, y, .6, C.faint);
+  const d = new D(640, 830, 'cover_' + id);
   d.text(10, 16, `SYSTEM DESIGN / UNIT ${unit} / FIELD GUIDE`, { cls: 'cap', a: 'start' });
   lines.forEach((s, i) => d.text(42, 112 + i * 65, s, { a: 'start', size: 48, w: 600 }));
-  d.hl(44, 195, Math.min(584, 44 + lines.at(-1).length * 25), 195, { th: 15 });
   d.text(45, 249, subtitle, { a: 'start', size: 15 });
-  labels.slice(0, 5).forEach((s, i) => {
-    const y = 346 + i * 74;
-    d.box(211, y, 356, 49, s, { fill: i === 4 ? C.accSoft : C.card, stroke: i === 4 ? C.acc : C.ink2, size: 15 });
-    if (i < 4) d.arrow(389, y + 52, 389, y + 70, { stroke: C.gray });
-  });
-  d.hand(109, 469, 'follow one\nreal request', { size: 25, vc: true });
-  d.carrow([[109, 505], [141, 531], [201, 531]], { stroke: C.acc });
-  d.text(44, 787, 'DRAW EVERY BOX. DEFEND EVERY CHOICE.', { a: 'start', cls: 'cap', size: 11 });
+  coverArtwork(d, id, 328);
+  d.line(42, 679, 598, 679, { stroke: C.line, single: true });
+  d.text(44, 709, 'Read the mechanism. Follow its state.', { a: 'start', size: 18, w: 500 });
+  d.text(44, 739, 'Test what happens when the path breaks.', { a: 'start', size: 15, color: C.ink2 });
+  d.text(44, 789, 'MECHANISMS, TRACES AND INTERVIEW PRACTICE', { a: 'start', cls: 'cap', size: 10 });
   return d.svg();
 }

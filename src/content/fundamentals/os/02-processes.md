@@ -20,7 +20,7 @@ The scheduler cannot save "the process" as a vague idea. It needs a **process co
 
 The program counter names the next instruction. Registers hold temporary values that the calling convention and instruction set require. The address-space context tells the CPU which translations apply. Open-resource information connects descriptor numbers to files, sockets or pipes. Security information lets the kernel check the process's identity and credentials when it requests an operation.
 
-@fig os_pcb | Illustrative PCB groups the fields needed for identity, resumption, scheduling, memory and resources. The orange execution card is the minimum needed to continue at the right instruction.
+@fig os_pcb | Illustrative PCB groups the fields needed for identity, resumption, scheduling, memory and resources. The orange execution rows are the minimum needed to continue at the right instruction.
 
 The PCB is not necessarily one public C struct with exactly these fields. Kernels split state across scheduler records, task structures, address-space objects and file tables. The conceptual grouping is useful because it explains why a context switch costs work in several subsystems, not only a register save.
 

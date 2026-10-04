@@ -38,8 +38,8 @@ PID namespaces can make a process see itself as PID 1 while the host assigns ano
 
 Finch's container has a 50 ms quota in a 100 ms period. Once it consumes its quota, the controller throttles it until the period permits more CPU. Boot passes control from firmware to bootloader, kernel, early userspace and PID 1, which starts services. On a systemd-based installation, systemd supplies that init role; another init implementation can supply the same lifecycle responsibility.
 
-@fig os_namespaces | Illustrative ledger maps PID, network, mount and user namespaces to the view each changes. Orange marks PID identity because inside and outside can name one process differently.
-@fig os_cgroup | Illustrative quota ledger shows 50 ms of CPU permitted in each 100 ms period on a 2-core host. Orange marks the quota boundary.
+@fig os_namespaces | Illustrative inside and host views map PID, network, mount and user namespaces to the view each changes. Orange marks PID identity because inside and outside can name one process differently.
+@fig os_cgroup | Illustrative quota timeline shows 50 ms of CPU permitted in each 100 ms period on a 2-core host. Orange marks the quota boundary.
 @fig os_boot | Illustrative firmware, bootloader, kernel, init and service form the startup chain. Orange marks the kernel because it establishes the execution environment.
 
 ### Namespaces and cgroups
@@ -56,7 +56,7 @@ An initramfs can supply early userspace needed to find and mount the intended ro
 
 A memory leak retains useless allocations. A descriptor leak retains sockets or files until the process hits its limit. A thread leak retains execution resources and scheduling overhead. Diagnosis needs a count over time and a release path, not only a larger limit.
 
-@fig os_proc_limits | Illustrative cards connect `/proc`, descriptor inspection, limits and syscall tracing. Orange marks the limit because it turns a leak into a hard failure.
+@fig os_proc_limits | Illustrative terminal and gauge connect `/proc`, descriptor inspection, limits and syscall tracing. Orange marks the limit because it turns a leak into a hard failure.
 @fig os_leaks | Illustrative each leak holds a finite resource until a distinct failure appears. Orange marks the descriptor leak because it can block a server before CPU is full.
 
 ### Linux process introspection and /proc
@@ -73,7 +73,7 @@ Registers, caches, RAM and SSD trade capacity for latency. A cache line is the u
 
 User-space networking can reduce copies or transitions through mechanisms such as `sendfile`, which can send file-backed data without copying it through an application buffer. `io_uring` uses submission and completion queues to submit operations and receive results. These interfaces reduce a particular dispatch cost; they do not remove storage latency or make blocking work safe in an event loop.
 
-@fig os_cache_hierarchy | Illustrative hierarchy shows smaller, faster levels above larger, slower storage. Orange marks cache lines because coherence operates at that granularity.
+@fig os_cache_hierarchy | Illustrative storage hierarchy. Larger regions hold more data; smaller cache levels offer shorter access paths. Shapes show relative roles rather than measured capacity or latency ratios.
 @fig os_false_sharing | Illustrative two threads write separate words inside one 64-byte line. Orange marks coherence traffic caused by false sharing.
 @fig os_zero_copy | Illustrative file bytes move from page cache toward the NIC without an application buffer hop. Orange marks the kernel-owned path.
 @fig os_io_uring | Illustrative submission and completion queues separate request posting from result consumption. Orange marks completion because it is the application-visible event.

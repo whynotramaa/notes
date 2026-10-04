@@ -8,7 +8,7 @@ Followers fetch from the leader and report their progress. The leader and one fo
 
 The slow follower's local receipt and the leader's observation of its progress are separate events. The leader must learn enough replication state under the protocol before advancing the shared visibility boundary. If a replica leaves the current in-sync set, reassess the acknowledgement condition and minimum requirement rather than keep treating the original membership as current. A configured copy that is offline cannot serve as a witness to a new append. Monitor per-partition progress and membership because an aggregate replica count cannot locate the tail that limits this partition.
 
-@fig sd_kafka_09 | The replica rows show leader and follower A at next position 104 while follower B is at 103; orange marks the minimum boundary that controls visibility.
+@fig sd_kafka_09 | Illustrative replica progress. Leader and follower A have next position 104, while follower B has 103. The exclusive watermark at 103 keeps the local tail beyond it out of the visible prefix.
 
 ISR membership is protocol state, not a static count chosen once at topic creation. Explain writes after membership shrinks.
 

@@ -24,7 +24,7 @@ Assume five API instances can each sustain 300 requests per second on this workl
 
 The illustrated normal fleet has 1,500 requests per second of sustainable capacity, but the failure decision uses the 1,200 that remains after losing an instance. Compare that surviving rate with the same 1,000-request offered population, retaining the shown 200 of spare capacity. Routing must actually reach the survivors and respect their individual limits; total capacity can conceal uneven placement. Also separate request-rate capacity from connection or memory capacity. A replacement instance may begin cold and temporarily increase source misses. Failure headroom therefore needs the altered workload as well as an arithmetic count of the surviving instances.
 
-@fig sd_interview_method_26 | Illustrative normal capacity and failure headroom. Surviving capacity must cover demand after the stated instance failure. Orange marks the capacity remaining beyond demand after instance loss.
+@fig sd_interview_method_26 | Illustrative capacity after failure. Five instances provide 1,500 requests/s; four surviving instances provide 1,200 requests/s, leaving 200 requests/s above the stated demand.
 
 Five instances in one failing zone do not provide capacity after that zone is lost. Failure domains matter as much as counts.
 

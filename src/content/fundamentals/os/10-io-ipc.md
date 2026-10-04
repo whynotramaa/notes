@@ -6,7 +6,7 @@ Blocking describes what a calling thread does when progress is unavailable. A bl
 
 A server can use non-blocking descriptors with readiness notification, then perform short reads and writes. If the callback performs slow disk or CPU work, the event loop still stalls even though the socket is non-blocking.
 
-@fig os_block_nonblock | Illustrative cards separate caller blocking from operation completion. Orange marks immediate return, which is the key non-blocking property.
+@fig os_block_nonblock | Illustrative quadrants separate caller blocking from operation completion. Orange marks immediate return, which is the key non-blocking property.
 
 ### CPU-bound and I/O-bound work
 
@@ -22,7 +22,7 @@ An application enters through a syscall, the kernel selects a driver, the contro
 
 DMA still needs ownership, mapping and cache-coherence rules. The kernel must not let a device write arbitrary memory. A network packet can therefore travel from NIC to a kernel buffer, then into a socket receive queue before the application reads it.
 
-@fig os_dma | Illustrative device, DMA controller, RAM buffer and completion interrupt form one I/O path. Orange marks the RAM buffer because ownership changes there.
+@fig os_dma | Illustrative DMA transfer. The CPU supplies the destination and length, the device transfers bytes to RAM, and a completion interrupt reports progress without making the CPU copy each byte.
 
 The driver translates a kernel request into the controller's command and buffer format. It arranges which memory the device may access, submits work and later handles completion or error. A controller can move bytes while the CPU executes unrelated work, but the application must not consume a buffer before the transfer completes. Ownership and visibility barriers matter even though the CPU did not run a byte-copy loop.
 
@@ -40,7 +40,7 @@ A blocking socket can put its calling thread to sleep when bytes are absent. A n
 
 Finch has 1,000 connections, 980 idle and 20 ready. The event loop can wait once and process 20 rather than scan and block on every connection. This reduces waiting overhead, but it does not make 20 expensive callbacks free.
 
-@fig os_epoll | Illustrative ledger reduces 1,000 open descriptors to 20 ready descriptors on 2 cores. Orange marks ready work, not total connection count.
+@fig os_epoll | Computed illustrative readiness set. One thousand open descriptors include 980 idle and 20 ready descriptors; the ready list feeds work to two cores. Each dot is one descriptor.
 
 ### select, poll, epoll and kqueue
 

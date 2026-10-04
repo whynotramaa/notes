@@ -25,7 +25,7 @@ The log’s offsets remain positions; surviving records need not form a dense se
 
 Consider a projection whose stored match row still exists when its source key is deleted. The log records a tombstone, and a continuously running projector applies that deletion. A paused projector that resumes only after the relevant tombstone has expired cannot infer the missing deletion from the remaining records. Replaying into an already populated table can therefore retain an obsolete match. Rebuilding into an empty target with an appropriate snapshot and retained-log boundary, or preserving deletion history long enough for supported readers, supplies the missing proof. Compaction is not a universal full-history backup.
 
-@fig sd_kafka_26 | The compaction rows replace an old value with a new value and retain a tombstone for deletion; orange marks the keyed state with offset gaps.
+@fig sd_kafka_26 | Illustrative compaction cutaway. Removing the older value for key A leaves an offset gap. The newer value and the deletion tombstone keep their original positions.
 
 A consumer that begins too late can miss an expired tombstone and keep an obsolete local key. Its rebuild and retention contract must address that case.
 

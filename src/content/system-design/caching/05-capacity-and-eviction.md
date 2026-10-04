@@ -70,7 +70,7 @@ For Heron, compare LRU and LFU on recorded reference sequences, measure bytes an
 
 @fig sd_cache_trace_20 | Illustrative object-size arithmetic compares 2,100 accounted bytes with 20,100; orange marks admission as a saved-work-per-byte decision.
 
-@fig sd_caching_eviction | The rows distinguish expiry by age from eviction by recency or frequency; orange marks LFU, while all three discard a copy rather than source truth.
+@fig sd_caching_eviction | The left shelf is full and must replace an entry; the clock on the right checks freshness. Recency, frequency and age answer different questions.
 
 :::interview Interview lens
 **"How would you choose LRU versus LFU?"** I would replay representative key traces and measure useful source work avoided. Recency handles changing working sets differently from historical frequency, so scans and popularity shifts belong in the comparison.

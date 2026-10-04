@@ -8,7 +8,7 @@ In the illustrative trace the first one-record batch has sequence zero at base o
 
 A sequence check identifies a retry of the supported protocol batch under its producer state. It does not compare business meaning across separately submitted payloads. The fixture's repeated sequence zero can return the already accepted append, while the next sequence identifies new protocol work. A relay restart that creates another independent producer session can republish the same domain event as a new record. Keep that domain identity in the event and let its effect authority suppress the resulting repeated intention. Producer sequence and event identity thus protect different uncertainty windows.
 
-@fig sd_kafka_21 | The producer trace retries sequence 0 without appending a second batch, then advances to sequence 1; orange marks the new intent.
+@fig sd_kafka_21 | Illustrative producer-sequence trace. A retry of sequence 0 reuses the original batch at base offset 100; sequence 1 denotes a new batch rather than another copy of the retry.
 
 Recreating an ordinary producer and resending a payload can be a new protocol identity. Do not extend producer retry guarantees beyond their documented scope.
 

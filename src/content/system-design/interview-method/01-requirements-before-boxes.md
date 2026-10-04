@@ -8,7 +8,7 @@ Choose the critical actions and state exclusions. Heron accepts scorer updates, 
 
 Turn Heron's upload action into a sentence that can fail. A caller creates an upload session, transfers bytes, and later queries whether the clip is processing or playable. If the API returns accepted while the processing worker is down, the design can still meet durable acceptance but cannot yet claim playback readiness. That distinction changes the response model and the work placed before acknowledgement. Record the excluded features too, since editing or deletion would change identity and publication rules. A useful requirement gives the later architecture a specific state to produce and a failure against which that state can be checked.
 
-@fig sd_interview_method_01 | Illustrative functional requirements as actions. Actions become requirements through their observable result boundary. Orange marks the result that makes the user's action observable.
+@fig sd_interview_method_01 | Illustrative operation contract. The scorer needs a committed update and the viewer needs a fresh read; the observable result makes each action testable.
 
 A design optimized for playback can omit the required upload recovery path if the action list is never written.
 

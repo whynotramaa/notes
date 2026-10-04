@@ -16,7 +16,7 @@ Finch can deadlock if process P1 holds resource A and waits for B while P2 holds
 
 Mutual exclusion makes at least one resource non-shareable. Hold and wait lets a task retain one resource while requesting another. No preemption means the system cannot safely take a held resource away. Circular wait closes the loop. Remove any one condition and this particular deadlock cannot form, though another failure such as starvation may remain.
 
-@fig os_deadlock | Illustrative two lanes show P1 holding A and P2 holding B before each waits for the other. Orange marks the circular wait edge.
+@fig os_deadlock | Illustrative resource allocation cycle. A is assigned to P1 and B to P2; each process requests the resource held by the other. Assignment and request arrows form one circular wait.
 
 Lock ordering is a practical prevention rule. If every path acquires locks in ascending order, no task can wait for an earlier lock while retaining a later lock. The rule must include every lock and callback path, or the missing edge remains a production failure.
 
@@ -44,7 +44,7 @@ Banker's algorithm asks whether a hypothetical allocation leaves some order in w
 
 The resulting safe sequence is B, A, C. "Safe" does not mean no process is waiting now. It means the declared maximum claims admit at least one completion order. An unsafe state cannot guarantee avoiding deadlock under every future request, although it may not contain a cycle at this instant.
 
-@fig os_banker | Illustrative ledger computes the safe sequence from available work and remaining need. Orange marks B because it is the first process whose maximum remaining claim fits.
+@fig os_banker | Illustrative vault computes the safe sequence from available work and remaining need. Orange marks B because it is the first process whose maximum remaining claim fits.
 
 The algorithm is a proof about an input model, not a promise that real applications reveal maximum claims accurately. If the claims are false, the safety result is false. If the request is smaller than the declared maximum, the system can evaluate the request and then rerun the safety test.
 
@@ -58,7 +58,7 @@ The algorithm is a proof about an input model, not a promise that real applicati
 
 Fair locks, aging, bounded retries and backoff address different failures. A retry loop can convert a lock collision into livelock if every worker retries at the same instant. Randomized backoff changes timing but does not prove fairness. A queue with explicit ownership can provide a stronger bound.
 
-@fig os_starvation_livelock | Illustrative cards separate no movement, one task's denial and active but useless movement. Orange marks starvation because it is a fairness failure.
+@fig os_starvation_livelock | Illustrative panels separate no movement, one task's denial and active but useless movement. Orange marks starvation because it is a fairness failure.
 
 Diagnosis needs observations: who holds the resource, who waits, how long, and whether useful state changes. Calling every long wait a deadlock produces the wrong fix.
 

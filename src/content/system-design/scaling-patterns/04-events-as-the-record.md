@@ -8,7 +8,7 @@ Append a scored event containing its match, version, and domain facts. Apply the
 
 A correction event should describe the change that the domain accepted, including the meaning needed to apply it later. On reconstruction, replay the same ordered transition interpretation against the preceding state. A current team lookup cannot silently supply historical facts that were different when the event committed. If corrections refer to earlier events, retain that relation explicitly instead of deleting the earlier record and losing the explanation. The latest score can then be rebuilt while the history still answers why it changed. This additional history costs storage and schema discipline, so use it when those capabilities are required.
 
-@fig sd_scaling_patterns_13 | Illustrative event sourcing preserves domain changes. Domain history remains authoritative while current score is reconstructed from it. Orange marks the current score reconstructed from authoritative events.
+@fig sd_scaling_patterns_13 | Illustrative event history. Domain changes remain authoritative; replay applies the transition rules to rebuild the current view.
 
 An event that says fetch the current team data cannot reliably reproduce historical state after that team data changes.
 

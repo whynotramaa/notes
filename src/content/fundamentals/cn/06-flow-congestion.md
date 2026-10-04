@@ -30,7 +30,7 @@ Finch's server pauses its application reads while it works on a response. Packet
 
 An acknowledgement establishes a sequence reference and a window allowance after it. The sender keeps its unacknowledged data within the permitted range. As the application consumes bytes, buffer space becomes available and the receiver can advertise a larger window. A zero window asks the sender to pause new data, even if the network itself has plenty of capacity.
 
-@fig cn_flow | The receiver's advertised window connects application reads to sender permission. Orange marks the receive buffer whose free space determines rwnd. | narrow
+@fig cn_flow | Illustrative receive-buffer cutaway. Used bytes reduce available space, which constrains the advertised receive window. Receiver flow control and network congestion control are different limits.
 
 A lost window-update packet must not leave both sides waiting forever. TCP uses a persist mechanism to probe for a reopened window. Such a probe solves a control-message deadlock; it is not permission to send the entire backlog into a full receiver. Window scaling can express allowances larger than the base header field can represent, provided the endpoints negotiated it.
 

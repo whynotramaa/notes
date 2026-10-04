@@ -68,7 +68,7 @@ Deadlines still matter. They bound resource use and let callers choose a recover
 
 @fig sd_ds_trace_4 | The trace keeps a committed c9 after its reply is lost; orange marks retry by command identity, which returns score 11 instead of applying the increment twice.
 
-@fig sd_distributed_systems_cap | The split shows two live sides that cannot exchange messages; orange marks side B's isolated view, while the partition forces a consistency or availability choice.
+@fig sd_distributed_systems_cap | Two live sites cannot exchange messages across the broken network link. The operation must follow its declared consistency and availability contract during the partition.
 
 :::interview Interview lens
 **"Why not always accept the write?"** Acceptance may break an invariant when another disconnected actor also accepts a conflicting change. I would require authority for official corrections and define a separate stale-read policy for public display.

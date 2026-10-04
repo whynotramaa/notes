@@ -8,7 +8,7 @@ In the standard group model used here, one partition has one active assigned mem
 
 Use the notification application as a separate group rather than another projector member. Within the projector group, the assignment divides partition work among members and shares their logical application's progress. Across groups, notifications can independently read records the projector already handled. An idle projector member does not create another partition-local lane in the illustrated ordinary-group contract. Assigning a different group identity on every restart would also create another history rather than resume the intended application position. Group identity therefore belongs to the application's recovery model, not merely to a temporary process name.
 
-@fig sd_kafka_17 | The rows assign four partitions among six projector members while a notification group keeps independent progress; orange marks the second application's separate history.
+@fig sd_kafka_17 | Illustrative group ownership. Four partitions allow four of six projector members to work while two remain idle. The notification group reads the same source with independent progress.
 
 Putting projector and notification processes in the same ordinary group makes them divide records instead of each application seeing the required history.
 

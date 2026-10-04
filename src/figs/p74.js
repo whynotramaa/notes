@@ -1,3 +1,4 @@
+import { scene as illustration, page as figPage, shelf as figShelf, label as figLabel } from '../lib/figure-details.js';
 import { D, C, fmtN } from '../lib/draw.js';
 import { systemMap } from '../lib/system-figures.js';
 import S from '../data/system-design/search-numbers.json' with { type: 'json' };
@@ -370,7 +371,7 @@ export function sd_search_gaps() {
   docs.forEach((id, i) => {
     const a = X(prev), b = X(id), h = 26 + (id - prev) * 14;
     d.carrow([[a, Y - 4], [(a + b) / 2, Y - h], [b, Y - 6]], { stroke: C.acc, hl: 6 });
-    d.hand((a + b) / 2, Y - h - 12, `+${gaps[i]}`, { size: 16 });
+    d.mono((a + b) / 2, Y - h - 12, `+${gaps[i]}`, { size: 12, color: C.acc });
     d.circle(b, Y, 12, { fill: C.accSoft, stroke: C.acc });
     d.text(b, Y + 30, `doc ${id}`, { cls: 'sm' });
     path += ` Q${(a + b) / 2},${Y - h * 1.6} ${b},${Y}`;
@@ -423,4 +424,209 @@ export function sd_search_update() {
   d.pulse(229, 72, { at: [0.25, 0.45], r1: 20 });
   d.travel([[304, 96], [478, 104]], { at: [0.45, 0.7], token: 'packet' });
   return d.svg();
+}
+
+export function sd_search_idf() {
+const d=illustration('sd_search_idf','RARER TERMS RECEIVE A LARGER NATURAL-LOG TF-IDF WEIGHT',340),N=S.texts.length;
+  const values=[['blue',ids('blue').length],['red',ids('red').length],['bird',ids('bird').length],['all docs',N]];
+  values.forEach(([s,df],i)=>{const x=59+i*145,v=Math.log(N/df),h=v/Math.log(N)*167;
+    d.rect(x,240-h,91,h,{r:1,fill:s==='red'?C.accSoft:C.card,stroke:s==='red'?C.acc:C.ink2});
+    d.mono(x+45,220-h,f6(v),{size:11});d.text(x+45,263,s,{cls:'ttl'});d.mono(x+45,285,`df ${df} / ${N}`,{size:10});
+  });
+  d.line(39,241,606,241,{stroke:C.ink2,single:true});d.mono(320,319,'weight = ln(collection size / document frequency)',{size:11});return d.svg();
+}
+
+export function sd_search_saturation() {
+const d=illustration('sd_search_saturation','BM25 GIVES DIMINISHING RETURNS FOR REPEATING BIRD',367);
+  const limit=S.idf_bird*2.2,M=d.axes(65,67,502,206,{xmin:0,xmax:8,ymin:0,ymax:limit,xl:'term frequency',yl:'score'});
+  const score=tf=>bm25(S.idf_bird,tf,1);d.fn(score,0,8,M,{stroke:C.acc});
+  d.line(M.X(0),M.Y(limit),M.X(8),M.Y(limit),{stroke:C.line,dash:[4,4],single:true});
+  d.text(552,46,`limit ${f6(limit)}`,{cls:'mono',size:10,a:'end'});
+  [0,2,4,6,8].forEach(tf=>d.mono(M.X(tf),292,tf,{size:10}));
+  [1,2].forEach((tf,i)=>{const y=score(tf);d.dot(M.X(tf),M.Y(y),4,C.acc);d.line(M.X(tf),M.Y(y),M.X(tf),273,{stroke:C.line,dash:[3,4],single:true});d.mono(68+i*280,330,`tf ${tf}: ${f6(y)}`,{size:11,a:'start'});});
+  d.text(320,355,'k₁ = 1.2; equal document lengths; score is not a probability',{cls:'sm'});return d.svg();
+}
+
+export function sd_search_lengths() {
+const d=illustration('sd_search_lengths','THE SAME TERM COUNT CONTRIBUTES LESS IN A LONGER DOCUMENT',330);
+  [1,2].forEach((ratio,i)=>{const x=69+i*307,adj=1-.75+.75*ratio;
+    figPage(d,x,68,116,70*ratio,'',i===0);
+    for(let r=0;r<S.average_length*ratio;r++)d.line(x+13,91+r*18,x+99,91+r*18,{stroke:r===1?C.acc:C.line,single:true});
+    d.text(x+154,100,`${S.average_length*ratio} terms`,{cls:'ttl',a:'start'});d.mono(x+154,131,`adjust ${adj}`,{a:'start',size:11});
+    d.mono(x+58,245,`bird: ${f6(bm25(S.idf_bird,1,adj))}`,{size:11});
+  });
+  d.mono(320,297,'1 − 0.75 + 0.75 × 2 = 1.75 length adjustment',{size:11});return d.svg();
+}
+
+export function sd_search_evaluation() {
+const d=illustration('sd_search_evaluation','PRECISION COUNTS THE RETURNED SET; RECALL COUNTS ALL USEFUL DOCUMENTS',330);
+  d.text(319,43,'five returned reports',{cls:'ttl'});
+  for(let i=0;i<5;i++){figPage(d,53+i*112,73,80,99,`rank ${i+1}`,i<3);d.text(93+i*112,193,i<3?'useful':'not useful',{cls:'sm'});}
+  d.mono(182,251,`precision 3 / 5 = ${S.precision}`,{size:13});d.mono(471,251,`recall 3 / 4 = ${S.recall}`,{size:13});
+  d.text(320,289,'one further useful report was not returned',{cls:'sm'});d.text(320,315,'illustrative human judgments, not inferred document quality',{cls:'sm'});return d.svg();
+}
+
+export function sd_search_pipeline() {
+const d=illustration('sd_search_pipeline','THE SOURCE REPORT AND INDEXING INTENT SHARE ONE COMMIT',370);
+  d.rect(33,56,282,235,{fill:C.paper,stroke:C.acc,dash:[4,4]});d.text(174,80,'source transaction',{cls:'ttl',color:C.acc});
+  figPage(d,55,110,105,126,'report',true);figPage(d,183,110,105,126,'outbox',true);
+  d.gear(378,160,29);d.text(378,219,'analyze',{cls:'ttl'});d.arrow(324,160,340,160,{stroke:C.acc,hl:4});
+  figShelf(d,445,113,['term','postings'],{width:165,height:45,hot:1});figShelf(d,445,175,['version','ID'],{width:165,height:35});d.arrow(416,160,437,160,{stroke:C.ink2,hl:4});
+  d.text(320,335,'durable intent can be replayed into the derived index',{cls:'sm'});return d.svg();
+}
+
+export function sd_search_bulk() {
+const d=illustration('sd_search_bulk','A SUCCESSFUL BULK RESPONSE CAN CONTAIN DIFFERENT ITEM OUTCOMES',345);
+  d.rect(31,57,267,236,{fill:C.paper,stroke:C.ink2});d.text(164,78,'bulk envelope',{cls:'ttl'});
+  ['valid','overload','bad field'].forEach((s,i)=>{figPage(d,51,109+i*56,80,39,s,i===1);d.arrow(140,130+i*56,329,94+i*87,{stroke:i===1?C.acc:C.line,hl:5});});
+  [['apply',74],['bounded retry',161],['repair / quarantine',248]].forEach(([s,y],i)=>{d.doc(344,y,230,52,{lines:false,fill:i===1?C.accSoft:C.card,stroke:i===1?C.acc:C.ink2});d.text(459,y+26,s,{cls:'ttl'});});
+  d.mono(320,324,`${S.bulk_size} × 500 B = ${fmtN(S.bulk_payload_bytes)} B raw payload`,{size:11});return d.svg();
+}
+
+export function sd_search_refresh() {
+const d=illustration('sd_search_refresh','REFRESH OPENS A NEW READER VIEW; DURABILITY IS A SEPARATE BOUNDARY',345);
+  d.ram(33,81,192,49,{chips:4,chip:i=>i===2?C.accSoft:C.paper});d.text(127,158,'writer buffer',{cls:'ttl'});
+  d.doc(286,60,127,151,{lines:false,fill:C.accSoft,stroke:C.acc});d.text(349,85,'new segment',{cls:'ttl'});['terms','postings','live mask'].forEach((s,i)=>d.mono(349,123+i*28,s,{size:10}));
+  d.laptop(474,88,120);d.text(534,201,'new search view',{cls:'ttl'});
+  d.arrow(233,110,278,110,{stroke:C.ink2});d.arrow(421,130,466,130,{stroke:C.acc});
+  d.disk(124,265,56,{label:'durable storage'});d.arrow(124,177,124,230,{stroke:C.line,dash:[4,4]});
+  d.mono(431,267,`${S.refresh_interval_s} s × ${S.write_rate}/s = ${S.buffered_writes} changes`,{size:12});d.text(431,294,'illustrative refresh grouping',{cls:'sm'});return d.svg();
+}
+
+export function sd_search_tombstone() {
+const d=illustration('sd_search_tombstone','A HIGHER DELETE VERSION REJECTS A LATE OLDER UPDATE',330);
+  const [update,del,late]=S.delete_versions;
+  figPage(d,38,70,122,110,`update v${update}`);
+  grave(d,316,230,105,128,{fill:C.accSoft,stroke:C.acc});d.mono(316,167,`delete v${del}`,{size:12});
+  figPage(d,475,70,122,110,`late v${late}`);
+  d.arrow(168,129,254,165,{stroke:C.ink2});d.arrow(467,129,378,165,{stroke:C.acc});d.line(396,151,417,175,{stroke:C.acc,single:true,sw:2});d.line(417,151,396,175,{stroke:C.acc,single:true,sw:2});
+  d.mono(320,278,`${late} < ${del}: reject the old update`,{size:13});d.text(320,310,'deletion state must survive the supported replay and delay window',{cls:'sm'});return d.svg();
+}
+
+export function sd_search_shards() {
+const d=illustration('sd_search_shards','FOUR PRIMARIES WITH THREE COPIES EACH MAKE TWELVE SHARD COPIES',350);
+  for(let i=0;i<S.primary_shards;i++){const x=41+i*151;d.text(x+54,46,`shard ${i}`,{cls:'ttl'});for(let c=S.copies-1;c>=0;c--)figPage(d,x+c*9,75+c*14,104,158,c===0?'primary':'copy',i===1&&c===0);d.mono(x+61,280,fmtN(S.shard_bytes)+' B',{size:10});}
+  d.mono(320,318,`${S.primary_shards} × ${S.copies} = ${S.shard_copies} copies; ${fmtN(S.total_index_bytes)} B total`,{size:11});return d.svg();
+}
+
+export function sd_search_routing() {
+const d=illustration('sd_search_routing','THE SAME STABLE DOCUMENT ID SELECTS THE SAME SHARD',340);
+  for(let i=0;i<S.routing.length;i++){const y=66+i*63;figPage(d,45,y,116,43,`doc ${i+1}`);d.mono(266,y+21,`${i+1} mod ${S.primary_shards} = ${S.routing[i]}`,{size:12});d.arrow(169,y+21,201,y+21,{stroke:C.line,hl:5});d.arrow(330,y+21,448,86+S.routing[i]*63,{stroke:C.line,hl:5});}
+  for(let i=0;i<S.primary_shards;i++){d.server(457,62+i*63,105,44,{fill:i===0?C.accSoft:C.card,stroke:i===0?C.acc:C.ink2,unit:12});d.text(601,84+i*63,`P${i}`,{cls:'mono'});}
+  d.text(320,321,'illustrative modulo routing, not an engine-specific hash implementation',{cls:'sm'});return d.svg();
+}
+
+export function sd_search_scatter() {
+const d=illustration('sd_search_scatter','ONE SELECTED COPY OF EACH SHARD CONTRIBUTES ITS LOCAL TOP TEN',390);
+  d.cpu(40,171,65,{label:'coord'});
+  for(let i=0;i<S.primary_shards;i++){const y=59+i*74;d.server(199,y,61,45,{unit:13});d.mono(177,y+21,`P${i}`,{size:10});d.arrow(112,204,190,y+21,{stroke:C.line,hl:5});for(let k=0;k<S.local_top_k;k++)d.rect(316+k*23,y+5,18,29,{r:0,fill:i===1?C.accSoft:C.card,stroke:i===1?C.acc:C.line});}
+  d.brace(313,541,354,{label:`${S.primary_shards} × ${S.local_top_k} = ${S.returned_candidates} scored candidates`});return d.svg();
+}
+
+export function sd_search_fetch() {
+const d=illustration('sd_search_fetch','MERGE SMALL SCORED CANDIDATES BEFORE FETCHING THE WINNING BODIES',350);
+  d.text(148,48,`${S.returned_candidates} candidates: ID + score`,{cls:'ttl'});
+  for(let r=0;r<4;r++)for(let c=0;c<10;c++)d.rect(32+c*24,73+r*32,18,24,{r:0,fill:r===0?C.accSoft:C.card,stroke:r===0?C.acc:C.line});
+  d.path('M301,89 L405,89 L373,189 L333,189 Z',{stroke:C.acc,fill:C.accFaint,single:true});d.text(353,123,'top 10',{cls:'ttl'});d.arrow(278,137,293,137,{stroke:C.ink2,hl:4});
+  for(let i=0;i<S.fetch_documents;i++)figPage(d,458+i%5*29,99+Math.floor(i/5)*83,23,62,'',true);
+  d.text(528,292,`${S.fetch_documents} display documents`,{cls:'ttl'});d.arrow(413,139,450,139,{stroke:C.acc});
+  d.text(320,326,'query-then-fetch carries bodies only after global winner selection',{cls:'sm'});return d.svg();
+}
+
+export function sd_search_trie() {
+const d=illustration('sd_search_trie','FOLLOW THE PREFIX PATH BEFORE EXPANDING THE REMAINING BRANCHES',330);
+  const chars=['root','b','i','r','d'];chars.forEach((s,i)=>{const x=65+i*128;d.circle(x,137,58,{fill:i<4?C.accSoft:C.card,stroke:i<4?C.acc:C.ink2});d.mono(x,137,s,{size:i?17:11});if(i)d.arrow(x-93,137,x-37,137,{stroke:i<4?C.acc:C.line,hl:6});});
+  d.line(448,176,448,217,{stroke:C.acc,single:true});d.mono(448,243,'prefix bir ends here',{size:12,color:C.acc});
+  d.text(575,196,'terminal word',{cls:'sm'});d.text(320,291,'illustrative single-word trie; shared prefixes reuse the same path',{cls:'sm'});return d.svg();
+}
+
+export function sd_search_prefixes() {
+const d=illustration('sd_search_prefixes','INDEXED PREFIXES STORE MORE FRAGMENTS TO ANSWER SHORTER INPUTS',335);
+  d.doc(36,92,123,93,{lines:false});d.mono(98,138,'bird',{size:21});
+  S.prefixes.forEach((s,i)=>{const y=53+i*64;figShelf(d,304,y,[s,'bird'],{width:262,height:37,hot:0});d.arrow(168,137,297,y+18,{stroke:C.line,hl:5});});
+  d.mono(320,309,`${S.prefixes.length} indexed prefix fragments for ${S.prefixes.at(-1).length} letters`,{size:12});return d.svg();
+}
+
+export function sd_search_fuzzy() {
+const d=illustration('sd_search_fuzzy','EDIT DISTANCE COUNTS INSERTIONS, DELETIONS AND SUBSTITUTIONS',355);
+  const a='bird',b='brad',g=lev(a,b),x=289,y=66,cw=49,ch=42;
+  ['',...b].forEach((s,i)=>d.mono(x+i*cw+cw/2,y-24,s,{size:13}));['',...a].forEach((s,i)=>d.mono(x-28,y+i*ch+ch/2,s,{size:13}));
+  d.grid(x,y,a.length+1,b.length+1,cw,ch,{val:(r,c)=>g[r][c],cellFill:(r,c)=>r===a.length&&c===b.length?C.accSoft:C.card,vsize:13});
+  [['bird',S.edit_bird_bird],['brd',S.edit_bird_brd],['brad',S.edit_bird_brad]].forEach(([s,v],i)=>{d.mono(44,92+i*63,`bird → ${s}`,{a:'start',size:12});d.mono(196,92+i*63,v,{size:17,color:i===2?C.acc:C.ink});});
+  d.text(320,318,'matrix compares bird with brad; transposition is not a single edit here',{cls:'sm'});return d.svg();
+}
+
+export function sd_search_suggestion_cache() {
+const d=illustration('sd_search_suggestion_cache','A SUGGESTION CACHE KEY INCLUDES THE PREFIX AND VISIBILITY CONTEXT',350);
+  d.doc(38,61,204,124,{lines:false,fill:C.accFaint,stroke:C.acc});d.text(140,84,'cache key',{cls:'ttl'});['prefix','tenant / visibility','analyzer version'].forEach((s,i)=>d.mono(141,112+i*27,s,{size:11}));
+  d.key(283,116,50,{stroke:C.acc});d.server(393,65,186,89,{label:'suggestion cache',unit:25});d.arrow(344,116,385,116,{stroke:C.acc});
+  for(let i=0;i<10;i++)d.envelope(51+i*54,228,43,29,{fill:i<8?C.card:C.accSoft,stroke:i<8?C.line:C.acc});
+  d.mono(320,303,`${S.query_rate}/s × 0.8 = ${S.cache_hits} hits/s; ${S.cache_misses} misses/s`,{size:11});d.text(320,331,'each envelope represents 100 requests/s in the illustrative workload',{cls:'sm'});return d.svg();
+}
+
+export function sd_search_budgets() {
+const d=illustration('sd_search_budgets','QUERY FAN-OUT AND SOURCE CHANGES ARE DIFFERENT WORKLOADS',335);
+  d.laptop(34,58,104,{label:`${S.query_rate} queries/s`});d.arrow(146,101,244,101,{stroke:C.acc});
+  for(let i=0;i<S.primary_shards;i++){d.server(261+i*86,67,58,61,{unit:17});d.text(290+i*86,160,`P${i}`,{cls:'mono'});}
+  d.mono(420,195,`${S.shard_queries_s} shard queries/s`,{size:13});
+  d.doc(43,225,115,56,{lines:false});d.mono(101,252,`${S.write_rate} changes/s`,{size:10});d.arrow(166,252,274,252,{stroke:C.ink2});figShelf(d,287,231,['index','refresh'],{width:271,height:42,hot:1});
+  d.text(320,314,'query work and ingestion work need separate capacity and lag budgets',{cls:'sm'});return d.svg();
+}
+
+export function sd_search_pagination() {
+const d=illustration('sd_search_pagination','DEEP OFFSET PAGES COLLECT CANDIDATES THAT THE RESPONSE DISCARDS',335);
+  const cases=[['offset',S.deep_candidates],['cursor',S.cursor_candidates]];
+  cases.forEach(([s,v],i)=>{const y=76+i*108;d.text(37,y+22,s,{cls:'ttl',a:'start'});const w=v/S.deep_candidates*394;d.rect(158,y,Math.max(w,1),43,{r:0,fill:i?C.card:C.accSoft,stroke:i?C.ink2:C.acc});d.mono(586,y+22,v,{size:12});});
+  d.mono(320,268,`${S.primary_shards} × (${S.deep_offset} + ${S.local_top_k}) = ${S.deep_candidates} candidates`,{size:12});d.text(320,307,'both responses return ten winners; cursor work assumes a stable view',{cls:'sm'});return d.svg();
+}
+
+export function sd_search_rebuild() {
+const d=illustration('sd_search_rebuild','A NEW INDEX NEEDS BOTH THE SNAPSHOT AND THE CHANGES THAT FOLLOWED IT',365);
+  d.doc(38,59,159,160,{lines:false});d.text(117,83,'source snapshot',{cls:'ttl'});d.mono(117,131,'1,000,000 docs',{size:11});d.mono(117,170,'known position',{size:11});
+  d.arrow(205,115,311,115,{stroke:C.ink2});d.text(263,89,`${S.rebuild_s} s copy`,{cls:'sm'});
+  d.db(325,62,120,141,{under:'new index'});d.db(494,62,100,141,{under:'old index'});
+  figShelf(d,34,274,['update','delete','update'],{width:241,height:38,hot:1});d.arrow(282,291,382,218,{stroke:C.acc});d.text(151,339,`${S.updates_during_rebuild} concurrent changes`,{cls:'sm'});
+  d.key(499,279,48);d.text(518,318,'switch alias after checks',{cls:'sm'});return d.svg();
+}
+
+export function sd_search_partial() {
+const d=illustration('sd_search_partial','THREE RESPONDING SHARDS DO NOT ESTABLISH FULL RESULT COVERAGE',340);
+  for(let i=0;i<S.primary_shards;i++){const x=47+i*150;d.server(x,82,87,96,{fill:i===3?C.paper:C.card,stroke:i===3?C.line:C.ink2,unit:24});d.text(x+44,217,`shard ${i}`,{cls:'ttl'});if(i===3){d.line(x-5,78,x+92,183,{stroke:C.acc,single:true,sw:2});d.line(x+92,78,x-5,183,{stroke:C.acc,single:true,sw:2});}else d.arrow(x+44,241,320,276,{stroke:C.line,hl:5});}
+  d.mono(320,296,`missing fraction: 1 / ${S.primary_shards} = ${S.failed_shard_fraction}`,{size:12});d.text(320,324,'a missing shard can hold every useful result for a particular query',{cls:'sm'});return d.svg();
+}
+
+export function sd_search_full_write() {
+const d=illustration('sd_search_full_write','SOURCE COMMIT, INDEXING AND READER VISIBILITY HAVE DISTINCT BOUNDARIES',390);
+  d.rect(32,51,200,180,{fill:C.paper,stroke:C.acc,dash:[4,4]});d.text(132,75,'one source commit',{cls:'ttl',color:C.acc});figPage(d,47,109,77,86,'v8',true);figPage(d,139,109,77,86,'intent',true);
+  d.gear(296,151,29);d.text(296,208,'analyze',{cls:'sm'});d.arrow(240,150,259,150,{stroke:C.ink2,hl:4});
+  d.server(385,97,74,105,{label:'primary',unit:25});d.arrow(333,151,377,151,{stroke:C.acc});d.server(521,114,66,84,{label:'replica',unit:24});d.arrow(467,151,513,151,{stroke:C.line,hl:5});
+  d.laptop(415,283,109);d.text(320,318,'refresh: local view change',{cls:'sm',a:'end'});
+  d.carrow([[428,209],[468,233],[468,275]],{stroke:C.acc,hl:6});
+  d.carrow([[527,302],[569,280],[578,331],[528,333]],{stroke:C.acc,hl:6});d.text(576,356,'local reopen',{cls:'sm'});return d.svg();
+}
+
+export function sd_search_full_query() {
+const d=illustration('sd_search_full_query','A PHRASE QUERY CHECKS IDS, POSITIONS, PERMISSION AND SCORE',385);
+  d.mono(320,46,'query: red bird',{size:17});
+  figShelf(d,34,89,['red',...ids('red')],{width:231,height:37,hot:0});figShelf(d,34,157,['bird',...ids('bird')],{width:231,height:37,hot:0});
+  d.arrow(272,109,352,143,{stroke:C.ink2});d.arrow(272,178,352,158,{stroke:C.ink2});figPage(d,364,97,113,105,'doc 1',true);
+  d.mono(532,129,'1 → 2',{size:15});d.text(531,159,'adjacent positions',{cls:'sm',size:10});
+  d.lock(180,249,40);d.text(201,317,'current permission',{cls:'ttl'});d.carrow([[420,209],[342,236],[229,275]],{stroke:C.acc,hl:6});
+  d.mono(479,273,f6(S.bm25_red_bird),{size:24,color:C.acc});d.text(479,310,'score under stated formula',{cls:'sm'});
+  d.text(320,359,'fetch display content only after eligibility and winner selection',{cls:'sm'});return d.svg();
+}
+
+export function sd_search_full_delete() {
+const d=illustration('sd_search_full_delete','REPLAY KEEPS THE HIGHER DELETION VERSION AUTHORITATIVE',340);
+  figPage(d,32,81,123,109,'delete v9',true);d.arrow(163,135,239,135,{stroke:C.acc});grave(d,306,259,104,167,{fill:C.accSoft,stroke:C.acc});d.mono(306,174,'doc 1');d.mono(306,202,'version 9',{size:11});
+  [82,234].forEach((y,i)=>{figPage(d,462,y,123,75,i?'repeat v9':'late v8',i===1);d.arrow(454,y+36,366,175,{stroke:i?C.line:C.acc,hl:5});});
+  d.text(522,188,'v8 rejected',{cls:'sm',color:C.acc});d.text(320,313,'checkpoint after the resolved deletion; repeated v9 has no new effect',{cls:'sm'});return d.svg();
+}
+
+export function sd_search_totals() {
+const d=illustration('sd_search_totals','ACCOUNT FOR THE LOGICAL INDEX AND ALL PHYSICAL COPIES',385);
+  for(let i=0;i<S.primary_shards;i++){const x=47+i*150;for(let c=S.copies-1;c>=0;c--)figPage(d,x+c*8,68+c*14,91,119,c===0?`P${i}`:'copy',c===0&&i===1);d.mono(x+53,262,fmtN(S.shard_bytes)+' B',{size:10});}
+  d.mono(320,302,`${fmtN(S.index_bytes)} B × ${S.copies} copies = ${fmtN(S.total_index_bytes)} B`,{size:12});
+  d.mono(320,334,`${S.primary_shards} primary shards × ${S.copies} = ${S.shard_copies} shard copies`,{size:12});
+  d.text(320,367,'temporary segments, merges, snapshots and rebuild overlap are additional',{cls:'sm'});return d.svg();
 }

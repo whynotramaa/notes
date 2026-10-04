@@ -24,7 +24,7 @@ Finch reaches `203.0.113.20`, but a route to that address does not prove the pee
 
 A certificate binds a public key to names and other identity information under an issuer's signature. A **certificate authority** issues such signed statements. The browser checks the requested hostname, validity conditions and a chain to a configured trust anchor. Possession of an arbitrary certificate is insufficient. The peer must also demonstrate control of the corresponding private key during the handshake.
 
-@fig cn_tls | Finch verifies the hostname and certificate chain before treating the peer as `example.com`. Orange marks the initial negotiation that establishes authenticated session keys. | narrow
+@fig cn_tls | The client checks the expected endpoint identity before trusting the protected session. The certificate and session protection have separate jobs in the exchange.
 
 TLS uses asymmetric cryptographic operations for authentication and key agreement, then symmetric authenticated encryption for bulk data. A public key may be shared; the corresponding private key must remain secret. A digital signature proves control of a signing key and detects modifications. A cryptographic hash produces a compact digest, but a bare hash without authentication does not prove who sent it.
 

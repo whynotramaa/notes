@@ -42,7 +42,7 @@ Validate the batch, assign its offsets, append the encoded data, and advance the
 
 A batch can reach the leader's segment while its acknowledgement remains unresolved. Offset assignment then establishes local append order but does not yet establish replicated visibility or what survives the named failure. A segment index points from a logical position toward encoded bytes; its presence is not a consumer completion record. During restart, validate the append tail before trusting the recovered end. Keep incomplete data from becoming an apparently valid record. This distinction matters because a process-level successful write can precede the durability boundary the application intended to promise.
 
-@fig sd_kafka_07 | The append trace assigns offsets 100 through 103 and leaves 104 as the next position; orange marks the segment metadata used to validate restart state.
+@fig sd_kafka_07 | Illustrative active-segment cutaway. Assigned offsets 100 through 103 leave 104 as the next append position; closed segments retain earlier bytes and indexes.
 
 A process’s in-memory end offset cannot prove that the same tail survives a machine or disk failure.
 

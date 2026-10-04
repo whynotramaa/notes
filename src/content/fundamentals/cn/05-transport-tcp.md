@@ -28,7 +28,7 @@ A UDP receive operation preserves a datagram boundary. The sender supplies a des
 
 TCP gives bytes sequence positions, acknowledges progress, buffers some out-of-order arrivals, and retransmits missing data. An application write does not become a permanent message boundary. One write can require several reads; several writes can arrive in one read. An application therefore needs framing even when TCP already supplies ordering.
 
-@fig cn_tcp_udp | Datagram boundaries survive UDP delivery, while TCP exposes an ordered sequence of bytes. Orange marks the stream contract used by Finch's traditional HTTPS connection. | narrow
+@fig cn_tcp_udp | TCP exposes a contiguous ordered byte stream and waits at a gap. UDP delivers individual datagrams; the application supplies any ordering and recovery it needs.
 
 For the illustrative `1,500` byte IP packet with a `20` byte IPv4 header, an `8` byte UDP header leaves `1,472` bytes. A `20` byte TCP header leaves `1,460` bytes. Options and lower path limits change these budgets. Smaller headers do not by themselves establish lower application latency; recovery policy and connection reuse also matter.
 

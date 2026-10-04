@@ -24,7 +24,7 @@ The API creates an authorized upload session, while the client transfers parts d
 
 Follow a client that reports completion after losing its last upload response. The API checks the stored object and session relation rather than trusting that report or creating another clip. If the object is complete, it can recover the metadata transition; if not, the client retries missing parts under the existing session. The illustrated faster transfer removes API byte forwarding, but the API still owns authorization and publication state. A storage capability must be scoped to the intended object and operation. Separating control from bytes therefore changes capacity placement while preserving a concrete proof before the clip becomes usable.
 
-@fig sd_interview_method_18 | Illustrative control paths and byte paths. Direct byte transfer still requires a verified metadata completion transition. Orange marks object validation before the metadata transition.
+@fig sd_interview_method_18 | Illustrative direct upload. The API grants the upload session while 5,000,000,000 bytes travel to object storage. Object validation precedes the metadata completion transition.
 
 A client saying upload finished does not prove the object exists, is complete, or belongs to the authorized session.
 

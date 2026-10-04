@@ -5,7 +5,7 @@ A viewer asks for Heron's delivery hostname. The provider can answer DNS accordi
 
 The resolver's location may differ from the viewer's, and answers can be cached. A changed DNS answer does not move an established connection immediately. The selected site may be near in a map but slower through the actual network, so latency and reachability evidence should influence design rather than geographic distance alone.
 
-@fig sd_cdn_dnsgeo | DNS-based destination selection. Resolver vantage, answer lifetime, and existing connections affect observed routing.
+@fig sd_cdn_dnsgeo | Illustrative DNS routing atlas. The resolver and viewer have different locations; policy selects an address before the viewer connects. Geography alone does not establish the fastest usable route.
 
 A service can also redirect at HTTP after more information becomes available, at the cost of another exchange and an updated URL or host. These mechanisms are product-dependent and can coexist. Explain which decision selects the edge, which selects origin, and when each can change.
 
@@ -17,7 +17,7 @@ With **anycast**, the same service address can be announced from multiple networ
 
 [RFC 4786](https://www.rfc-editor.org/rfc/rfc4786) discusses operational anycast behavior and stateful-service considerations. A route change can affect where later packets go, so connection and service designs must handle their actual continuity model. A CDN's transport termination and routing controls need product-specific verification.
 
-@fig sd_cdn_anycast | Anycast concept. Network policy selects a route; the drawing does not imply nearest-geographic or lowest-latency selection.
+@fig sd_cdn_anycast | Illustrative anycast atlas. Different sites advertise one service address and network routing policy selects the reachable destination. Connection state still belongs to the accepting site.
 
 Do not confuse anycast destination selection with the application load balancer behind the selected site. The edge may still distribute connections among local servers and fetch from a separate regional origin. Those are additional decisions using different available information and failure boundaries.
 

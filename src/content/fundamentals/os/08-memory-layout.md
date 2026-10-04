@@ -6,7 +6,7 @@ The parent and child can initially point at the same 8 pages marked read-only. A
 
 Copy-on-write is a sharing policy, not a promise that writes are free. Many writes create many copies, and dirty pages consume memory. Private file mappings can also use copy-on-write; shared writable mappings instead deliberately expose changes to peers.
 
-@fig os_cow | Illustrative ledger computes 8 pages before fork, 8 shared pages after fork and one copied page after a write. Orange marks the new private allocation.
+@fig os_cow | Illustrative copy-on-write placement. Eight shared pages use 32,768 bytes; a write leaves seven pages shared and adds one private copy, increasing physical storage to 36,864 bytes.
 
 The byte count measures unique physical page payload across parent and child, excluding page tables and kernel records. Counting both mappings as separate payload would incorrectly report a full copy immediately after fork. The new copy changes the physical-frame count from eight to nine, while each process still sees eight virtual pages. The writer's page-table entry changes; the sibling keeps its previous mapping.
 
@@ -42,7 +42,7 @@ A call frame commonly contains arguments, a return address, saved registers and 
 
 The stack is not simply faster than the heap. It has structured lifetime tied to calls and often favorable locality. The heap supports data that outlives a call but needs allocator metadata and an ownership rule. A dangling pointer violates lifetime in either region.
 
-@fig os_heap_stack | Illustrative cards separate call-scoped stack lifetime, explicit heap lifetime, allocator metadata and stack overflow. Orange marks lifetime because it determines safe ownership.
+@fig os_heap_stack | Illustrative drawing separates call-scoped stack lifetime, explicit heap lifetime, allocator metadata and stack overflow. Orange marks lifetime because it determines safe ownership.
 
 The exact frame layout follows the calling convention and compiler decisions. Some arguments live in registers, some local values never reach memory, and optimized calls can remove a frame entirely. The useful rule concerns lifetime: returning ends the frame's ownership of its local storage. Returning a pointer to that storage does not extend the lifetime, even if the bytes happen to remain unchanged for a while.
 

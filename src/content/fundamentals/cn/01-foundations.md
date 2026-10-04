@@ -14,7 +14,7 @@ A **LAN** connects a local site, a **MAN** spans a metropolitan area, and a **WA
 
 A **topology** records available connections. A star shares a central switch, a bus shares a medium, a ring connects neighbouring stations, and a mesh offers several paths. Losing the star's central switch disconnects clients even if the remote service is healthy. Physical redundancy helps only when forwarding can use the surviving path.
 
-@fig cn_topology | The central device in the orange star is a shared failure point. Ring and mesh connections provide other physical paths under suitable forwarding rules.
+@fig cn_topology | Illustrative physical topologies. The star shares a central forwarding device, the bus shares a medium, and ring and mesh arrangements offer different alternate paths.
 
 Client-server assigns a service provider and requester; peer-to-peer lets participants serve as well as request. Those roles do not determine the transport. Circuit switching reserves capacity before transmission, while packet switching shares links among bursts. Datagram forwarding chooses a next hop independently for each packet; a virtual circuit retains a logical path established beforehand.
 
@@ -86,7 +86,7 @@ Finch's interface has a frame ready, but a cable carries changing electrical or 
 
 Bit rate counts bits per second, while baud rate counts symbols per second. A symbol alphabet can represent several bits in one symbol, but the receiver must still distinguish the states despite attenuation, distortion and noise. Attenuation reduces strength, distortion changes shape, and noise adds unwanted variation. A carrier can remain detectable while its error rate prevents useful communication.
 
-@fig cn_signals | Symbol count and bit count are different quantities. Orange marks bit rate; the symbol alphabet determines how much information each symbol can represent.
+@fig cn_signals | Illustrative waveforms, not measured signals. The upper trace varies continuously; the lower trace encodes chosen binary symbol levels. Symbol rate and bit rate remain distinct quantities.
 
 The illustrative channel has bandwidth B of 1,000,000 hertz and linear signal-to-noise ratio S of 15. Shannon's ideal bound gives
 
@@ -98,7 +98,7 @@ Read C as ideal channel capacity, not an Ethernet performance measurement. Nyqui
 
 Twisted pair and coaxial cable carry electrical signals with different interference and installation properties. Fibre carries light and changes the distance and equipment trade-off. Wireless shares radio spectrum and must contend with interference and competing stations. The media choice changes a physical cost without changing what the HTTP method means.
 
-@fig cn_media | Media expose different distance and failure costs. Orange marks copper's electrical path; duplex describes direction sharing across a link.
+@fig cn_media | Illustrative media cutaways. Copper carries electrical signals, fiber carries light, and radio uses shared spectrum. The drawings compare mechanisms rather than measured attenuation or range.
 
 Simplex sends in one direction, half duplex takes turns, and full duplex permits simultaneous directions. Modern switched Ethernet commonly uses full duplex, so its host link does not follow the older shared-medium collision procedure. For Finch's declared packet, serialization is $1500\times8/100000000=0.00012$ seconds, while propagation is $1000000/200000000=0.005$ seconds. Packet length changes the first cost; distance changes the second.
 

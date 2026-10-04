@@ -5,7 +5,7 @@ A faulty image is published under a mutable key and cached at many edges. **Inva
 
 Suppose an illustrative identity exists at 64 edges. The system needs the invalidation applied wherever the old response can still be reused, and also needs to consider intermediate caches and browsers. A completion status from one control API must be interpreted according to that product's scope rather than assumed to clear every copy on the internet.
 
-@fig sd_cdn_invalidate | Distributed invalidation concept. The illustrative 64-edge count belongs to the ledger, not a measured product deployment.
+@fig sd_cdn_invalidate | Illustrative invalidation propagation. Some serving sites have applied the purge while another still has it pending. Accepting an invalidation request does not prove every serving copy has changed.
 
 [CloudFront invalidation guidance](https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/Invalidation.html) presents invalidation and versioned names as alternatives for content updates. Verify path matching, variant handling, and completion semantics. An invalidated key can be refetched immediately, so updating origin to the correct content and protecting cold-load demand are part of the operation.
 

@@ -149,8 +149,8 @@ for (const id of referenced) {
     const svg = fn();
     const isCover = covers.has(id);
     if (isCover) {
-      fail(/viewBox="0 0 750 975"/.test(svg), `${id}: cover canvas`);
-      fail(/x="58" y="82" class="cap"/.test(svg), `${id}: cover kicker`);
+      fail(/viewBox="0 0 640 830"/.test(svg), `${id}: cover canvas`);
+      fail(/x="10" y="16" class="cap"/.test(svg), `${id}: cover kicker`);
     } else {
       fail(/viewBox="0 0 640 \d+"/.test(svg), `${id}: canvas`);
       fail(/x="10" y="16" class="cap"/.test(svg), `${id}: kicker`);

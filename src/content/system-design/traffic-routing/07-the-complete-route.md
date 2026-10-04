@@ -64,7 +64,7 @@ The primary region stops responding, but nobody knows whether it lost power or o
 
 Heron's illustrative replica lags the score stream by 2 seconds at 20 events per second, or $2\times20=40$ events. Read this as the event rate multiplied by the modeled replication lag. It states potentially missing history under that fixed-rate example, not exactly which business effects were lost. Promoting a replica without reconciling its position can abandon acknowledged updates.
 
-@fig sd_tr_region | Read failover selects a copy meeting freshness rules. Orange marks the write path's history and fencing checks before accepting new commands.
+@fig sd_tr_region | Moving traffic between regions does not transfer write authority. Read freshness and the new writer's history and fencing checks remain separate decisions.
 
 A safe transfer uses a coordination or storage contract that establishes the new generation and rejects old ones. A public DNS update cannot fence a process still serving through a stale cache or private route. The database and distributed-systems units explain the replication and consensus mechanisms; the router must wait for their output rather than inventing authority itself.
 

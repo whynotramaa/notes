@@ -5,7 +5,7 @@ A viewer far from Heron's storage region opens the same clip as many other viewe
 
 An **edge location** is a serving site in that network. The **origin** is the configured source from which the CDN obtains authoritative content when its serving path needs it. Heron's immutable clip origin can be object storage, while a score representation's origin may be an application endpoint. Their permission and freshness rules differ.
 
-@fig sd_cdn_roles | CDN request path. The edge is a serving boundary, not a replacement for object ownership or application permission.
+@fig sd_cdn_roles | Illustrative serving-site atlas. The origin owns the source; edges can retain and serve permitted copies. A hit ends at the selected edge and a miss fetches from the origin. Site placement is illustrative, not a measured routing deployment.
 
 A CDN can also proxy uncached requests, terminate connections, apply access policy, or protect an origin. Do not assume every request becomes cacheable merely because it passes through the CDN. State which representations may be reused, for how long, and under what identity and authorization checks.
 

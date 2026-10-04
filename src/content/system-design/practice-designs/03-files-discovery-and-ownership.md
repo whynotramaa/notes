@@ -46,7 +46,7 @@ Use Heron’s 1,000-attempt-per-second API peak as a contention scenario, rather
 
 The booking authority atomically moves the seat from free to the identified hold. At expiry, another conditional transition can release it and allow a successor. A late payment callback checks the current hold identity before confirming the seat; matching the seat alone is insufficient. If the old charge is real but its hold is obsolete, record a compensation or reconciliation workflow rather than transfer the successor's ownership. Repeated callbacks use the same payment identity and cannot create another confirmation. The seat authority chooses the winner, while the payment authority supplies a separately confirmed financial effect.
 
-@fig sd_practice_designs_11 | Illustrative ticket booking: one seat, one winner. A late payment cannot revive a seat hold that no longer owns the claim. Orange marks reconciliation when the payment's old hold no longer owns the seat.
+@fig sd_practice_designs_11 | Illustrative contention for seat A7. An atomic claim chooses one current hold. A late payment must reconcile if its old hold no longer owns the seat.
 
 A distributed lock whose lease expires cannot by itself stop a paused old owner from selling the seat later. The seat state must reject obsolete ownership.
 

@@ -70,7 +70,7 @@ Heron includes local copies, response caches, replicated service state, and clie
 
 @fig sd_cache_trace_28 | Illustrative replica-failover state shows an invalidation reaching P but not Q; orange marks promotion of Q, which can resurrect v7 against a v8 read requirement.
 
-@fig sd_caching_outage | Illustrative bars compare 100 normal miss reads per second with 1,000 unbounded fallback reads; orange marks the outage load that needs a capacity limit.
+@fig sd_caching_outage | Illustrative workload. Each envelope represents 100 source reads per second: normal misses need 100 reads/s, while unbounded fallback offers 1,000 reads/s after cache loss.
 
 :::interview Interview lens
 **"What if Redis goes down?"** I would cap cache waiting, independently bound fallback, preserve critical source capacity, and use only permitted stale snapshots. Recovery warming and replica freshness are part of the plan after reachability returns.

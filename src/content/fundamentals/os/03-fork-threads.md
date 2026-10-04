@@ -20,7 +20,7 @@ Fork does not mean "run the child from the beginning." Both flows continue after
 
 The replacement discards the old user-space code and data, but descriptor inheritance follows close-on-exec rules. A descriptor marked close-on-exec does not survive, while ordinary inherited descriptors can connect the new program to a pipe or socket. The loader also validates the executable format and prepares the initial stack with arguments and environment.
 
-@fig os_exec_image | Illustrative fork creates a child, while exec changes only the child image. Orange marks the loader because it installs the new address space.
+@fig os_exec_image | Illustrative before-and-after address spaces. Exec replaces the program mappings and entry point while preserving the process identity; the shell parent continues separately.
 
 The distinction matters for security and debugging. A failed exec returns to the old image, so the child must report the error and exit rather than pretending the target ran. A successful exec never returns to the old instruction stream.
 

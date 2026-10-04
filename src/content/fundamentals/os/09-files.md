@@ -18,7 +18,7 @@ Not every file-like descriptor names an on-disk regular file. A socket has trans
 
 Sockets, pipes, terminals and regular files therefore share a handle shape even though their readiness and storage behavior differ. A forked child inherits descriptor references, and a shell uses that fact to connect pipeline endpoints. A close-on-exec flag prevents accidental inheritance into a replaced program.
 
-@fig os_fd_table | Illustrative descriptor table maps small process-local integers to files, streams and sockets. Orange marks descriptor 3 because server resources extend the standard streams.
+@fig os_fd_table | Illustrative shared open-file state. Process-local descriptors can refer to one open file description after fork or dup, sharing its offset and flags while the inode identifies the file.
 
 The integer is local to a process, so descriptor 3 in another process can name a different resource. Duplicating a descriptor can create another reference to the same open-file description, and inherited references after fork can share its current offset. Closing one reference does not automatically close the object while other references remain. This distinction matters for shell pipes and concurrent file access.
 
@@ -36,7 +36,7 @@ A hard link is another directory entry for the same inode. Removing the original
 
 Hard links normally cannot cross filesystem boundaries because the inode belongs to one filesystem. Symbolic links can point across such boundaries because they store a path. Relative symbolic links resolve relative to the link's directory, which makes moving the containing tree part of the correctness analysis.
 
-@fig os_inode_links | Illustrative cards separate inode identity from directory names and path references. Orange marks the hard link because it shares the underlying inode.
+@fig os_inode_links | Illustrative directory and inode drawing separates inode identity from directory names and path references. Orange marks the hard link because it shares the underlying inode.
 
 A hard link adds a name to the same object, so modifying bytes through either name modifies that object's content. A symbolic link instead performs another path resolution when followed. If the target name is replaced by a different file, following the unchanged symbolic link can now reach that replacement. The two mechanisms therefore behave differently under rename, replacement and deletion even when ordinary reads initially look identical.
 

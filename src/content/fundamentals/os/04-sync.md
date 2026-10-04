@@ -6,7 +6,7 @@ Finch's 2 cores can execute 2 runnable threads at one instant, while a single co
 
 A scheduler can preempt a thread between two instructions. An interrupt can also change the point at which another task runs. Therefore correctness cannot rely on a particular observed order, even on one core. Parallel hardware adds cache coherence and memory-order concerns, but the lost-update bug exists before two cores are involved.
 
-@fig os_concurrency_parallel | Illustrative cards distinguish interleaving on one core from simultaneous work on two cores. Orange marks concurrency because it does not require a second core.
+@fig os_concurrency_parallel | Illustrative execution strips. One core interleaves A and B, while separate cores can execute them together. The strips show the distinction rather than measured task durations.
 
 The right question is not "does this code have threads?" It is "which state can be observed between operations, and what order must readers and writers obey?" That question leads directly to races and critical sections.
 

@@ -16,7 +16,7 @@ The server creates a socket, binds an address, listens and calls accept. Each ac
 
 The NIC receives packets, the driver and DMA path place bytes in kernel buffers, and the network stack associates them with a socket. The kernel marks a descriptor ready. A blocked event loop wakes, reads available bytes and returns to its wait. Idle connections remain represented without consuming a running core.
 
-@fig os_network_path | Illustrative packet moves from NIC through kernel networking and socket buffers until an fd becomes ready. Orange marks readiness because it wakes user work.
+@fig os_network_path | Illustrative server cutaway. A network device feeds a kernel socket, readiness makes a thread runnable, and that thread accesses pages through its private process mapping.
 
 The listener is a descriptor too and is included in the declared reserve rather than in the thousand accepted connections. Listening creates a place for connection handling; accepting returns the application handle for a particular connection. A connection waiting in kernel queues does not yet have to consume a separate running application thread. Application admission must account for accept errors and limits instead of assuming every incoming connection becomes a usable handle.
 

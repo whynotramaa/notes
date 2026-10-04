@@ -6,7 +6,7 @@ Finch types `https://example.com` into a browser with no usable connection to th
 
 The browser may satisfy the request from a permitted representation cache. Otherwise it needs a destination address, using a valid name cache or its resolver. In our illustrative fresh DNS lookup the authoritative A result is `203.0.113.20`. The browser may consider several addresses, including IPv6 answers, but the fixed running trace chooses this IPv4 destination. A certificate will later authenticate `example.com`, not simply that IP literal.
 
-@fig cn_url_cache | A reusable representation can end the request before transport begins. Orange marks the chosen network branch when Finch needs the server's bytes. | narrow
+@fig cn_url_cache | A usable local representation can finish the request before transport begins. A miss proceeds to the network and origin; freshness and policy decide whether local reuse is allowed.
 
 The DNS record's `300` second illustrative TTL has `180` seconds remaining after `120` seconds. That result means the address can still be reused under the teaching assumption. It says nothing about whether the HTTP body is fresh or the server is healthy. DNS cache, HTTP cache and connection pool are separate stores with separate validity checks.
 

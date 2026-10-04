@@ -68,7 +68,7 @@ In Heron's trace, a public English representation and a public Hindi representat
 
 @fig sd_cache_trace_4 | The rows separate public locale keys, private scorer data, and database pages; orange marks the page layer where a query still runs after the page hit.
 
-@fig sd_caching_placement | The split compares per-process copies with a shared cache service; orange marks the shared placement, whose missing copy does not mean missing truth.
+@fig sd_caching_placement | Private cache entries sit inside each application process; a shared cache is reached through a network hop. Losing a cached copy does not delete the source fact.
 
 :::interview Interview lens
 **"Where would you put the first cache?"** I would name the repeated expensive operation and its permitted reuse first. Placement then determines network waits, duplicated memory, freshness coordination, and failure behavior.
