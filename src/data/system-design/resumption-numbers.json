@@ -1,0 +1,191 @@
+{
+  "api": {
+    "permissions": [
+      [
+        "scorer",
+        "m7",
+        true
+      ],
+      [
+        "scorer",
+        "m8",
+        false
+      ],
+      [
+        "viewer",
+        "m7",
+        false
+      ],
+      [
+        "viewer",
+        "m8",
+        false
+      ]
+    ],
+    "batch_operations": 100,
+    "deadline_remaining_ms": 400,
+    "budget_dependency_ms": 200,
+    "services_availability": 0.995009990004999,
+    "serial_ms": 80,
+    "parallel_ms": 20,
+    "saga_reserved": 9,
+    "saga_after_compensation": 10,
+    "ledger_remaining_cents": 7500,
+    "commands_per_day": 86400000,
+    "command_record_bytes_day": 25920000000,
+    "reservation_traces": [
+      {
+        "order": [
+          "finalize",
+          "release"
+        ],
+        "steps": [
+          {
+            "action": "finalize",
+            "accepted": true,
+            "state": "finalized",
+            "free": 9
+          },
+          {
+            "action": "release",
+            "accepted": false,
+            "state": "finalized",
+            "free": 9
+          }
+        ],
+        "execution_after_durable_confirmation": true
+      },
+      {
+        "order": [
+          "release",
+          "finalize"
+        ],
+        "steps": [
+          {
+            "action": "release",
+            "accepted": true,
+            "state": "released",
+            "free": 10
+          },
+          {
+            "action": "finalize",
+            "accepted": false,
+            "state": "released",
+            "free": 10
+          }
+        ],
+        "execution_after_durable_confirmation": false
+      }
+    ]
+  },
+  "routing": {
+    "round_robin": [
+      "A",
+      "B",
+      "C",
+      "A",
+      "B",
+      "C",
+      "A",
+      "B",
+      "C"
+    ],
+    "weighted": {
+      "C": 3,
+      "B": 3,
+      "A": 6
+    },
+    "weighted_cpu_ms": {
+      "A": 30,
+      "B": 15,
+      "C": 300
+    },
+    "before": {
+      "10": "A",
+      "30": "B",
+      "55": "C",
+      "70": "C",
+      "90": "D"
+    },
+    "after": {
+      "10": "A",
+      "30": "B",
+      "55": "E",
+      "70": "C",
+      "90": "D"
+    },
+    "moved_keys": [
+      55
+    ],
+    "nominal_capacity": 1500,
+    "surviving_capacity": 1200,
+    "utilization_after_loss": 0.8333333333333334,
+    "connections_normal": 10000,
+    "connections_after_loss": 12500,
+    "reconnect_smooth_per_s": 500,
+    "health_failure_times": [
+      0,
+      5,
+      10
+    ],
+    "health_detect_range_s": [
+      10,
+      15
+    ],
+    "discovery_refresh_until_s": 42,
+    "read_ms": 50,
+    "cache_miss_qps": 99.99999999999997,
+    "cache_cold_qps": 1000,
+    "shared_pool_limit_qps": 2000.0,
+    "local_pool_limit_qps": 400.0
+  },
+  "queue": {
+    "backlog": 12000,
+    "drain_s": 30.0,
+    "jobs_bytes": 24000000,
+    "prefetch_bytes": 400000,
+    "worker_limit_qps": 1000.0,
+    "retry_layers": 27000,
+    "attempt_waits_s": [
+      1,
+      2,
+      4,
+      8
+    ],
+    "wait_total_s": 15,
+    "deadline_attempts_ms": 450,
+    "partition_work": 8,
+    "hot_partition_util": 1.6,
+    "dedup_bytes_day": 172800000,
+    "lag_s": 500.0,
+    "fanout_messages_s": 1000000,
+    "negative_capacity_backlog": 24000,
+    "overload_drop_per_s": 200
+  },
+  "kafka": {
+    "daily_bytes": 345600000,
+    "seven_days_three_copies": 7257600000,
+    "producer_batch_bytes": 20000,
+    "batches_s": 10.0,
+    "batch_wait_s": 0.1,
+    "retention_after_outage_s": 432000,
+    "rebuild_records": 3456000,
+    "rebuild_net_qps": 1980,
+    "rebuild_s": 1745.4545454545455,
+    "group_max_workers": 8,
+    "replication_bytes_s": 8000,
+    "external_reader_bytes_s": 12000,
+    "lag_records": 20,
+    "committed_next": 8,
+    "sizes_segment_count": 4,
+    "compression_assumed_bytes": 5000.0,
+    "retained_offsets": [
+      4,
+      5,
+      6,
+      7,
+      8,
+      9
+    ]
+  }
+}

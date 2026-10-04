@@ -1,0 +1,208 @@
+{
+  "peak_qps": 1000,
+  "apps": 5,
+  "app_capacity": 300,
+  "normal_capacity": 1500,
+  "one_failure_capacity": 1200,
+  "one_failure_margin": 200,
+  "normal_per_app": 200.0,
+  "surviving_per_app": 250.0,
+  "viewers": 50000,
+  "gateway_capacity": 10000,
+  "nominal_gateways": 5,
+  "five_one_failure_load": 12500.0,
+  "six_one_failure_load": 10000.0,
+  "seven_one_failure_load": 8333.333333333334,
+  "rr_assignments": [
+    "A",
+    "B",
+    "C",
+    "A",
+    "B",
+    "C"
+  ],
+  "rr_cost_ms": [
+    20,
+    200,
+    20
+  ],
+  "weights": [
+    1,
+    2,
+    1
+  ],
+  "weighted_shares": [
+    0.25,
+    0.5,
+    0.25
+  ],
+  "weighted_qps": [
+    250.0,
+    500.0,
+    250.0
+  ],
+  "canary_qps": 50.0,
+  "remaining_qps": 950.0,
+  "least_connection_A": 100,
+  "least_connection_B": 10,
+  "least_outstanding_A": 5,
+  "least_outstanding_B": 200,
+  "health_interval_s": 5,
+  "health_failure_threshold": 3,
+  "health_detection_s": 15,
+  "discovery_lifetime_s": 30,
+  "cached_at_s": 0,
+  "registry_update_s": 10,
+  "cache_remaining_at_update_s": 20,
+  "refresh_s": 31,
+  "ring_keys": [
+    5,
+    20,
+    45,
+    70,
+    95
+  ],
+  "ring_before": [
+    "A",
+    "B",
+    "C",
+    "D",
+    "A"
+  ],
+  "ring_after": [
+    "A",
+    "B",
+    "E",
+    "D",
+    "A"
+  ],
+  "ring_moved_keys": [
+    45
+  ],
+  "ring_moved_fraction": 0.2,
+  "ideal_new_owner_fraction": 0.2,
+  "modulo_changed_keys": [
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11
+  ],
+  "reconnect_connections": 10000,
+  "reconnect_window_s": 20,
+  "reconnect_per_s": 500.0,
+  "gap_events_per_viewer": 100,
+  "replay_deliveries": 1000000,
+  "replay_bytes": 200000000,
+  "replay_bytes_s": 10000000.0,
+  "live_bytes_s": 200000000,
+  "api_bytes_s": 2000000,
+  "origin_cache_qps": 100.0,
+  "origin_cold_qps": 1000,
+  "cold_multiplier": 10,
+  "serial_route_ms": [
+    40,
+    20,
+    30,
+    10,
+    60,
+    40
+  ],
+  "total_read_ms": 200,
+  "failover_s": 30,
+  "regional_lag_events": 40,
+  "inflight_at_peak": 200.0,
+  "retry_attempts": 27,
+  "probe_timeout_s": 1,
+  "detection_min_s": 11,
+  "detection_max_s": 16,
+  "two_failure_capacity": 900,
+  "two_failure_per_app": 333.333333,
+  "failure_utilization": 0.833333,
+  "weights_total": 4,
+  "http2_connections": [
+    100,
+    10
+  ],
+  "http2_active": [
+    5,
+    200
+  ],
+  "p2_loads": [
+    8,
+    3,
+    6,
+    2,
+    9
+  ],
+  "p2_pair": [
+    1,
+    4
+  ],
+  "p2_selected": 1,
+  "slowstart_s": 20,
+  "slowstart_at_s": 5,
+  "slowstart_weight": 0.25,
+  "deadline_ms": 250,
+  "route_remaining_ms": 150,
+  "backend_budget_ms": 110,
+  "availability_target": 0.999,
+  "budget_month_s": 2592.0,
+  "dns_ttl_s": 60,
+  "dns_refresh_remaining_s": 50,
+  "canary_weight": 0.05,
+  "readiness_interval_s": 5,
+  "failed_probes": 3,
+  "hash_modulo_moves": 8,
+  "sticky_shares": [
+    0.7,
+    0.1,
+    0.1,
+    0.1
+  ],
+  "sticky_qps": [
+    700,
+    100,
+    100,
+    100
+  ],
+  "gateway_survivors": 5,
+  "gateway_margin": 0,
+  "pool_sockets": 100,
+  "gateway_replay_total_bytes_s": 210000000,
+  "actual_refresh_lag_s": 21,
+  "route_slack_ms": 50,
+  "outage_budget_fraction": 0.011574,
+  "outage_budget_percent": 1.157407,
+  "rr_total_ms": 240,
+  "modulo_moved_fraction": 0.666667,
+  "modulo_moved_percent": 66.666667,
+  "failure_utilization_percent": 83.333333,
+  "two_failure_shortfall": 100,
+  "gateway_survivor_margin": 1666.666667,
+  "gateway_fleet_capacities": [
+    40000,
+    50000,
+    60000,
+    70000
+  ],
+  "serial_elapsed_ms": [
+    40,
+    60,
+    90,
+    100,
+    160,
+    200
+  ],
+  "serial_remaining_ms": [
+    210,
+    190,
+    160,
+    150,
+    90,
+    50
+  ]
+}

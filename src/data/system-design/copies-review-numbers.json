@@ -1,0 +1,299 @@
+{
+  "quorum_three_overlap": 1,
+  "quorum_five_overlap": 1,
+  "three_copy_write_tolerance": 1,
+  "five_copy_write_tolerance": 2,
+  "exposed_events": 100,
+  "exposed_bytes": 20000,
+  "one_event_replicated": 600,
+  "logical_bytes_s": 4000,
+  "stored_bytes_s": 12000,
+  "fanout_deliveries_s": 1000000,
+  "fanout_bytes_s": 200000000,
+  "day_s": 86400,
+  "day_bytes": 345600000,
+  "three_copy_day_bytes": 1036800000,
+  "resume_after_expiry_s": 1,
+  "reachable_partition_sides": [
+    1,
+    2
+  ],
+  "election_majority": 2,
+  "freshness_pairs": [
+    [
+      4,
+      8
+    ],
+    [
+      3,
+      9
+    ],
+    [
+      4,
+      7
+    ]
+  ],
+  "cache_misses_s": {
+    "0.9": 99.99999999999997,
+    "0.5": 500.0,
+    "0.99": 10.000000000000009
+  },
+  "fallback_multipliers": {
+    "0.9": 10.000000000000002,
+    "0.99": 99.99999999999991
+  },
+  "cache_payload": 200000000,
+  "cache_entry_bytes": 2100,
+  "cache_accounted": 210000000,
+  "cache_occupancy_percent": 82.03125,
+  "cache_accounted_free": 46000000,
+  "cache_large_entry": 20100,
+  "cache_large_ratio": 9.571428571428571,
+  "ten_local_entries": 21000,
+  "two_service_copies": 420000000,
+  "ten_full_local_copies": 2100000000,
+  "all_copies": 2520000000,
+  "hit_ms": 2,
+  "miss_ms": 22,
+  "weighted_mean_ms": 4.0,
+  "stale_after_write_s": 29,
+  "delayed_old_expiry_s": 50,
+  "coalesced_load_savings": 99,
+  "ten_local_coalesced_loads": 10,
+  "hot_reads_s": 800.0,
+  "hot_payload_bytes_s": 1600000.0,
+  "ten_local_hot_reads_s": 80.0,
+  "simultaneous_expiries": 1000,
+  "even_expiries_s": 100.0,
+  "fallback_limit_qps": 200.0,
+  "slow_fallback_limit_qps": 40.0,
+  "fallback_rejected_qps": 800.0,
+  "deadline_after_cache_source_ms": 25,
+  "deadline_after_three_cache_attempts_ms": 15,
+  "lru_hits": 2,
+  "lru_trace": [
+    {
+      "key": "A",
+      "hit": false,
+      "residents": [
+        "A"
+      ]
+    },
+    {
+      "key": "B",
+      "hit": false,
+      "residents": [
+        "A",
+        "B"
+      ]
+    },
+    {
+      "key": "A",
+      "hit": true,
+      "residents": [
+        "B",
+        "A"
+      ]
+    },
+    {
+      "key": "C",
+      "hit": false,
+      "residents": [
+        "B",
+        "A",
+        "C"
+      ]
+    },
+    {
+      "key": "A",
+      "hit": true,
+      "residents": [
+        "B",
+        "C",
+        "A"
+      ]
+    },
+    {
+      "key": "D",
+      "hit": false,
+      "residents": [
+        "C",
+        "A",
+        "D"
+      ]
+    },
+    {
+      "key": "B",
+      "hit": false,
+      "residents": [
+        "A",
+        "D",
+        "B"
+      ]
+    }
+  ],
+  "lfu_hits": 2,
+  "lfu_trace": [
+    {
+      "key": "A",
+      "hit": false,
+      "counts": {
+        "A": 1
+      }
+    },
+    {
+      "key": "B",
+      "hit": false,
+      "counts": {
+        "A": 1,
+        "B": 1
+      }
+    },
+    {
+      "key": "A",
+      "hit": true,
+      "counts": {
+        "A": 2,
+        "B": 1
+      }
+    },
+    {
+      "key": "C",
+      "hit": false,
+      "counts": {
+        "A": 2,
+        "B": 1,
+        "C": 1
+      }
+    },
+    {
+      "key": "A",
+      "hit": true,
+      "counts": {
+        "A": 3,
+        "B": 1,
+        "C": 1
+      }
+    },
+    {
+      "key": "D",
+      "hit": false,
+      "counts": {
+        "A": 3,
+        "C": 1,
+        "D": 1
+      }
+    },
+    {
+      "key": "B",
+      "hit": false,
+      "counts": {
+        "A": 3,
+        "D": 1,
+        "B": 1
+      }
+    }
+  ],
+  "reference_count": 7,
+  "misses": 5,
+  "hit_fraction": 0.2857142857142857,
+  "lru_contrast_hits": 2,
+  "lru_contrast": [
+    {
+      "key": "A",
+      "hit": false,
+      "residents": [
+        "A"
+      ]
+    },
+    {
+      "key": "A",
+      "hit": true,
+      "residents": [
+        "A"
+      ]
+    },
+    {
+      "key": "A",
+      "hit": true,
+      "residents": [
+        "A"
+      ]
+    },
+    {
+      "key": "B",
+      "hit": false,
+      "residents": [
+        "A",
+        "B"
+      ]
+    },
+    {
+      "key": "C",
+      "hit": false,
+      "residents": [
+        "B",
+        "C"
+      ]
+    }
+  ],
+  "lfu_contrast_hits": 2,
+  "lfu_contrast": [
+    {
+      "key": "A",
+      "hit": false,
+      "counts": {
+        "A": 1
+      }
+    },
+    {
+      "key": "A",
+      "hit": true,
+      "counts": {
+        "A": 2
+      }
+    },
+    {
+      "key": "A",
+      "hit": true,
+      "counts": {
+        "A": 3
+      }
+    },
+    {
+      "key": "B",
+      "hit": false,
+      "counts": {
+        "A": 3,
+        "B": 1
+      }
+    },
+    {
+      "key": "C",
+      "hit": false,
+      "counts": {
+        "A": 3,
+        "C": 1
+      }
+    }
+  ],
+  "fenced_command_state": {
+    "epoch": 8,
+    "score": 12,
+    "commands": {
+      "c9": [
+        1,
+        11
+      ],
+      "c10": [
+        1,
+        12
+      ]
+    }
+  },
+  "repaired_log_terms": [
+    1,
+    2,
+    4
+  ]
+}

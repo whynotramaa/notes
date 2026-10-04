@@ -1,0 +1,884 @@
+{
+  "cores": 2,
+  "page_bytes": 4096,
+  "virtual_bits": 32,
+  "offset_bits": 12,
+  "vpn_bits": 20,
+  "virtual_pages": 1048576,
+  "pte_bytes": 4,
+  "linear_table_bytes": 4194304,
+  "virtual_address": 13396,
+  "vpn": 3,
+  "offset": 1108,
+  "frame": 9,
+  "physical_address": 37972,
+  "tlb_hit_rate": 0.9,
+  "memory_ns": 100,
+  "tlb_ns": 10,
+  "effective_ns": 120.0,
+  "cow_pages": 8,
+  "cow_before_bytes": 32768,
+  "cow_after_bytes": 36864,
+  "allocation_bytes": 10000,
+  "allocated_pages": 3,
+  "internal_waste": 2288,
+  "jobs": [
+    [
+      "A",
+      0,
+      5
+    ],
+    [
+      "B",
+      1,
+      3
+    ],
+    [
+      "C",
+      2,
+      1
+    ]
+  ],
+  "schedules": {
+    "fcfs": {
+      "timeline": [
+        [
+          "A",
+          0,
+          5
+        ],
+        [
+          "B",
+          5,
+          8
+        ],
+        [
+          "C",
+          8,
+          9
+        ]
+      ],
+      "rows": [
+        {
+          "name": "A",
+          "arrival": 0,
+          "burst": 5,
+          "completion": 5,
+          "turnaround": 5,
+          "waiting": 0,
+          "response": 0
+        },
+        {
+          "name": "B",
+          "arrival": 1,
+          "burst": 3,
+          "completion": 8,
+          "turnaround": 7,
+          "waiting": 4,
+          "response": 4
+        },
+        {
+          "name": "C",
+          "arrival": 2,
+          "burst": 1,
+          "completion": 9,
+          "turnaround": 7,
+          "waiting": 6,
+          "response": 6
+        }
+      ],
+      "mean_waiting": 3.3333333333333335
+    },
+    "sjf": {
+      "timeline": [
+        [
+          "A",
+          0,
+          5
+        ],
+        [
+          "C",
+          5,
+          6
+        ],
+        [
+          "B",
+          6,
+          9
+        ]
+      ],
+      "rows": [
+        {
+          "name": "A",
+          "arrival": 0,
+          "burst": 5,
+          "completion": 5,
+          "turnaround": 5,
+          "waiting": 0,
+          "response": 0
+        },
+        {
+          "name": "B",
+          "arrival": 1,
+          "burst": 3,
+          "completion": 9,
+          "turnaround": 8,
+          "waiting": 5,
+          "response": 5
+        },
+        {
+          "name": "C",
+          "arrival": 2,
+          "burst": 1,
+          "completion": 6,
+          "turnaround": 4,
+          "waiting": 3,
+          "response": 3
+        }
+      ],
+      "mean_waiting": 2.6666666666666665
+    },
+    "srtf": {
+      "timeline": [
+        [
+          "A",
+          0,
+          1
+        ],
+        [
+          "B",
+          1,
+          2
+        ],
+        [
+          "C",
+          2,
+          3
+        ],
+        [
+          "B",
+          3,
+          4
+        ],
+        [
+          "B",
+          4,
+          5
+        ],
+        [
+          "A",
+          5,
+          6
+        ],
+        [
+          "A",
+          6,
+          7
+        ],
+        [
+          "A",
+          7,
+          8
+        ],
+        [
+          "A",
+          8,
+          9
+        ]
+      ],
+      "rows": [
+        {
+          "name": "A",
+          "arrival": 0,
+          "burst": 5,
+          "completion": 9,
+          "turnaround": 9,
+          "waiting": 4,
+          "response": 0
+        },
+        {
+          "name": "B",
+          "arrival": 1,
+          "burst": 3,
+          "completion": 5,
+          "turnaround": 4,
+          "waiting": 1,
+          "response": 0
+        },
+        {
+          "name": "C",
+          "arrival": 2,
+          "burst": 1,
+          "completion": 3,
+          "turnaround": 1,
+          "waiting": 0,
+          "response": 0
+        }
+      ],
+      "mean_waiting": 1.6666666666666667
+    },
+    "rr": {
+      "timeline": [
+        [
+          "A",
+          0,
+          2
+        ],
+        [
+          "B",
+          2,
+          4
+        ],
+        [
+          "C",
+          4,
+          5
+        ],
+        [
+          "A",
+          5,
+          7
+        ],
+        [
+          "B",
+          7,
+          8
+        ],
+        [
+          "A",
+          8,
+          9
+        ]
+      ],
+      "rows": [
+        {
+          "name": "A",
+          "arrival": 0,
+          "burst": 5,
+          "completion": 9,
+          "turnaround": 9,
+          "waiting": 4,
+          "response": 0
+        },
+        {
+          "name": "B",
+          "arrival": 1,
+          "burst": 3,
+          "completion": 8,
+          "turnaround": 7,
+          "waiting": 4,
+          "response": 1
+        },
+        {
+          "name": "C",
+          "arrival": 2,
+          "burst": 1,
+          "completion": 5,
+          "turnaround": 3,
+          "waiting": 2,
+          "response": 2
+        }
+      ],
+      "mean_waiting": 3.3333333333333335
+    }
+  },
+  "refs": [
+    1,
+    2,
+    3,
+    4,
+    1,
+    2,
+    5,
+    1,
+    2,
+    3,
+    4,
+    5
+  ],
+  "replacement": {
+    "fifo_3": {
+      "faults": 9,
+      "trace": [
+        {
+          "page": 1,
+          "frames": [
+            1
+          ],
+          "miss": true
+        },
+        {
+          "page": 2,
+          "frames": [
+            1,
+            2
+          ],
+          "miss": true
+        },
+        {
+          "page": 3,
+          "frames": [
+            1,
+            2,
+            3
+          ],
+          "miss": true
+        },
+        {
+          "page": 4,
+          "frames": [
+            2,
+            3,
+            4
+          ],
+          "miss": true
+        },
+        {
+          "page": 1,
+          "frames": [
+            3,
+            4,
+            1
+          ],
+          "miss": true
+        },
+        {
+          "page": 2,
+          "frames": [
+            4,
+            1,
+            2
+          ],
+          "miss": true
+        },
+        {
+          "page": 5,
+          "frames": [
+            1,
+            2,
+            5
+          ],
+          "miss": true
+        },
+        {
+          "page": 1,
+          "frames": [
+            1,
+            2,
+            5
+          ],
+          "miss": false
+        },
+        {
+          "page": 2,
+          "frames": [
+            1,
+            2,
+            5
+          ],
+          "miss": false
+        },
+        {
+          "page": 3,
+          "frames": [
+            2,
+            5,
+            3
+          ],
+          "miss": true
+        },
+        {
+          "page": 4,
+          "frames": [
+            5,
+            3,
+            4
+          ],
+          "miss": true
+        },
+        {
+          "page": 5,
+          "frames": [
+            5,
+            3,
+            4
+          ],
+          "miss": false
+        }
+      ]
+    },
+    "fifo_4": {
+      "faults": 10,
+      "trace": [
+        {
+          "page": 1,
+          "frames": [
+            1
+          ],
+          "miss": true
+        },
+        {
+          "page": 2,
+          "frames": [
+            1,
+            2
+          ],
+          "miss": true
+        },
+        {
+          "page": 3,
+          "frames": [
+            1,
+            2,
+            3
+          ],
+          "miss": true
+        },
+        {
+          "page": 4,
+          "frames": [
+            1,
+            2,
+            3,
+            4
+          ],
+          "miss": true
+        },
+        {
+          "page": 1,
+          "frames": [
+            1,
+            2,
+            3,
+            4
+          ],
+          "miss": false
+        },
+        {
+          "page": 2,
+          "frames": [
+            1,
+            2,
+            3,
+            4
+          ],
+          "miss": false
+        },
+        {
+          "page": 5,
+          "frames": [
+            2,
+            3,
+            4,
+            5
+          ],
+          "miss": true
+        },
+        {
+          "page": 1,
+          "frames": [
+            3,
+            4,
+            5,
+            1
+          ],
+          "miss": true
+        },
+        {
+          "page": 2,
+          "frames": [
+            4,
+            5,
+            1,
+            2
+          ],
+          "miss": true
+        },
+        {
+          "page": 3,
+          "frames": [
+            5,
+            1,
+            2,
+            3
+          ],
+          "miss": true
+        },
+        {
+          "page": 4,
+          "frames": [
+            1,
+            2,
+            3,
+            4
+          ],
+          "miss": true
+        },
+        {
+          "page": 5,
+          "frames": [
+            2,
+            3,
+            4,
+            5
+          ],
+          "miss": true
+        }
+      ]
+    },
+    "lru_3": {
+      "faults": 10,
+      "trace": [
+        {
+          "page": 1,
+          "frames": [
+            1
+          ],
+          "miss": true
+        },
+        {
+          "page": 2,
+          "frames": [
+            1,
+            2
+          ],
+          "miss": true
+        },
+        {
+          "page": 3,
+          "frames": [
+            1,
+            2,
+            3
+          ],
+          "miss": true
+        },
+        {
+          "page": 4,
+          "frames": [
+            2,
+            3,
+            4
+          ],
+          "miss": true
+        },
+        {
+          "page": 1,
+          "frames": [
+            3,
+            4,
+            1
+          ],
+          "miss": true
+        },
+        {
+          "page": 2,
+          "frames": [
+            4,
+            1,
+            2
+          ],
+          "miss": true
+        },
+        {
+          "page": 5,
+          "frames": [
+            1,
+            2,
+            5
+          ],
+          "miss": true
+        },
+        {
+          "page": 1,
+          "frames": [
+            1,
+            2,
+            5
+          ],
+          "miss": false
+        },
+        {
+          "page": 2,
+          "frames": [
+            1,
+            2,
+            5
+          ],
+          "miss": false
+        },
+        {
+          "page": 3,
+          "frames": [
+            1,
+            2,
+            3
+          ],
+          "miss": true
+        },
+        {
+          "page": 4,
+          "frames": [
+            2,
+            3,
+            4
+          ],
+          "miss": true
+        },
+        {
+          "page": 5,
+          "frames": [
+            3,
+            4,
+            5
+          ],
+          "miss": true
+        }
+      ]
+    },
+    "opt_3": {
+      "faults": 7,
+      "trace": [
+        {
+          "page": 1,
+          "frames": [
+            1
+          ],
+          "miss": true
+        },
+        {
+          "page": 2,
+          "frames": [
+            1,
+            2
+          ],
+          "miss": true
+        },
+        {
+          "page": 3,
+          "frames": [
+            1,
+            2,
+            3
+          ],
+          "miss": true
+        },
+        {
+          "page": 4,
+          "frames": [
+            1,
+            2,
+            4
+          ],
+          "miss": true
+        },
+        {
+          "page": 1,
+          "frames": [
+            1,
+            2,
+            4
+          ],
+          "miss": false
+        },
+        {
+          "page": 2,
+          "frames": [
+            1,
+            2,
+            4
+          ],
+          "miss": false
+        },
+        {
+          "page": 5,
+          "frames": [
+            1,
+            2,
+            5
+          ],
+          "miss": true
+        },
+        {
+          "page": 1,
+          "frames": [
+            1,
+            2,
+            5
+          ],
+          "miss": false
+        },
+        {
+          "page": 2,
+          "frames": [
+            1,
+            2,
+            5
+          ],
+          "miss": false
+        },
+        {
+          "page": 3,
+          "frames": [
+            2,
+            5,
+            3
+          ],
+          "miss": true
+        },
+        {
+          "page": 4,
+          "frames": [
+            5,
+            3,
+            4
+          ],
+          "miss": true
+        },
+        {
+          "page": 5,
+          "frames": [
+            5,
+            3,
+            4
+          ],
+          "miss": false
+        }
+      ]
+    }
+  },
+  "banker": {
+    "available": 1,
+    "allocation": [
+      1,
+      1,
+      1
+    ],
+    "maximum": [
+      3,
+      2,
+      3
+    ],
+    "need": [
+      2,
+      1,
+      2
+    ],
+    "safe_sequence": [
+      "B",
+      "A",
+      "C"
+    ],
+    "work": [
+      1,
+      2,
+      3,
+      4
+    ]
+  },
+  "counter_initial": 10,
+  "counter_lost": 11,
+  "counter_correct": 12,
+  "permissions": [
+    "7 = 4 + 2 + 1",
+    "5 = 4 + 1",
+    "5 = 4 + 1"
+  ],
+  "cache_line_bytes": 64,
+  "counter_bytes": 8,
+  "counters_per_line": 8,
+  "connections": 1000,
+  "idle": 980,
+  "ready": 20,
+  "fd_limit": 1024,
+  "reserved_fd": 24,
+  "connection_capacity": 1000,
+  "quantum_ms": 2,
+  "switch_ms": 0.1,
+  "switch_fraction": 0.047619047619047616,
+  "quota_ms": 50,
+  "period_ms": 100,
+  "cpu_fraction": 0.5,
+  "tlb_hit_ns": 110,
+  "tlb_miss_ns": 210,
+  "quota_cpu_fraction": 0.5,
+  "quota_host_fraction": 0.25,
+  "quota_parallel_wall_ms": 25,
+  "throttled_wall_ms": 75,
+  "pending_worker_jobs": 18,
+  "fd_headroom": 0,
+  "permission_owner": 7,
+  "permission_group": 5,
+  "schedule_means": {
+    "fcfs": 3.333333,
+    "sjf": 2.666667,
+    "srtf": 1.666667,
+    "rr": 3.333333
+  },
+  "switch_fraction_rounded": 0.047619,
+  "switch_percent_rounded": 4.761905,
+  "fifo_hit_positions": {
+    "3": [
+      8,
+      9,
+      12
+    ],
+    "4": [
+      5,
+      6
+    ]
+  },
+  "exercises": {
+    "E1": 980,
+    "E2": 37972,
+    "E3": 4194304,
+    "E4": 120,
+    "E5": 9,
+    "E6": 1,
+    "E7": 36864,
+    "E8": 2288,
+    "E9": 1000,
+    "E10": [
+      0.5,
+      0.25
+    ],
+    "E11": [
+      0,
+      4,
+      6
+    ],
+    "E12": [
+      "C",
+      "B",
+      "A"
+    ],
+    "E16": [
+      9,
+      10
+    ],
+    "E18": 12,
+    "E21": [
+      32768,
+      36864
+    ],
+    "E22": [
+      5,
+      7,
+      7
+    ],
+    "E23": [
+      4,
+      1,
+      0
+    ],
+    "E25": [
+      1000,
+      0,
+      18,
+      0.5,
+      0.25,
+      25,
+      75
+    ]
+  }
+}

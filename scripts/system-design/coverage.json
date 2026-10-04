@@ -1,0 +1,3733 @@
+{
+  "syllabus": "sysdzn.md",
+  "topics": [
+    {
+      "unit": "networking",
+      "topic": "HTTP/1.1",
+      "location": {
+        "file": "src/content/system-design/networking/02-http-and-encryption.md",
+        "line": 19,
+        "section": "8. HTTP/1.1 and ordered responses"
+      }
+    },
+    {
+      "unit": "networking",
+      "topic": "HTTP/2",
+      "location": {
+        "file": "src/content/system-design/networking/02-http-and-encryption.md",
+        "line": 33,
+        "section": "9. HTTP/2 frames and streams"
+      }
+    },
+    {
+      "unit": "networking",
+      "topic": "HTTP/3",
+      "location": {
+        "file": "src/content/system-design/networking/02-http-and-encryption.md",
+        "line": 53,
+        "section": "10. HTTP/3 and independent stream delivery"
+      }
+    },
+    {
+      "unit": "networking",
+      "topic": "TCP",
+      "location": {
+        "file": "src/content/system-design/networking/01-names-and-addresses.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "networking",
+      "topic": "UDP",
+      "location": {
+        "file": "src/content/system-design/networking/01-names-and-addresses.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "networking",
+      "topic": "DNS",
+      "location": {
+        "file": "src/content/system-design/networking/01-names-and-addresses.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "networking",
+      "topic": "TLS",
+      "location": {
+        "file": "src/content/system-design/networking/02-http-and-encryption.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "networking",
+      "topic": "HTTPS",
+      "location": {
+        "file": "src/content/system-design/networking/02-http-and-encryption.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "networking",
+      "topic": "WebSocket",
+      "location": {
+        "file": "src/content/system-design/networking/01-names-and-addresses.md",
+        "line": 57,
+        "section": "3. TTL, expiry, and deployment changes"
+      }
+    },
+    {
+      "unit": "networking",
+      "topic": "SSE",
+      "location": {
+        "file": "src/content/system-design/networking/01-names-and-addresses.md",
+        "line": 20,
+        "section": "1. The first request starts before HTTP"
+      }
+    },
+    {
+      "unit": "networking",
+      "topic": "gRPC",
+      "location": {
+        "file": "src/content/system-design/networking/03-application-conversations.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "networking",
+      "topic": "REST",
+      "location": {
+        "file": "src/content/system-design/networking/03-application-conversations.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "networking",
+      "topic": "reverse proxy",
+      "location": {
+        "file": "src/content/system-design/networking/04-proxies-and-connection-lifetimes.md",
+        "line": 3,
+        "section": "17. A reverse proxy represents the backend"
+      }
+    },
+    {
+      "unit": "networking",
+      "topic": "L4",
+      "location": {
+        "file": "src/content/system-design/networking/04-proxies-and-connection-lifetimes.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "networking",
+      "topic": "L7",
+      "location": {
+        "file": "src/content/system-design/networking/04-proxies-and-connection-lifetimes.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "networking",
+      "topic": "connection pool",
+      "location": {
+        "file": "src/content/system-design/networking/04-proxies-and-connection-lifetimes.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "networking",
+      "topic": "keep-alive",
+      "location": {
+        "file": "src/content/system-design/networking/04-proxies-and-connection-lifetimes.md",
+        "line": 37,
+        "section": "19. Keep-alive reuses a connection, not a result"
+      }
+    },
+    {
+      "unit": "networking",
+      "topic": "timeout",
+      "location": {
+        "file": "src/content/system-design/networking/01-names-and-addresses.md",
+        "line": 9,
+        "section": "1. The first request starts before HTTP"
+      }
+    },
+    {
+      "unit": "networking",
+      "topic": "retry",
+      "location": {
+        "file": "src/content/system-design/networking/01-names-and-addresses.md",
+        "line": 29,
+        "section": "2. A DNS lookup, message by message"
+      }
+    },
+    {
+      "unit": "networking",
+      "topic": "exponential backoff",
+      "location": {
+        "file": "src/content/system-design/networking/05-waiting-and-trying-again.md",
+        "line": 53,
+        "section": "24. Exponential backoff slows repeated demand"
+      }
+    },
+    {
+      "unit": "networking",
+      "topic": "jitter",
+      "location": {
+        "file": "src/content/system-design/networking/04-proxies-and-connection-lifetimes.md",
+        "line": 49,
+        "section": "19. Keep-alive reuses a connection, not a result"
+      }
+    },
+    {
+      "unit": "networking",
+      "topic": "idempotency",
+      "location": {
+        "file": "src/content/system-design/networking/05-waiting-and-trying-again.md",
+        "line": 50,
+        "section": "23. Retrying begins with a failure classification"
+      }
+    },
+    {
+      "unit": "networking",
+      "topic": "long polling",
+      "location": {
+        "file": "src/content/system-design/networking/06-duplicates-and-update-delivery.md",
+        "line": 55,
+        "section": "29. Polling, long polling, and push spend different resources"
+      }
+    },
+    {
+      "unit": "networking",
+      "topic": "polling",
+      "location": {
+        "file": "src/content/system-design/networking/06-duplicates-and-update-delivery.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "networking",
+      "topic": "push",
+      "location": {
+        "file": "src/content/system-design/networking/06-duplicates-and-update-delivery.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "performance",
+      "topic": "latency",
+      "location": {
+        "file": "src/content/system-design/performance/01-demand-and-completion.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "performance",
+      "topic": "throughput",
+      "location": {
+        "file": "src/content/system-design/performance/01-demand-and-completion.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "performance",
+      "topic": "p50",
+      "location": {
+        "file": "src/content/system-design/performance/02-the-tail-of-the-distribution.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "performance",
+      "topic": "p95",
+      "location": {
+        "file": "src/content/system-design/performance/02-the-tail-of-the-distribution.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "performance",
+      "topic": "p99",
+      "location": {
+        "file": "src/content/system-design/performance/01-demand-and-completion.md",
+        "line": 59,
+        "section": "4. Concurrency and Little's law"
+      }
+    },
+    {
+      "unit": "performance",
+      "topic": "IOPS",
+      "location": {
+        "file": "src/content/system-design/performance/03-bytes-and-storage-operations.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "performance",
+      "topic": "bandwidth",
+      "location": {
+        "file": "src/content/system-design/performance/03-bytes-and-storage-operations.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "performance",
+      "topic": "CPU-bound",
+      "location": {
+        "file": "src/content/system-design/performance/04-the-limiting-resource.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "performance",
+      "topic": "I/O-bound",
+      "location": {
+        "file": "src/content/system-design/performance/04-the-limiting-resource.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "performance",
+      "topic": "network-bound",
+      "location": {
+        "file": "src/content/system-design/performance/04-the-limiting-resource.md",
+        "line": 25,
+        "section": "17. I/O-bound work and useful overlap"
+      }
+    },
+    {
+      "unit": "performance",
+      "topic": "horizontal",
+      "location": {
+        "file": "src/content/system-design/performance/01-demand-and-completion.md",
+        "line": 73,
+        "section": "5. Concurrency budgets and connection pools"
+      }
+    },
+    {
+      "unit": "performance",
+      "topic": "vertical",
+      "location": {
+        "file": "src/content/system-design/performance/05-scaling-and-serial-work.md",
+        "line": 3,
+        "section": "21. Vertical versus horizontal scaling"
+      }
+    },
+    {
+      "unit": "performance",
+      "topic": "Amdahl",
+      "location": {
+        "file": "src/content/system-design/performance/05-scaling-and-serial-work.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "performance",
+      "topic": "backpressure",
+      "location": {
+        "file": "src/content/system-design/performance/06-queue-growth-and-backpressure.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "performance",
+      "topic": "queueing",
+      "location": {
+        "file": "src/content/system-design/performance/01-demand-and-completion.md",
+        "line": 11,
+        "section": "1. Latency versus throughput"
+      }
+    },
+    {
+      "unit": "performance",
+      "topic": "bottleneck",
+      "location": {
+        "file": "src/content/system-design/performance/02-the-tail-of-the-distribution.md",
+        "line": 35,
+        "section": "8. Measurement bias under overload"
+      }
+    },
+    {
+      "unit": "performance",
+      "topic": "QPS",
+      "location": {
+        "file": "src/content/system-design/performance/01-demand-and-completion.md",
+        "line": 35,
+        "section": "3. Daily averages and peak demand"
+      }
+    },
+    {
+      "unit": "performance",
+      "topic": "storage",
+      "location": {
+        "file": "src/content/system-design/performance/01-demand-and-completion.md",
+        "line": 69,
+        "section": "5. Concurrency budgets and connection pools"
+      }
+    },
+    {
+      "unit": "performance",
+      "topic": "cache size",
+      "location": {
+        "file": "src/content/system-design/performance/03-bytes-and-storage-operations.md",
+        "line": 59,
+        "section": "15. Cache size and the working set"
+      }
+    },
+    {
+      "unit": "performance",
+      "topic": "peak",
+      "location": {
+        "file": "src/content/system-design/performance/01-demand-and-completion.md",
+        "line": 13,
+        "section": "1. Latency versus throughput"
+      }
+    },
+    {
+      "unit": "performance",
+      "topic": "concurrency",
+      "location": {
+        "file": "src/content/system-design/performance/01-demand-and-completion.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "databases",
+      "topic": "table",
+      "location": {
+        "file": "src/content/system-design/databases/01-records-and-constraints.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "databases",
+      "topic": "row",
+      "location": {
+        "file": "src/content/system-design/databases/01-records-and-constraints.md",
+        "line": 3,
+        "section": "1. Tables, rows, and the facts we store"
+      }
+    },
+    {
+      "unit": "databases",
+      "topic": "index",
+      "location": {
+        "file": "src/content/system-design/databases/01-records-and-constraints.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "databases",
+      "topic": "primary key",
+      "location": {
+        "file": "src/content/system-design/databases/01-records-and-constraints.md",
+        "line": 26,
+        "section": "2. Primary keys and the duplicate-insert race"
+      }
+    },
+    {
+      "unit": "databases",
+      "topic": "foreign key",
+      "location": {
+        "file": "src/content/system-design/databases/01-records-and-constraints.md",
+        "line": 42,
+        "section": "3. Foreign keys and nullable references"
+      }
+    },
+    {
+      "unit": "databases",
+      "topic": "B-tree",
+      "location": {
+        "file": "src/content/system-design/databases/02-useful-index-order.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "databases",
+      "topic": "B+ tree",
+      "location": {
+        "file": "src/content/system-design/databases/02-useful-index-order.md",
+        "line": 23,
+        "section": "6. B+ trees put range results together"
+      }
+    },
+    {
+      "unit": "databases",
+      "topic": "composite",
+      "location": {
+        "file": "src/content/system-design/databases/01-records-and-constraints.md",
+        "line": 9,
+        "section": "1. Tables, rows, and the facts we store"
+      }
+    },
+    {
+      "unit": "databases",
+      "topic": "covering",
+      "location": {
+        "file": "src/content/system-design/databases/02-useful-index-order.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "databases",
+      "topic": "clustered",
+      "location": {
+        "file": "src/content/system-design/databases/02-useful-index-order.md",
+        "line": 84,
+        "section": "9. Clustered organization changes the second hop"
+      }
+    },
+    {
+      "unit": "databases",
+      "topic": "non-clustered",
+      "location": {
+        "file": "src/content/system-design/databases/02-useful-index-order.md",
+        "line": 86,
+        "section": "9. Clustered organization changes the second hop"
+      }
+    },
+    {
+      "unit": "databases",
+      "topic": "query execution",
+      "location": {
+        "file": "src/content/system-design/databases/03-query-execution.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "databases",
+      "topic": "join",
+      "location": {
+        "file": "src/content/system-design/databases/03-query-execution.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "databases",
+      "topic": "transaction",
+      "location": {
+        "file": "src/content/system-design/databases/01-records-and-constraints.md",
+        "line": 32,
+        "section": "2. Primary keys and the duplicate-insert race"
+      }
+    },
+    {
+      "unit": "databases",
+      "topic": "ACID",
+      "location": {
+        "file": "src/content/system-design/databases/04-transactions-and-anomalies.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "databases",
+      "topic": "isolation",
+      "location": {
+        "file": "src/content/system-design/databases/04-transactions-and-anomalies.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "databases",
+      "topic": "dirty",
+      "location": {
+        "file": "src/content/system-design/databases/04-transactions-and-anomalies.md",
+        "line": 55,
+        "section": "18. Isolation levels describe allowed histories"
+      }
+    },
+    {
+      "unit": "databases",
+      "topic": "non-repeatable",
+      "location": {
+        "file": "src/content/system-design/databases/04-transactions-and-anomalies.md",
+        "line": 70,
+        "section": "19. Dirty, non-repeatable, and phantom reads"
+      }
+    },
+    {
+      "unit": "databases",
+      "topic": "phantom",
+      "location": {
+        "file": "src/content/system-design/databases/04-transactions-and-anomalies.md",
+        "line": 57,
+        "section": "18. Isolation levels describe allowed histories"
+      }
+    },
+    {
+      "unit": "databases",
+      "topic": "MVCC",
+      "location": {
+        "file": "src/content/system-design/databases/05-versions-locks-and-recovery.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "databases",
+      "topic": "lock",
+      "location": {
+        "file": "src/content/system-design/databases/04-transactions-and-anomalies.md",
+        "line": 39,
+        "section": "17. Isolation and durability need explicit contracts"
+      }
+    },
+    {
+      "unit": "databases",
+      "topic": "deadlock",
+      "location": {
+        "file": "src/content/system-design/databases/05-versions-locks-and-recovery.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "databases",
+      "topic": "WAL",
+      "location": {
+        "file": "src/content/system-design/databases/02-useful-index-order.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "databases",
+      "topic": "connection pool",
+      "location": {
+        "file": "src/content/system-design/databases/06-write-ahead-and-recovery.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "databases",
+      "topic": "read replica",
+      "location": {
+        "file": "src/content/system-design/databases/07-copies-and-visibility.md",
+        "line": 5,
+        "section": "28. Leaders order writes and followers copy history"
+      }
+    },
+    {
+      "unit": "databases",
+      "topic": "leader",
+      "location": {
+        "file": "src/content/system-design/databases/07-copies-and-visibility.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "databases",
+      "topic": "follower",
+      "location": {
+        "file": "src/content/system-design/databases/07-copies-and-visibility.md",
+        "line": 3,
+        "section": "28. Leaders order writes and followers copy history"
+      }
+    },
+    {
+      "unit": "databases",
+      "topic": "synchronous",
+      "location": {
+        "file": "src/content/system-design/databases/04-transactions-and-anomalies.md",
+        "line": 41,
+        "section": "17. Isolation and durability need explicit contracts"
+      }
+    },
+    {
+      "unit": "databases",
+      "topic": "asynchronous",
+      "location": {
+        "file": "src/content/system-design/databases/07-copies-and-visibility.md",
+        "line": 13,
+        "section": "28. Leaders order writes and followers copy history"
+      }
+    },
+    {
+      "unit": "databases",
+      "topic": "replication lag",
+      "location": {
+        "file": "src/content/system-design/databases/07-copies-and-visibility.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "databases",
+      "topic": "partition",
+      "location": {
+        "file": "src/content/system-design/databases/03-query-execution.md",
+        "line": 68,
+        "section": "13. Hash joins build once and probe many times"
+      }
+    },
+    {
+      "unit": "databases",
+      "topic": "shard",
+      "location": {
+        "file": "src/content/system-design/databases/08-partitions-and-the-complete-write.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "databases",
+      "topic": "reshard",
+      "location": {
+        "file": "src/content/system-design/databases/08-partitions-and-the-complete-write.md",
+        "line": 31,
+        "section": "33. Resharding is a transfer of authority"
+      }
+    },
+    {
+      "unit": "databases",
+      "topic": "hot partition",
+      "location": {
+        "file": "src/content/system-design/databases/08-partitions-and-the-complete-write.md",
+        "line": 49,
+        "section": "34. Hot partitions preserve their heat after hashing"
+      }
+    },
+    {
+      "unit": "databases",
+      "topic": "consistent hashing",
+      "location": {
+        "file": "src/content/system-design/databases/08-partitions-and-the-complete-write.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "nosql",
+      "topic": "key-value",
+      "location": {
+        "file": "src/content/system-design/nosql/02-key-value-records.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "nosql",
+      "topic": "Redis",
+      "location": {
+        "file": "src/content/system-design/nosql/02-key-value-records.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "nosql",
+      "topic": "DynamoDB",
+      "location": {
+        "file": "src/content/system-design/nosql/02-key-value-records.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "nosql",
+      "topic": "document",
+      "location": {
+        "file": "src/content/system-design/nosql/01-the-query-comes-first.md",
+        "line": 23,
+        "section": "2. Keys turn questions into bounded work"
+      }
+    },
+    {
+      "unit": "nosql",
+      "topic": "MongoDB",
+      "location": {
+        "file": "src/content/system-design/nosql/03-documents.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "nosql",
+      "topic": "wide-column",
+      "location": {
+        "file": "src/content/system-design/nosql/04-wide-column-records.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "nosql",
+      "topic": "Cassandra",
+      "location": {
+        "file": "src/content/system-design/nosql/04-wide-column-records.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "nosql",
+      "topic": "Bigtable",
+      "location": {
+        "file": "src/content/system-design/nosql/04-wide-column-records.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "nosql",
+      "topic": "graph",
+      "location": {
+        "file": "src/content/system-design/nosql/01-the-query-comes-first.md",
+        "line": 21,
+        "section": "2. Keys turn questions into bounded work"
+      }
+    },
+    {
+      "unit": "nosql",
+      "topic": "Neo4j",
+      "location": {
+        "file": "src/content/system-design/nosql/05-graph-relationships.md",
+        "line": 11,
+        "section": "21. Nodes, edges, and properties"
+      }
+    },
+    {
+      "unit": "nosql",
+      "topic": "access pattern",
+      "location": {
+        "file": "src/content/system-design/nosql/01-the-query-comes-first.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "nosql",
+      "topic": "denormalization",
+      "location": {
+        "file": "src/content/system-design/nosql/01-the-query-comes-first.md",
+        "line": 39,
+        "section": "4. Denormalization and copied facts"
+      }
+    },
+    {
+      "unit": "nosql",
+      "topic": "secondary index",
+      "location": {
+        "file": "src/content/system-design/nosql/02-key-value-records.md",
+        "line": 57,
+        "section": "10. DynamoDB-style partitioned access"
+      }
+    },
+    {
+      "unit": "nosql",
+      "topic": "eventual consistency",
+      "location": {
+        "file": "src/content/system-design/nosql/06-copies-and-consistency.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "nosql",
+      "topic": "quorum",
+      "location": {
+        "file": "src/content/system-design/nosql/06-copies-and-consistency.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "nosql",
+      "topic": "replication factor",
+      "location": {
+        "file": "src/content/system-design/nosql/06-copies-and-consistency.md",
+        "line": 52,
+        "section": "30. Quorum reads, writes, and replication factor"
+      }
+    },
+    {
+      "unit": "nosql",
+      "topic": "partition key",
+      "location": {
+        "file": "src/content/system-design/nosql/02-key-value-records.md",
+        "line": 53,
+        "section": "10. DynamoDB-style partitioned access"
+      }
+    },
+    {
+      "unit": "nosql",
+      "topic": "SQL",
+      "location": {
+        "file": "src/content/system-design/nosql/01-the-query-comes-first.md",
+        "line": 13,
+        "section": "1. Access-pattern-driven schema design"
+      }
+    },
+    {
+      "unit": "nosql",
+      "topic": "operational",
+      "location": {
+        "file": "src/content/system-design/nosql/07-a-complete-data-model.md",
+        "line": 43,
+        "section": "33. Count messages, storage, and recovery work"
+      }
+    },
+    {
+      "unit": "distributed-systems",
+      "topic": "CAP",
+      "location": {
+        "file": "src/content/system-design/distributed-systems/01-partitions-and-promises.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "distributed-systems",
+      "topic": "partition tolerance",
+      "location": {
+        "file": "src/content/system-design/distributed-systems/01-partitions-and-promises.md",
+        "line": 13,
+        "section": "1. A network can fail between living machines"
+      }
+    },
+    {
+      "unit": "distributed-systems",
+      "topic": "consistency",
+      "location": {
+        "file": "src/content/system-design/distributed-systems/01-partitions-and-promises.md",
+        "line": 29,
+        "section": "2. CAP begins with an impossible read"
+      }
+    },
+    {
+      "unit": "distributed-systems",
+      "topic": "availability",
+      "location": {
+        "file": "src/content/system-design/distributed-systems/01-partitions-and-promises.md",
+        "line": 25,
+        "section": "2. CAP begins with an impossible read"
+      }
+    },
+    {
+      "unit": "distributed-systems",
+      "topic": "strong consistency",
+      "location": {
+        "file": "src/content/system-design/distributed-systems/01-partitions-and-promises.md",
+        "line": 25,
+        "section": "2. CAP begins with an impossible read"
+      }
+    },
+    {
+      "unit": "distributed-systems",
+      "topic": "eventual consistency",
+      "location": {
+        "file": "src/content/system-design/distributed-systems/02-observable-histories.md",
+        "line": 25,
+        "section": "6. Eventual convergence needs a repair mechanism"
+      }
+    },
+    {
+      "unit": "distributed-systems",
+      "topic": "causal consistency",
+      "location": {
+        "file": "src/content/system-design/distributed-systems/02-observable-histories.md",
+        "line": 43,
+        "section": "7. Causal order follows dependencies"
+      }
+    },
+    {
+      "unit": "distributed-systems",
+      "topic": "read-your-writes",
+      "location": {
+        "file": "src/content/system-design/distributed-systems/02-observable-histories.md",
+        "line": 61,
+        "section": "8. A session receipt carries a minimum position"
+      }
+    },
+    {
+      "unit": "distributed-systems",
+      "topic": "monotonic reads",
+      "location": {
+        "file": "src/content/system-design/distributed-systems/02-observable-histories.md",
+        "line": 61,
+        "section": "8. A session receipt carries a minimum position"
+      }
+    },
+    {
+      "unit": "distributed-systems",
+      "topic": "leader/follower",
+      "location": {
+        "file": "src/content/system-design/distributed-systems/03-replica-architectures.md",
+        "line": 7,
+        "section": "9. One leader gives writes an ordering point"
+      }
+    },
+    {
+      "unit": "distributed-systems",
+      "topic": "multi-leader",
+      "location": {
+        "file": "src/content/system-design/distributed-systems/03-replica-architectures.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "distributed-systems",
+      "topic": "leaderless",
+      "location": {
+        "file": "src/content/system-design/distributed-systems/03-replica-architectures.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "distributed-systems",
+      "topic": "replication lag",
+      "location": {
+        "file": "src/content/system-design/distributed-systems/03-replica-architectures.md",
+        "line": 11,
+        "section": "9. One leader gives writes an ordering point"
+      }
+    },
+    {
+      "unit": "distributed-systems",
+      "topic": "failover",
+      "location": {
+        "file": "src/content/system-design/distributed-systems/02-observable-histories.md",
+        "line": 65,
+        "section": "8. A session receipt carries a minimum position"
+      }
+    },
+    {
+      "unit": "distributed-systems",
+      "topic": "split brain",
+      "location": {
+        "file": "src/content/system-design/distributed-systems/07-coordination-services.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "distributed-systems",
+      "topic": "quorum",
+      "location": {
+        "file": "src/content/system-design/distributed-systems/01-partitions-and-promises.md",
+        "line": 31,
+        "section": "2. CAP begins with an impossible read"
+      }
+    },
+    {
+      "unit": "distributed-systems",
+      "topic": "leader election",
+      "location": {
+        "file": "src/content/system-design/distributed-systems/06-raft-log-safety.md",
+        "line": 7,
+        "section": "21. Election terms distinguish leadership attempts"
+      }
+    },
+    {
+      "unit": "distributed-systems",
+      "topic": "distributed lock",
+      "location": {
+        "file": "src/content/system-design/distributed-systems/04-detection-and-ownership.md",
+        "line": 25,
+        "section": "14. A lease expires while its holder is paused"
+      }
+    },
+    {
+      "unit": "distributed-systems",
+      "topic": "lease",
+      "location": {
+        "file": "src/content/system-design/distributed-systems/02-observable-histories.md",
+        "line": 51,
+        "section": "7. Causal order follows dependencies"
+      }
+    },
+    {
+      "unit": "distributed-systems",
+      "topic": "heartbeat",
+      "location": {
+        "file": "src/content/system-design/distributed-systems/04-detection-and-ownership.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "distributed-systems",
+      "topic": "failure detection",
+      "location": {
+        "file": "src/content/system-design/distributed-systems/04-detection-and-ownership.md",
+        "line": 7,
+        "section": "13. Heartbeats measure recent contact"
+      }
+    },
+    {
+      "unit": "distributed-systems",
+      "topic": "consensus",
+      "location": {
+        "file": "src/content/system-design/distributed-systems/05-consensus.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "distributed-systems",
+      "topic": "Raft",
+      "location": {
+        "file": "src/content/system-design/distributed-systems/03-replica-architectures.md",
+        "line": 15,
+        "section": "9. One leader gives writes an ordering point"
+      }
+    },
+    {
+      "unit": "distributed-systems",
+      "topic": "ZooKeeper",
+      "location": {
+        "file": "src/content/system-design/distributed-systems/07-coordination-services.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "distributed-systems",
+      "topic": "etcd",
+      "location": {
+        "file": "src/content/system-design/distributed-systems/07-coordination-services.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "caching",
+      "topic": "local",
+      "location": {
+        "file": "src/content/system-design/caching/01-the-cache-boundary.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "caching",
+      "topic": "in-process",
+      "location": {
+        "file": "src/content/system-design/caching/01-the-cache-boundary.md",
+        "line": 23,
+        "section": "2. Local caches trade network waits for duplicate state"
+      }
+    },
+    {
+      "unit": "caching",
+      "topic": "distributed cache",
+      "location": {
+        "file": "src/content/system-design/caching/01-the-cache-boundary.md",
+        "line": 39,
+        "section": "3. Shared caches add a service boundary"
+      }
+    },
+    {
+      "unit": "caching",
+      "topic": "CDN",
+      "location": {
+        "file": "src/content/system-design/caching/01-the-cache-boundary.md",
+        "line": 61,
+        "section": "4. Response layers and keys define what can be reused"
+      }
+    },
+    {
+      "unit": "caching",
+      "topic": "browser cache",
+      "location": {
+        "file": "src/content/system-design/caching/01-the-cache-boundary.md",
+        "line": 61,
+        "section": "4. Response layers and keys define what can be reused"
+      }
+    },
+    {
+      "unit": "caching",
+      "topic": "buffer cache",
+      "location": {
+        "file": "src/content/system-design/caching/01-the-cache-boundary.md",
+        "line": 61,
+        "section": "4. Response layers and keys define what can be reused"
+      }
+    },
+    {
+      "unit": "caching",
+      "topic": "cache-aside",
+      "location": {
+        "file": "src/content/system-design/caching/02-read-paths.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "caching",
+      "topic": "read-through",
+      "location": {
+        "file": "src/content/system-design/caching/02-read-paths.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "caching",
+      "topic": "write-through",
+      "location": {
+        "file": "src/content/system-design/caching/03-write-paths.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "caching",
+      "topic": "write-behind",
+      "location": {
+        "file": "src/content/system-design/caching/03-write-paths.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "caching",
+      "topic": "invalidation",
+      "location": {
+        "file": "src/content/system-design/caching/01-the-cache-boundary.md",
+        "line": 13,
+        "section": "1. A copy saves a particular kind of work"
+      }
+    },
+    {
+      "unit": "caching",
+      "topic": "stale data",
+      "location": {
+        "file": "src/content/system-design/caching/04-freshness-and-invalidation.md",
+        "line": 7,
+        "section": "13. TTL bounds copy age under an expiry rule"
+      }
+    },
+    {
+      "unit": "caching",
+      "topic": "TTL",
+      "location": {
+        "file": "src/content/system-design/caching/01-the-cache-boundary.md",
+        "line": 65,
+        "section": "4. Response layers and keys define what can be reused"
+      }
+    },
+    {
+      "unit": "caching",
+      "topic": "eviction",
+      "location": {
+        "file": "src/content/system-design/caching/03-write-paths.md",
+        "line": 65,
+        "section": "12. Delayed copy updates need version ordering"
+      }
+    },
+    {
+      "unit": "caching",
+      "topic": "LRU",
+      "location": {
+        "file": "src/content/system-design/caching/05-capacity-and-eviction.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "caching",
+      "topic": "LFU",
+      "location": {
+        "file": "src/content/system-design/caching/05-capacity-and-eviction.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "caching",
+      "topic": "stampede",
+      "location": {
+        "file": "src/content/system-design/caching/06-correlated-misses.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "caching",
+      "topic": "penetration",
+      "location": {
+        "file": "src/content/system-design/caching/02-read-paths.md",
+        "line": 69,
+        "section": "8. Loader errors must not become false absence"
+      }
+    },
+    {
+      "unit": "caching",
+      "topic": "avalanche",
+      "location": {
+        "file": "src/content/system-design/caching/06-correlated-misses.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "caching",
+      "topic": "hot key",
+      "location": {
+        "file": "src/content/system-design/caching/06-correlated-misses.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "caching",
+      "topic": "consistency",
+      "location": {
+        "file": "src/content/system-design/caching/01-the-cache-boundary.md",
+        "line": 43,
+        "section": "3. Shared caches add a service boundary"
+      }
+    },
+    {
+      "unit": "caching",
+      "topic": "Redis",
+      "location": {
+        "file": "src/content/system-design/caching/04-freshness-and-invalidation.md",
+        "line": 11,
+        "section": "13. TTL bounds copy age under an expiry rule"
+      }
+    },
+    {
+      "unit": "caching",
+      "topic": "failure",
+      "location": {
+        "file": "src/content/system-design/caching/01-the-cache-boundary.md",
+        "line": 74,
+        "section": "4. Response layers and keys define what can be reused"
+      }
+    },
+    {
+      "unit": "traffic-routing",
+      "topic": "reverse proxy",
+      "location": {
+        "file": "src/content/system-design/traffic-routing/01-the-public-entry-point.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "traffic-routing",
+      "topic": "API gateway",
+      "location": {
+        "file": "src/content/system-design/traffic-routing/01-the-public-entry-point.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "traffic-routing",
+      "topic": "L4",
+      "location": {
+        "file": "src/content/system-design/traffic-routing/02-routing-information.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "traffic-routing",
+      "topic": "L7",
+      "location": {
+        "file": "src/content/system-design/traffic-routing/02-routing-information.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "traffic-routing",
+      "topic": "load balancer",
+      "location": {
+        "file": "src/content/system-design/traffic-routing/01-the-public-entry-point.md",
+        "line": 25,
+        "section": "2. API gateways and routing policy"
+      }
+    },
+    {
+      "unit": "traffic-routing",
+      "topic": "round robin",
+      "location": {
+        "file": "src/content/system-design/traffic-routing/02-routing-information.md",
+        "line": 51,
+        "section": "7. HTTP/2 multiplexing and balancing units"
+      }
+    },
+    {
+      "unit": "traffic-routing",
+      "topic": "weighted",
+      "location": {
+        "file": "src/content/system-design/traffic-routing/03-stateless-balancing.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "traffic-routing",
+      "topic": "least connections",
+      "location": {
+        "file": "src/content/system-design/traffic-routing/02-routing-information.md",
+        "line": 41,
+        "section": "7. HTTP/2 multiplexing and balancing units"
+      }
+    },
+    {
+      "unit": "traffic-routing",
+      "topic": "consistent hashing",
+      "location": {
+        "file": "src/content/system-design/traffic-routing/04-affinity-and-hashing.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "traffic-routing",
+      "topic": "sticky session",
+      "location": {
+        "file": "src/content/system-design/traffic-routing/04-affinity-and-hashing.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "traffic-routing",
+      "topic": "health check",
+      "location": {
+        "file": "src/content/system-design/traffic-routing/05-health-and-discovery.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "traffic-routing",
+      "topic": "failover",
+      "location": {
+        "file": "src/content/system-design/traffic-routing/04-affinity-and-hashing.md",
+        "line": 59,
+        "section": "17. Affinity, failover and reconnect recovery"
+      }
+    },
+    {
+      "unit": "traffic-routing",
+      "topic": "service discovery",
+      "location": {
+        "file": "src/content/system-design/traffic-routing/06-regional-failure.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "traffic-routing",
+      "topic": "geographic",
+      "location": {
+        "file": "src/content/system-design/traffic-routing/07-the-complete-route.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "traffic-routing",
+      "topic": "DNS",
+      "location": {
+        "file": "src/content/system-design/traffic-routing/06-regional-failure.md",
+        "line": 35,
+        "section": "23. Client-side and proxy-side discovery"
+      }
+    },
+    {
+      "unit": "traffic-routing",
+      "topic": "edge",
+      "location": {
+        "file": "src/content/system-design/traffic-routing/01-the-public-entry-point.md",
+        "line": 49,
+        "section": "3. TLS termination and trusted forwarding headers"
+      }
+    },
+    {
+      "unit": "traffic-routing",
+      "topic": "application",
+      "location": {
+        "file": "src/content/system-design/traffic-routing/01-the-public-entry-point.md",
+        "line": 5,
+        "section": "1. Reverse proxies"
+      }
+    },
+    {
+      "unit": "queues",
+      "topic": "message queue",
+      "location": {
+        "file": "src/content/system-design/queues/01-moving-work-off-the-request.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "queues",
+      "topic": "pub/sub",
+      "location": {
+        "file": "src/content/system-design/queues/01-moving-work-off-the-request.md",
+        "line": 39,
+        "section": "3. Commands, events and jobs"
+      }
+    },
+    {
+      "unit": "queues",
+      "topic": "event stream",
+      "location": {
+        "file": "src/content/system-design/queues/02-queue-pub-sub-and-stream.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "queues",
+      "topic": "producer",
+      "location": {
+        "file": "src/content/system-design/queues/02-queue-pub-sub-and-stream.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "queues",
+      "topic": "consumer",
+      "location": {
+        "file": "src/content/system-design/queues/02-queue-pub-sub-and-stream.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "queues",
+      "topic": "consumer group",
+      "location": {
+        "file": "src/content/system-design/queues/03-partitions-and-progress.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "queues",
+      "topic": "partition",
+      "location": {
+        "file": "src/content/system-design/queues/02-queue-pub-sub-and-stream.md",
+        "line": 13,
+        "section": "5. Message queues and competing consumers"
+      }
+    },
+    {
+      "unit": "queues",
+      "topic": "ordering",
+      "location": {
+        "file": "src/content/system-design/queues/02-queue-pub-sub-and-stream.md",
+        "line": 9,
+        "section": "5. Message queues and competing consumers"
+      }
+    },
+    {
+      "unit": "queues",
+      "topic": "offset",
+      "location": {
+        "file": "src/content/system-design/queues/02-queue-pub-sub-and-stream.md",
+        "line": 71,
+        "section": "8. Choosing between queue, pub/sub and stream"
+      }
+    },
+    {
+      "unit": "queues",
+      "topic": "acknowledgement",
+      "location": {
+        "file": "src/content/system-design/queues/02-queue-pub-sub-and-stream.md",
+        "line": 37,
+        "section": "7. Event streams: a retained, replayable log"
+      }
+    },
+    {
+      "unit": "queues",
+      "topic": "dead-letter",
+      "location": {
+        "file": "src/content/system-design/queues/04-acknowledgements-and-delivery.md",
+        "line": 29,
+        "section": "17. At-most-once delivery"
+      }
+    },
+    {
+      "unit": "queues",
+      "topic": "retry",
+      "location": {
+        "file": "src/content/system-design/queues/01-moving-work-off-the-request.md",
+        "line": 7,
+        "section": "1. Synchronous transcoding latency"
+      }
+    },
+    {
+      "unit": "queues",
+      "topic": "poison",
+      "location": {
+        "file": "src/content/system-design/queues/05-retries-and-bad-messages.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "queues",
+      "topic": "backpressure",
+      "location": {
+        "file": "src/content/system-design/queues/06-exactly-once-and-backpressure.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "queues",
+      "topic": "at-most-once",
+      "location": {
+        "file": "src/content/system-design/queues/03-partitions-and-progress.md",
+        "line": 73,
+        "section": "14. Offsets and committed progress"
+      }
+    },
+    {
+      "unit": "queues",
+      "topic": "at-least-once",
+      "location": {
+        "file": "src/content/system-design/queues/03-partitions-and-progress.md",
+        "line": 73,
+        "section": "14. Offsets and committed progress"
+      }
+    },
+    {
+      "unit": "queues",
+      "topic": "exactly-once",
+      "location": {
+        "file": "src/content/system-design/queues/04-acknowledgements-and-delivery.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "queues",
+      "topic": "idempotent",
+      "location": {
+        "file": "src/content/system-design/queues/01-moving-work-off-the-request.md",
+        "line": 64,
+        "section": "4. Durable acceptance and the job status contract"
+      }
+    },
+    {
+      "unit": "queues",
+      "topic": "outbox",
+      "location": {
+        "file": "src/content/system-design/queues/07-the-complete-asynchronous-flow.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "kafka",
+      "topic": "broker",
+      "location": {
+        "file": "src/content/system-design/kafka/01-why-a-retained-log.md",
+        "line": 13,
+        "section": "1. One event, independent readers"
+      }
+    },
+    {
+      "unit": "kafka",
+      "topic": "topic",
+      "location": {
+        "file": "src/content/system-design/kafka/01-why-a-retained-log.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "kafka",
+      "topic": "partition",
+      "location": {
+        "file": "src/content/system-design/kafka/01-why-a-retained-log.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "kafka",
+      "topic": "offset",
+      "location": {
+        "file": "src/content/system-design/kafka/01-why-a-retained-log.md",
+        "line": 38,
+        "section": "3. Partitions and ordering scope"
+      }
+    },
+    {
+      "unit": "kafka",
+      "topic": "consumer group",
+      "location": {
+        "file": "src/content/system-design/kafka/01-why-a-retained-log.md",
+        "line": 7,
+        "section": "1. One event, independent readers"
+      }
+    },
+    {
+      "unit": "kafka",
+      "topic": "replication",
+      "location": {
+        "file": "src/content/system-design/kafka/01-why-a-retained-log.md",
+        "line": 56,
+        "section": "4. The retained workload"
+      }
+    },
+    {
+      "unit": "kafka",
+      "topic": "retention",
+      "location": {
+        "file": "src/content/system-design/kafka/01-why-a-retained-log.md",
+        "line": 5,
+        "section": "1. One event, independent readers"
+      }
+    },
+    {
+      "unit": "kafka",
+      "topic": "at-most-once",
+      "location": {
+        "file": "src/content/system-design/kafka/04-consumers-and-effects.md",
+        "line": 19,
+        "section": "14. At-most-once through commit first"
+      }
+    },
+    {
+      "unit": "kafka",
+      "topic": "at-least-once",
+      "location": {
+        "file": "src/content/system-design/kafka/04-consumers-and-effects.md",
+        "line": 35,
+        "section": "15. At-least-once through effect first"
+      }
+    },
+    {
+      "unit": "kafka",
+      "topic": "exactly-once",
+      "location": {
+        "file": "src/content/system-design/kafka/04-consumers-and-effects.md",
+        "line": 39,
+        "section": "15. At-least-once through effect first"
+      }
+    },
+    {
+      "unit": "kafka",
+      "topic": "idempotent",
+      "location": {
+        "file": "src/content/system-design/kafka/04-consumers-and-effects.md",
+        "line": 48,
+        "section": "15. At-least-once through effect first"
+      }
+    },
+    {
+      "unit": "apis-and-services",
+      "topic": "resource model",
+      "location": {
+        "file": "src/content/system-design/apis-and-services/01-resources-and-actions.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "apis-and-services",
+      "topic": "pagination",
+      "location": {
+        "file": "src/content/system-design/apis-and-services/02-pages-and-query-bounds.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "apis-and-services",
+      "topic": "cursor",
+      "location": {
+        "file": "src/content/system-design/apis-and-services/02-pages-and-query-bounds.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "apis-and-services",
+      "topic": "offset",
+      "location": {
+        "file": "src/content/system-design/apis-and-services/02-pages-and-query-bounds.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "apis-and-services",
+      "topic": "filtering",
+      "location": {
+        "file": "src/content/system-design/apis-and-services/02-pages-and-query-bounds.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "apis-and-services",
+      "topic": "sorting",
+      "location": {
+        "file": "src/content/system-design/apis-and-services/02-pages-and-query-bounds.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "apis-and-services",
+      "topic": "versioning",
+      "location": {
+        "file": "src/content/system-design/apis-and-services/03-versions-and-retries.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "apis-and-services",
+      "topic": "idempotency",
+      "location": {
+        "file": "src/content/system-design/apis-and-services/03-versions-and-retries.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "apis-and-services",
+      "topic": "rate limit",
+      "location": {
+        "file": "src/content/system-design/apis-and-services/04-trust-and-admission.md",
+        "line": 43,
+        "section": "16. Rate policy and capacity admission answer different questions"
+      }
+    },
+    {
+      "unit": "apis-and-services",
+      "topic": "validation",
+      "location": {
+        "file": "src/content/system-design/apis-and-services/01-resources-and-actions.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "apis-and-services",
+      "topic": "authentication",
+      "location": {
+        "file": "src/content/system-design/apis-and-services/04-trust-and-admission.md",
+        "line": 3,
+        "section": "14. Authentication establishes a caller, not a permission"
+      }
+    },
+    {
+      "unit": "apis-and-services",
+      "topic": "authorization",
+      "location": {
+        "file": "src/content/system-design/apis-and-services/01-resources-and-actions.md",
+        "line": 70,
+        "section": "4. Validation has more than one boundary"
+      }
+    },
+    {
+      "unit": "apis-and-services",
+      "topic": "API gateway",
+      "location": {
+        "file": "src/content/system-design/apis-and-services/04-trust-and-admission.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "apis-and-services",
+      "topic": "monolith",
+      "location": {
+        "file": "src/content/system-design/apis-and-services/05-service-boundaries.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "apis-and-services",
+      "topic": "modular monolith",
+      "location": {
+        "file": "src/content/system-design/apis-and-services/05-service-boundaries.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "apis-and-services",
+      "topic": "microservice",
+      "location": {
+        "file": "src/content/system-design/apis-and-services/01-resources-and-actions.md",
+        "line": 13,
+        "section": "1. Begin with the user's action"
+      }
+    },
+    {
+      "unit": "apis-and-services",
+      "topic": "service boundar",
+      "location": {
+        "file": "src/content/system-design/apis-and-services/04-trust-and-admission.md",
+        "line": 11,
+        "section": "14. Authentication establishes a caller, not a permission"
+      }
+    },
+    {
+      "unit": "apis-and-services",
+      "topic": "service discovery",
+      "location": {
+        "file": "src/content/system-design/apis-and-services/05-service-boundaries.md",
+        "line": 67,
+        "section": "21. Asynchronous communication changes the observation contract"
+      }
+    },
+    {
+      "unit": "apis-and-services",
+      "topic": "inter-service",
+      "location": {
+        "file": "src/content/system-design/apis-and-services/04-trust-and-admission.md",
+        "line": 13,
+        "section": "14. Authentication establishes a caller, not a permission"
+      }
+    },
+    {
+      "unit": "apis-and-services",
+      "topic": "synchronous",
+      "location": {
+        "file": "src/content/system-design/apis-and-services/05-service-boundaries.md",
+        "line": 33,
+        "section": "19. A service boundary should match an ownership boundary"
+      }
+    },
+    {
+      "unit": "apis-and-services",
+      "topic": "asynchronous",
+      "location": {
+        "file": "src/content/system-design/apis-and-services/05-service-boundaries.md",
+        "line": 57,
+        "section": "21. Asynchronous communication changes the observation contract"
+      }
+    },
+    {
+      "unit": "apis-and-services",
+      "topic": "distributed transaction",
+      "location": {
+        "file": "src/content/system-design/apis-and-services/06-distributed-workflows.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "apis-and-services",
+      "topic": "saga",
+      "location": {
+        "file": "src/content/system-design/apis-and-services/06-distributed-workflows.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "apis-and-services",
+      "topic": "orchestration",
+      "location": {
+        "file": "src/content/system-design/apis-and-services/06-distributed-workflows.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "apis-and-services",
+      "topic": "choreography",
+      "location": {
+        "file": "src/content/system-design/apis-and-services/06-distributed-workflows.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "reliability",
+      "topic": "single point",
+      "location": {
+        "file": "src/content/system-design/reliability/01-reliability-begins-with-a-promise.md",
+        "line": 3,
+        "section": "1. Single points of failure"
+      }
+    },
+    {
+      "unit": "reliability",
+      "topic": "redundancy",
+      "location": {
+        "file": "src/content/system-design/reliability/02-redundancy-that-survives-the-same-incident.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "reliability",
+      "topic": "graceful degradation",
+      "location": {
+        "file": "src/content/system-design/reliability/03-graceful-degradation-and-fault-tolerance.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "reliability",
+      "topic": "fault tolerance",
+      "location": {
+        "file": "src/content/system-design/reliability/03-graceful-degradation-and-fault-tolerance.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "reliability",
+      "topic": "retry",
+      "location": {
+        "file": "src/content/system-design/reliability/02-redundancy-that-survives-the-same-incident.md",
+        "line": 31,
+        "section": "7. Spare capacity after failure"
+      }
+    },
+    {
+      "unit": "reliability",
+      "topic": "exponential backoff",
+      "location": {
+        "file": "src/content/system-design/reliability/04-retries-exponential-backoff-and-jitter.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "reliability",
+      "topic": "jitter",
+      "location": {
+        "file": "src/content/system-design/reliability/04-retries-exponential-backoff-and-jitter.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "reliability",
+      "topic": "timeout",
+      "location": {
+        "file": "src/content/system-design/reliability/03-graceful-degradation-and-fault-tolerance.md",
+        "line": 6,
+        "section": "9. Fault tolerance preserves a stated guarantee"
+      }
+    },
+    {
+      "unit": "reliability",
+      "topic": "circuit breaker",
+      "location": {
+        "file": "src/content/system-design/reliability/05-timeouts-circuit-breakers-and-bulkheads.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "reliability",
+      "topic": "bulkhead",
+      "location": {
+        "file": "src/content/system-design/reliability/05-timeouts-circuit-breakers-and-bulkheads.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "reliability",
+      "topic": "health check",
+      "location": {
+        "file": "src/content/system-design/reliability/01-reliability-begins-with-a-promise.md",
+        "line": 4,
+        "section": "1. Single points of failure"
+      }
+    },
+    {
+      "unit": "reliability",
+      "topic": "failover",
+      "location": {
+        "file": "src/content/system-design/reliability/06-health-checks-and-safe-failover.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "reliability",
+      "topic": "disaster recovery",
+      "location": {
+        "file": "src/content/system-design/reliability/07-disaster-recovery-rto-and-rpo.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "reliability",
+      "topic": "RTO",
+      "location": {
+        "file": "src/content/system-design/reliability/07-disaster-recovery-rto-and-rpo.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "reliability",
+      "topic": "RPO",
+      "location": {
+        "file": "src/content/system-design/reliability/05-timeouts-circuit-breakers-and-bulkheads.md",
+        "line": 28,
+        "section": "19. Circuit breaker states and recovery probes"
+      }
+    },
+    {
+      "unit": "reliability",
+      "topic": "availability",
+      "location": {
+        "file": "src/content/system-design/reliability/01-reliability-begins-with-a-promise.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "reliability",
+      "topic": "99.9",
+      "location": {
+        "file": "src/content/system-design/reliability/01-reliability-begins-with-a-promise.md",
+        "line": 22,
+        "section": "2. Reliability, availability, and correctness"
+      }
+    },
+    {
+      "unit": "reliability",
+      "topic": "99.99",
+      "location": {
+        "file": "src/content/system-design/reliability/01-reliability-begins-with-a-promise.md",
+        "line": 30,
+        "section": "3. Availability calculations and the two targets"
+      }
+    },
+    {
+      "unit": "reliability",
+      "topic": "active-active",
+      "location": {
+        "file": "src/content/system-design/reliability/02-redundancy-that-survives-the-same-incident.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "reliability",
+      "topic": "active-passive",
+      "location": {
+        "file": "src/content/system-design/reliability/02-redundancy-that-survives-the-same-incident.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "rate-limiting",
+      "topic": "fixed window",
+      "location": {
+        "file": "src/content/system-design/rate-limiting/02-fixed-windows.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "rate-limiting",
+      "topic": "sliding window log",
+      "location": {
+        "file": "src/content/system-design/rate-limiting/03-sliding-window-logs.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "rate-limiting",
+      "topic": "sliding window counter",
+      "location": {
+        "file": "src/content/system-design/rate-limiting/04-sliding-window-counters.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "rate-limiting",
+      "topic": "token bucket",
+      "location": {
+        "file": "src/content/system-design/rate-limiting/05-token-buckets.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "rate-limiting",
+      "topic": "leaky bucket",
+      "location": {
+        "file": "src/content/system-design/rate-limiting/06-leaky-buckets-and-scheduled-work.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "rate-limiting",
+      "topic": "Redis",
+      "location": {
+        "file": "src/content/system-design/rate-limiting/01-state-the-admission-contract.md",
+        "line": 42,
+        "section": "4. Where enforcement belongs"
+      }
+    },
+    {
+      "unit": "rate-limiting",
+      "topic": "100",
+      "location": {
+        "file": "src/content/system-design/rate-limiting/01-state-the-admission-contract.md",
+        "line": 4,
+        "section": "1. A hundred requests per user per minute"
+      }
+    },
+    {
+      "unit": "rate-limiting",
+      "topic": "race",
+      "location": {
+        "file": "src/content/system-design/rate-limiting/01-state-the-admission-contract.md",
+        "line": 49,
+        "section": "4. Where enforcement belongs"
+      }
+    },
+    {
+      "unit": "rate-limiting",
+      "topic": "atomic",
+      "location": {
+        "file": "src/content/system-design/rate-limiting/01-state-the-admission-contract.md",
+        "line": 49,
+        "section": "4. Where enforcement belongs"
+      }
+    },
+    {
+      "unit": "rate-limiting",
+      "topic": "unavailable",
+      "location": {
+        "file": "src/content/system-design/rate-limiting/01-state-the-admission-contract.md",
+        "line": 46,
+        "section": "4. Where enforcement belongs"
+      }
+    },
+    {
+      "unit": "storage",
+      "topic": "local disk",
+      "location": {
+        "file": "src/content/system-design/storage/01-choose-the-storage-interface.md",
+        "line": 3,
+        "section": "1. Local disk and the lifetime of a machine"
+      }
+    },
+    {
+      "unit": "storage",
+      "topic": "block storage",
+      "location": {
+        "file": "src/content/system-design/storage/01-choose-the-storage-interface.md",
+        "line": 15,
+        "section": "2. Block storage exposes addressable blocks"
+      }
+    },
+    {
+      "unit": "storage",
+      "topic": "file storage",
+      "location": {
+        "file": "src/content/system-design/storage/01-choose-the-storage-interface.md",
+        "line": 27,
+        "section": "3. File storage supplies a namespace"
+      }
+    },
+    {
+      "unit": "storage",
+      "topic": "object storage",
+      "location": {
+        "file": "src/content/system-design/storage/01-choose-the-storage-interface.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "storage",
+      "topic": "database",
+      "location": {
+        "file": "src/content/system-design/storage/01-choose-the-storage-interface.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "storage",
+      "topic": "distributed file system",
+      "location": {
+        "file": "src/content/system-design/storage/06-replication-and-distributed-file-systems.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "storage",
+      "topic": "bucket",
+      "location": {
+        "file": "src/content/system-design/storage/02-objects-keys-and-metadata.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "storage",
+      "topic": "object",
+      "location": {
+        "file": "src/content/system-design/storage/01-choose-the-storage-interface.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "storage",
+      "topic": "key",
+      "location": {
+        "file": "src/content/system-design/storage/01-choose-the-storage-interface.md",
+        "line": 37,
+        "section": "3. File storage supplies a namespace"
+      }
+    },
+    {
+      "unit": "storage",
+      "topic": "metadata",
+      "location": {
+        "file": "src/content/system-design/storage/01-choose-the-storage-interface.md",
+        "line": 22,
+        "section": "2. Block storage exposes addressable blocks"
+      }
+    },
+    {
+      "unit": "storage",
+      "topic": "multipart",
+      "location": {
+        "file": "src/content/system-design/storage/03-direct-upload-and-presigned-access.md",
+        "line": 34,
+        "section": "11. Expiration follows the underlying credential"
+      }
+    },
+    {
+      "unit": "storage",
+      "topic": "presigned",
+      "location": {
+        "file": "src/content/system-design/storage/03-direct-upload-and-presigned-access.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "storage",
+      "topic": "checksum",
+      "location": {
+        "file": "src/content/system-design/storage/02-objects-keys-and-metadata.md",
+        "line": 10,
+        "section": "5. Bucket, object, key, and metadata"
+      }
+    },
+    {
+      "unit": "storage",
+      "topic": "replication",
+      "location": {
+        "file": "src/content/system-design/storage/02-objects-keys-and-metadata.md",
+        "line": 22,
+        "section": "6. Immutable keys and version identity"
+      }
+    },
+    {
+      "unit": "storage",
+      "topic": "lifecycle",
+      "location": {
+        "file": "src/content/system-design/storage/04-multipart-uploads.md",
+        "line": 21,
+        "section": "14. Initiation and the completion manifest"
+      }
+    },
+    {
+      "unit": "storage",
+      "topic": "5 GB",
+      "location": {
+        "file": "src/content/system-design/storage/01-choose-the-storage-interface.md",
+        "line": 20,
+        "section": "2. Block storage exposes addressable blocks"
+      }
+    },
+    {
+      "unit": "cdn",
+      "topic": "edge",
+      "location": {
+        "file": "src/content/system-design/cdn/01-edges-origins-and-reusable-responses.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "cdn",
+      "topic": "origin",
+      "location": {
+        "file": "src/content/system-design/cdn/01-edges-origins-and-reusable-responses.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "cdn",
+      "topic": "hit",
+      "location": {
+        "file": "src/content/system-design/cdn/01-edges-origins-and-reusable-responses.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "cdn",
+      "topic": "miss",
+      "location": {
+        "file": "src/content/system-design/cdn/01-edges-origins-and-reusable-responses.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "cdn",
+      "topic": "TTL",
+      "location": {
+        "file": "src/content/system-design/cdn/01-edges-origins-and-reusable-responses.md",
+        "line": 13,
+        "section": "1. Edge locations and the origin"
+      }
+    },
+    {
+      "unit": "cdn",
+      "topic": "invalidation",
+      "location": {
+        "file": "src/content/system-design/cdn/03-invalidation-and-versioned-publication.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "cdn",
+      "topic": "pull",
+      "location": {
+        "file": "src/content/system-design/cdn/04-pull-push-and-origin-protection.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "cdn",
+      "topic": "push",
+      "location": {
+        "file": "src/content/system-design/cdn/04-pull-push-and-origin-protection.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "cdn",
+      "topic": "signed URL",
+      "location": {
+        "file": "src/content/system-design/cdn/05-signed-urls-and-private-delivery.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "cdn",
+      "topic": "geographic",
+      "location": {
+        "file": "src/content/system-design/cdn/06-geographic-routing.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "cdn",
+      "topic": "YouTube",
+      "location": {
+        "file": "src/content/system-design/cdn/07-media-and-live-delivery.md",
+        "line": 57,
+        "section": "28. Images, transformations, and score conversations"
+      }
+    },
+    {
+      "unit": "cdn",
+      "topic": "Instagram",
+      "location": {
+        "file": "src/content/system-design/cdn/07-media-and-live-delivery.md",
+        "line": 55,
+        "section": "28. Images, transformations, and score conversations"
+      }
+    },
+    {
+      "unit": "cdn",
+      "topic": "Netflix",
+      "location": {
+        "file": "src/content/system-design/cdn/07-media-and-live-delivery.md",
+        "line": 57,
+        "section": "28. Images, transformations, and score conversations"
+      }
+    },
+    {
+      "unit": "cdn",
+      "topic": "image",
+      "location": {
+        "file": "src/content/system-design/cdn/03-invalidation-and-versioned-publication.md",
+        "line": 4,
+        "section": "9. Invalidation reaches distributed state"
+      }
+    },
+    {
+      "unit": "cdn",
+      "topic": "static",
+      "location": {
+        "file": "src/content/system-design/cdn/07-media-and-live-delivery.md",
+        "line": 51,
+        "section": "28. Images, transformations, and score conversations"
+      }
+    },
+    {
+      "unit": "search",
+      "topic": "inverted index",
+      "location": {
+        "file": "src/content/system-design/search/01-the-question-before-the-engine.md",
+        "line": 32,
+        "section": "2. Why LIKE is a different question"
+      }
+    },
+    {
+      "unit": "search",
+      "topic": "tokenization",
+      "location": {
+        "file": "src/content/system-design/search/02-from-text-to-terms.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "search",
+      "topic": "posting",
+      "location": {
+        "file": "src/content/system-design/search/03-the-inverted-index.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "search",
+      "topic": "TF-IDF",
+      "location": {
+        "file": "src/content/system-design/search/04-why-one-result-comes-first.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "search",
+      "topic": "BM25",
+      "location": {
+        "file": "src/content/system-design/search/04-why-one-result-comes-first.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "search",
+      "topic": "indexing pipeline",
+      "location": {
+        "file": "src/content/system-design/search/05-the-indexing-pipeline.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "search",
+      "topic": "Elasticsearch",
+      "location": {
+        "file": "src/content/system-design/search/01-the-question-before-the-engine.md",
+        "line": 29,
+        "section": "2. Why LIKE is a different question"
+      }
+    },
+    {
+      "unit": "search",
+      "topic": "shard",
+      "location": {
+        "file": "src/content/system-design/search/01-the-question-before-the-engine.md",
+        "line": 45,
+        "section": "3. Matching is not ranking"
+      }
+    },
+    {
+      "unit": "search",
+      "topic": "replica",
+      "location": {
+        "file": "src/content/system-design/search/06-shards-and-replicas.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "search",
+      "topic": "indexing",
+      "location": {
+        "file": "src/content/system-design/search/01-the-question-before-the-engine.md",
+        "line": 59,
+        "section": "4. Freshness is part of correctness"
+      }
+    },
+    {
+      "unit": "search",
+      "topic": "querying",
+      "location": {
+        "file": "src/content/system-design/search/06-shards-and-replicas.md",
+        "line": 54,
+        "section": "24. Fetch bodies after choosing winners"
+      }
+    },
+    {
+      "unit": "search",
+      "topic": "autocomplete",
+      "location": {
+        "file": "src/content/system-design/search/07-autocomplete-and-mistakes.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "search",
+      "topic": "prefix",
+      "location": {
+        "file": "src/content/system-design/search/01-the-question-before-the-engine.md",
+        "line": 23,
+        "section": "2. Why LIKE is a different question"
+      }
+    },
+    {
+      "unit": "search",
+      "topic": "fuzzy",
+      "location": {
+        "file": "src/content/system-design/search/07-autocomplete-and-mistakes.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "search",
+      "topic": "LIKE",
+      "location": {
+        "file": "src/content/system-design/search/01-the-question-before-the-engine.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "realtime",
+      "topic": "WebSocket",
+      "location": {
+        "file": "src/content/system-design/realtime/02-polling-and-waiting.md",
+        "line": 45,
+        "section": "8. Push moves waiting toward the server"
+      }
+    },
+    {
+      "unit": "realtime",
+      "topic": "SSE",
+      "location": {
+        "file": "src/content/system-design/realtime/01-the-promise-of-live-delivery.md",
+        "line": 11,
+        "section": "1. The score exists before the screen knows"
+      }
+    },
+    {
+      "unit": "realtime",
+      "topic": "polling",
+      "location": {
+        "file": "src/content/system-design/realtime/02-polling-and-waiting.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "realtime",
+      "topic": "long polling",
+      "location": {
+        "file": "src/content/system-design/realtime/02-polling-and-waiting.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "realtime",
+      "topic": "connection management",
+      "location": {
+        "file": "src/content/system-design/realtime/02-polling-and-waiting.md",
+        "line": 47,
+        "section": "8. Push moves waiting toward the server"
+      }
+    },
+    {
+      "unit": "realtime",
+      "topic": "heartbeat",
+      "location": {
+        "file": "src/content/system-design/realtime/04-keeping-connections-useful.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "realtime",
+      "topic": "reconnect",
+      "location": {
+        "file": "src/content/system-design/realtime/01-the-promise-of-live-delivery.md",
+        "line": 51,
+        "section": "4. Latency is a path, not a socket property"
+      }
+    },
+    {
+      "unit": "realtime",
+      "topic": "presence",
+      "location": {
+        "file": "src/content/system-design/realtime/04-keeping-connections-useful.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "realtime",
+      "topic": "fan-out",
+      "location": {
+        "file": "src/content/system-design/realtime/02-polling-and-waiting.md",
+        "line": 47,
+        "section": "8. Push moves waiting toward the server"
+      }
+    },
+    {
+      "unit": "realtime",
+      "topic": "pub/sub",
+      "location": {
+        "file": "src/content/system-design/realtime/05-events-reach-the-gateways.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "realtime",
+      "topic": "scorer",
+      "location": {
+        "file": "src/content/system-design/realtime/01-the-promise-of-live-delivery.md",
+        "line": 5,
+        "section": "1. The score exists before the screen knows"
+      }
+    },
+    {
+      "unit": "realtime",
+      "topic": "score service",
+      "location": {
+        "file": "src/content/system-design/realtime/05-events-reach-the-gateways.md",
+        "line": 5,
+        "section": "17. The producer should not open a socket to every viewer"
+      }
+    },
+    {
+      "unit": "realtime",
+      "topic": "event stream",
+      "location": {
+        "file": "src/content/system-design/realtime/03-sse-and-websockets.md",
+        "line": 3,
+        "section": "9. SSE is an HTTP event stream"
+      }
+    },
+    {
+      "unit": "realtime",
+      "topic": "gateway",
+      "location": {
+        "file": "src/content/system-design/realtime/01-the-promise-of-live-delivery.md",
+        "line": 47,
+        "section": "4. Latency is a path, not a socket property"
+      }
+    },
+    {
+      "unit": "realtime",
+      "topic": "50,000",
+      "location": {
+        "file": "src/content/system-design/realtime/01-the-promise-of-live-delivery.md",
+        "line": 11,
+        "section": "1. The score exists before the screen knows"
+      }
+    },
+    {
+      "unit": "data-pipelines",
+      "topic": "OLTP",
+      "location": {
+        "file": "src/content/system-design/data-pipelines/01-operational-truth-and-analytical-questions.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "data-pipelines",
+      "topic": "OLAP",
+      "location": {
+        "file": "src/content/system-design/data-pipelines/01-operational-truth-and-analytical-questions.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "data-pipelines",
+      "topic": "batch",
+      "location": {
+        "file": "src/content/system-design/data-pipelines/02-batch-processing.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "data-pipelines",
+      "topic": "stream",
+      "location": {
+        "file": "src/content/system-design/data-pipelines/02-batch-processing.md",
+        "line": 25,
+        "section": "6. Map records before grouping them"
+      }
+    },
+    {
+      "unit": "data-pipelines",
+      "topic": "ETL",
+      "location": {
+        "file": "src/content/system-design/data-pipelines/05-etl-elt-warehouses-and-lakes.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "data-pipelines",
+      "topic": "ELT",
+      "location": {
+        "file": "src/content/system-design/data-pipelines/05-etl-elt-warehouses-and-lakes.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "data-pipelines",
+      "topic": "warehouse",
+      "location": {
+        "file": "src/content/system-design/data-pipelines/01-operational-truth-and-analytical-questions.md",
+        "line": 11,
+        "section": "1. A single update and a million-row question"
+      }
+    },
+    {
+      "unit": "data-pipelines",
+      "topic": "lake",
+      "location": {
+        "file": "src/content/system-design/data-pipelines/05-etl-elt-warehouses-and-lakes.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "data-pipelines",
+      "topic": "CDC",
+      "location": {
+        "file": "src/content/system-design/data-pipelines/06-cdc-and-materialized-views.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "data-pipelines",
+      "topic": "Kafka",
+      "location": {
+        "file": "src/content/system-design/data-pipelines/03-stream-processing.md",
+        "line": 25,
+        "section": "10. Keyed state has an owner"
+      }
+    },
+    {
+      "unit": "data-pipelines",
+      "topic": "materialized view",
+      "location": {
+        "file": "src/content/system-design/data-pipelines/06-cdc-and-materialized-views.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "data-pipelines",
+      "topic": "Spark",
+      "location": {
+        "file": "src/content/system-design/data-pipelines/08-spark-and-flink-as-execution-systems.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "data-pipelines",
+      "topic": "Flink",
+      "location": {
+        "file": "src/content/system-design/data-pipelines/04-event-time-and-late-data.md",
+        "line": 37,
+        "section": "15. A watermark states a progress assumption"
+      }
+    },
+    {
+      "unit": "security",
+      "topic": "authentication",
+      "location": {
+        "file": "src/content/system-design/security/01-identity-and-permission.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "security",
+      "topic": "authorization",
+      "location": {
+        "file": "src/content/system-design/security/01-identity-and-permission.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "security",
+      "topic": "session",
+      "location": {
+        "file": "src/content/system-design/security/01-identity-and-permission.md",
+        "line": 5,
+        "section": "1. A known user can request someone else's report"
+      }
+    },
+    {
+      "unit": "security",
+      "topic": "JWT",
+      "location": {
+        "file": "src/content/system-design/security/03-jwt-and-api-keys.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "security",
+      "topic": "OAuth",
+      "location": {
+        "file": "src/content/system-design/security/04-oauth-and-delegated-access.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "security",
+      "topic": "cookie",
+      "location": {
+        "file": "src/content/system-design/security/02-sessions-and-cookies.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "security",
+      "topic": "API key",
+      "location": {
+        "file": "src/content/system-design/security/03-jwt-and-api-keys.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "security",
+      "topic": "RBAC",
+      "location": {
+        "file": "src/content/system-design/security/05-rbac-acls-and-resource-policy.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "security",
+      "topic": "ACL",
+      "location": {
+        "file": "src/content/system-design/security/05-rbac-acls-and-resource-policy.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "security",
+      "topic": "encryption at rest",
+      "location": {
+        "file": "src/content/system-design/security/06-encryption-and-secrets.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "security",
+      "topic": "encryption in transit",
+      "location": {
+        "file": "src/content/system-design/security/06-encryption-and-secrets.md",
+        "line": 5,
+        "section": "21. TLS protects a named connection"
+      }
+    },
+    {
+      "unit": "security",
+      "topic": "TLS",
+      "location": {
+        "file": "src/content/system-design/security/01-identity-and-permission.md",
+        "line": 47,
+        "section": "4. Put trust boundaries in the drawing"
+      }
+    },
+    {
+      "unit": "security",
+      "topic": "secret",
+      "location": {
+        "file": "src/content/system-design/security/03-jwt-and-api-keys.md",
+        "line": 47,
+        "section": "12. API keys and signing keys have different jobs"
+      }
+    },
+    {
+      "unit": "security",
+      "topic": "password hashing",
+      "location": {
+        "file": "src/content/system-design/security/07-passwords-and-signed-downloads.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "security",
+      "topic": "signed URL",
+      "location": {
+        "file": "src/content/system-design/security/07-passwords-and-signed-downloads.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "security",
+      "topic": "CORS",
+      "location": {
+        "file": "src/content/system-design/security/08-browser-boundaries-and-abuse.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "security",
+      "topic": "CSRF",
+      "location": {
+        "file": "src/content/system-design/security/02-sessions-and-cookies.md",
+        "line": 62,
+        "section": "8. Expiration and logout are server decisions"
+      }
+    },
+    {
+      "unit": "security",
+      "topic": "abuse",
+      "location": {
+        "file": "src/content/system-design/security/07-passwords-and-signed-downloads.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "security",
+      "topic": "rate",
+      "location": {
+        "file": "src/content/system-design/security/01-identity-and-permission.md",
+        "line": 33,
+        "section": "3. Deny rules need an explicit default"
+      }
+    },
+    {
+      "unit": "observability",
+      "topic": "log",
+      "location": {
+        "file": "src/content/system-design/observability/01-questions-before-instruments.md",
+        "line": 9,
+        "section": "1. User outcomes and process health"
+      }
+    },
+    {
+      "unit": "observability",
+      "topic": "metric",
+      "location": {
+        "file": "src/content/system-design/observability/01-questions-before-instruments.md",
+        "line": 29,
+        "section": "2. Black-box and white-box evidence"
+      }
+    },
+    {
+      "unit": "observability",
+      "topic": "trace",
+      "location": {
+        "file": "src/content/system-design/observability/01-questions-before-instruments.md",
+        "line": 9,
+        "section": "1. User outcomes and process health"
+      }
+    },
+    {
+      "unit": "observability",
+      "topic": "structured",
+      "location": {
+        "file": "src/content/system-design/observability/02-logs-and-identity.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "observability",
+      "topic": "correlation",
+      "location": {
+        "file": "src/content/system-design/observability/01-questions-before-instruments.md",
+        "line": 45,
+        "section": "3. Symptoms, causes, and hypotheses"
+      }
+    },
+    {
+      "unit": "observability",
+      "topic": "request ID",
+      "location": {
+        "file": "src/content/system-design/observability/01-questions-before-instruments.md",
+        "line": 29,
+        "section": "2. Black-box and white-box evidence"
+      }
+    },
+    {
+      "unit": "observability",
+      "topic": "distributed tracing",
+      "location": {
+        "file": "src/content/system-design/observability/04-traces-across-boundaries.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "observability",
+      "topic": "dashboard",
+      "location": {
+        "file": "src/content/system-design/observability/01-questions-before-instruments.md",
+        "line": 55,
+        "section": "4. The telemetry contract"
+      }
+    },
+    {
+      "unit": "observability",
+      "topic": "alert",
+      "location": {
+        "file": "src/content/system-design/observability/02-logs-and-identity.md",
+        "line": 13,
+        "section": "5. Structured logging"
+      }
+    },
+    {
+      "unit": "observability",
+      "topic": "SLI",
+      "location": {
+        "file": "src/content/system-design/observability/07-promises-and-budgets.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "observability",
+      "topic": "SLO",
+      "location": {
+        "file": "src/content/system-design/observability/01-questions-before-instruments.md",
+        "line": 7,
+        "section": "1. User outcomes and process health"
+      }
+    },
+    {
+      "unit": "observability",
+      "topic": "SLA",
+      "location": {
+        "file": "src/content/system-design/observability/07-promises-and-budgets.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "observability",
+      "topic": "request rate",
+      "location": {
+        "file": "src/content/system-design/observability/06-the-production-dashboard.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "observability",
+      "topic": "error rate",
+      "location": {
+        "file": "src/content/system-design/observability/03-metric-mechanics.md",
+        "line": 7,
+        "section": "9. Counters and rates"
+      }
+    },
+    {
+      "unit": "observability",
+      "topic": "latency",
+      "location": {
+        "file": "src/content/system-design/observability/01-questions-before-instruments.md",
+        "line": 37,
+        "section": "3. Symptoms, causes, and hypotheses"
+      }
+    },
+    {
+      "unit": "observability",
+      "topic": "CPU",
+      "location": {
+        "file": "src/content/system-design/observability/01-questions-before-instruments.md",
+        "line": 5,
+        "section": "1. User outcomes and process health"
+      }
+    },
+    {
+      "unit": "observability",
+      "topic": "memory",
+      "location": {
+        "file": "src/content/system-design/observability/03-metric-mechanics.md",
+        "line": 29,
+        "section": "10. Gauges and state"
+      }
+    },
+    {
+      "unit": "observability",
+      "topic": "queue depth",
+      "location": {
+        "file": "src/content/system-design/observability/06-the-production-dashboard.md",
+        "line": 61,
+        "section": "24. Queue age, depth, connections, and cache hits"
+      }
+    },
+    {
+      "unit": "observability",
+      "topic": "DB connection",
+      "location": {
+        "file": "src/content/system-design/observability/01-questions-before-instruments.md",
+        "line": 37,
+        "section": "3. Symptoms, causes, and hypotheses"
+      }
+    },
+    {
+      "unit": "observability",
+      "topic": "cache hit",
+      "location": {
+        "file": "src/content/system-design/observability/01-questions-before-instruments.md",
+        "line": 37,
+        "section": "3. Symptoms, causes, and hypotheses"
+      }
+    },
+    {
+      "unit": "scaling-patterns",
+      "topic": "sharding",
+      "location": {
+        "file": "src/content/system-design/scaling-patterns/01-the-problem-before-the-pattern.md",
+        "line": 7,
+        "section": "1. Bottleneck identification"
+      }
+    },
+    {
+      "unit": "scaling-patterns",
+      "topic": "replication",
+      "location": {
+        "file": "src/content/system-design/scaling-patterns/01-the-problem-before-the-pattern.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "scaling-patterns",
+      "topic": "CQRS",
+      "location": {
+        "file": "src/content/system-design/scaling-patterns/01-the-problem-before-the-pattern.md",
+        "line": 5,
+        "section": "1. Bottleneck identification"
+      }
+    },
+    {
+      "unit": "scaling-patterns",
+      "topic": "event sourcing",
+      "location": {
+        "file": "src/content/system-design/scaling-patterns/03-cqrs-and-materialized-reads.md",
+        "line": 7,
+        "section": "9. CQRS separates models"
+      }
+    },
+    {
+      "unit": "scaling-patterns",
+      "topic": "saga",
+      "location": {
+        "file": "src/content/system-design/scaling-patterns/06-sagas-and-compensation.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "scaling-patterns",
+      "topic": "transactional outbox",
+      "location": {
+        "file": "src/content/system-design/scaling-patterns/05-outbox-and-cdc.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "scaling-patterns",
+      "topic": "CDC",
+      "location": {
+        "file": "src/content/system-design/scaling-patterns/05-outbox-and-cdc.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "scaling-patterns",
+      "topic": "consistent hashing",
+      "location": {
+        "file": "src/content/system-design/scaling-patterns/02-owning-shards.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "scaling-patterns",
+      "topic": "leader election",
+      "location": {
+        "file": "src/content/system-design/scaling-patterns/07-ownership-and-coordination.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "scaling-patterns",
+      "topic": "distributed lock",
+      "location": {
+        "file": "src/content/system-design/scaling-patterns/07-ownership-and-coordination.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "scaling-patterns",
+      "topic": "materialized view",
+      "location": {
+        "file": "src/content/system-design/scaling-patterns/03-cqrs-and-materialized-reads.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "scaling-patterns",
+      "topic": "fan-out-on-write",
+      "location": {
+        "file": "src/content/system-design/scaling-patterns/08-fan-out-and-query-work.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "scaling-patterns",
+      "topic": "fan-out-on-read",
+      "location": {
+        "file": "src/content/system-design/scaling-patterns/08-fan-out-and-query-work.md",
+        "line": 21,
+        "section": "30. Fan-out on read"
+      }
+    },
+    {
+      "unit": "interview-method",
+      "topic": "functional",
+      "location": {
+        "file": "src/content/system-design/interview-method/01-requirements-before-boxes.md",
+        "line": 3,
+        "section": "1. Functional requirements as actions"
+      }
+    },
+    {
+      "unit": "interview-method",
+      "topic": "non-functional",
+      "location": {
+        "file": "src/content/system-design/interview-method/01-requirements-before-boxes.md",
+        "line": 19,
+        "section": "2. Non-functional requirements as tests"
+      }
+    },
+    {
+      "unit": "interview-method",
+      "topic": "requirement",
+      "location": {
+        "file": "src/content/system-design/interview-method/01-requirements-before-boxes.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "interview-method",
+      "topic": "scale estimation",
+      "location": {
+        "file": "src/content/system-design/interview-method/02-scale-with-units.md",
+        "line": 5,
+        "section": "5. Daily requests, average, and peak"
+      }
+    },
+    {
+      "unit": "interview-method",
+      "topic": "API",
+      "location": {
+        "file": "src/content/system-design/interview-method/01-requirements-before-boxes.md",
+        "line": 7,
+        "section": "1. Functional requirements as actions"
+      }
+    },
+    {
+      "unit": "interview-method",
+      "topic": "data model",
+      "location": {
+        "file": "src/content/system-design/interview-method/04-the-data-model.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "interview-method",
+      "topic": "architecture",
+      "location": {
+        "file": "src/content/system-design/interview-method/01-requirements-before-boxes.md",
+        "line": 7,
+        "section": "1. Functional requirements as actions"
+      }
+    },
+    {
+      "unit": "interview-method",
+      "topic": "critical request",
+      "location": {
+        "file": "src/content/system-design/interview-method/04-the-data-model.md",
+        "line": 5,
+        "section": "13. Entities, keys, and relationships"
+      }
+    },
+    {
+      "unit": "interview-method",
+      "topic": "flow",
+      "location": {
+        "file": "src/content/system-design/interview-method/01-requirements-before-boxes.md",
+        "line": 39,
+        "section": "3. Scope, priorities, and conflict"
+      }
+    },
+    {
+      "unit": "interview-method",
+      "topic": "bottleneck",
+      "location": {
+        "file": "src/content/system-design/interview-method/07-bottlenecks-and-component-scaling.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "interview-method",
+      "topic": "scale",
+      "location": {
+        "file": "src/content/system-design/interview-method/02-scale-with-units.md",
+        "line": 5,
+        "section": "5. Daily requests, average, and peak"
+      }
+    },
+    {
+      "unit": "interview-method",
+      "topic": "failure",
+      "location": {
+        "file": "src/content/system-design/interview-method/01-requirements-before-boxes.md",
+        "line": 9,
+        "section": "1. Functional requirements as actions"
+      }
+    },
+    {
+      "unit": "interview-method",
+      "topic": "consistency",
+      "location": {
+        "file": "src/content/system-design/interview-method/01-requirements-before-boxes.md",
+        "line": 23,
+        "section": "2. Non-functional requirements as tests"
+      }
+    },
+    {
+      "unit": "interview-method",
+      "topic": "trade-off",
+      "location": {
+        "file": "src/content/system-design/interview-method/09-trade-offs-and-the-complete-answer.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "interview-method",
+      "topic": "100M",
+      "location": {
+        "file": "src/content/system-design/interview-method/06-critical-request-flows.md",
+        "line": 39,
+        "section": "23. The complete upload flow"
+      }
+    },
+    {
+      "unit": "practice-designs",
+      "topic": "URL shortener",
+      "location": {
+        "file": "src/content/system-design/practice-designs/01-small-durable-services.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "practice-designs",
+      "topic": "Pastebin",
+      "location": {
+        "file": "src/content/system-design/practice-designs/01-small-durable-services.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "practice-designs",
+      "topic": "rate limiter",
+      "location": {
+        "file": "src/content/system-design/practice-designs/01-small-durable-services.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "practice-designs",
+      "topic": "notification",
+      "location": {
+        "file": "src/content/system-design/practice-designs/01-small-durable-services.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "practice-designs",
+      "topic": "chat",
+      "location": {
+        "file": "src/content/system-design/practice-designs/02-messages-feeds-and-sync.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "practice-designs",
+      "topic": "WhatsApp",
+      "location": {
+        "file": "src/content/system-design/practice-designs/02-messages-feeds-and-sync.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "practice-designs",
+      "topic": "news feed",
+      "location": {
+        "file": "src/content/system-design/practice-designs/02-messages-feeds-and-sync.md",
+        "line": 39,
+        "section": "7. News feed: work placement and ranking"
+      }
+    },
+    {
+      "unit": "practice-designs",
+      "topic": "Dropbox",
+      "location": {
+        "file": "src/content/system-design/practice-designs/02-messages-feeds-and-sync.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "practice-designs",
+      "topic": "Google Drive",
+      "location": {
+        "file": "src/content/system-design/practice-designs/03-files-discovery-and-ownership.md",
+        "line": 3,
+        "section": "9. Google Drive-style files: sharing and upload state"
+      }
+    },
+    {
+      "unit": "practice-designs",
+      "topic": "autocomplete",
+      "location": {
+        "file": "src/content/system-design/practice-designs/03-files-discovery-and-ownership.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "practice-designs",
+      "topic": "ticket",
+      "location": {
+        "file": "src/content/system-design/practice-designs/03-files-discovery-and-ownership.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "practice-designs",
+      "topic": "payment",
+      "location": {
+        "file": "src/content/system-design/practice-designs/03-files-discovery-and-ownership.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "practice-designs",
+      "topic": "Uber",
+      "location": {
+        "file": "src/content/system-design/practice-designs/04-location-media-and-collaboration.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "practice-designs",
+      "topic": "YouTube",
+      "location": {
+        "file": "src/content/system-design/practice-designs/04-location-media-and-collaboration.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "practice-designs",
+      "topic": "Instagram",
+      "location": {
+        "file": "src/content/system-design/practice-designs/04-location-media-and-collaboration.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "practice-designs",
+      "topic": "Google Docs",
+      "location": {
+        "file": "src/content/system-design/practice-designs/04-location-media-and-collaboration.md",
+        "line": 55,
+        "section": "16. Google Docs-style collaboration: concurrent operations"
+      }
+    },
+    {
+      "unit": "practice-designs",
+      "topic": "metrics",
+      "location": {
+        "file": "src/content/system-design/practice-designs/05-platforms-and-shared-infrastructure.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "practice-designs",
+      "topic": "logging",
+      "location": {
+        "file": "src/content/system-design/practice-designs/05-platforms-and-shared-infrastructure.md",
+        "line": 3,
+        "section": "17. Metrics and logging platform: bounded ingestion"
+      }
+    },
+    {
+      "unit": "practice-designs",
+      "topic": "distributed job scheduler",
+      "location": {
+        "file": "src/content/system-design/practice-designs/05-platforms-and-shared-infrastructure.md",
+        "line": 19,
+        "section": "18. Distributed job scheduler: claim and fencing"
+      }
+    },
+    {
+      "unit": "practice-designs",
+      "topic": "Kafka",
+      "location": {
+        "file": "src/content/system-design/practice-designs/05-platforms-and-shared-infrastructure.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "practice-designs",
+      "topic": "distributed cache",
+      "location": {
+        "file": "src/content/system-design/practice-designs/05-platforms-and-shared-infrastructure.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "practice-designs",
+      "topic": "Redis",
+      "location": {
+        "file": "src/content/system-design/practice-designs/06-beneath-the-product-names.md",
+        "line": 1,
+        "section": "Front matter"
+      }
+    },
+    {
+      "unit": "practice-designs",
+      "topic": "database",
+      "location": {
+        "file": "src/content/system-design/practice-designs/01-small-durable-services.md",
+        "line": 21,
+        "section": "2. Pastebin: bytes and expiry"
+      }
+    }
+  ],
+  "missingTextualMatches": [],
+  "note": "Matches inventory textual coverage. They do not replace the independent mechanism and depth review."
+}

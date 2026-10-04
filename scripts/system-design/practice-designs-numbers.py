@@ -1,0 +1,18 @@
+"""Computed assumptions for hypothetical practice designs, not product architecture measurements."""
+import json
+from math import ceil,log
+from pathlib import Path
+n=dict(seconds_day=86400,api_qps=1000,average_qps=100,event_s=20,event_bytes=200,viewers=50000,response_bytes=2000,row_bytes=500,replicas=3,upload_bytes=5000000000,part_bytes=100000000,upload_rate=10000000,rate_capacity=100,rate_window=60,initial_tokens=20,refill_wait=12,request_tokens=25,followers=10000,publish_s=100,feed_reads_s=50,candidates=200,clip_count_day=1000,clip_bytes=2000000,connections_per_gateway=10000,kv_count=100000,kv_payload=2000,kv_overhead=100,metrics_series=1000,scrape_s=15,log_record_bytes=500,retention_days=7,blocks_per_file=50,tree_fanout=100,tree_records=1000000)
+n.update(url_space=62**7,upload_parts=ceil(n['upload_bytes']/n['part_bytes']),upload_s=n['upload_bytes']/n['upload_rate'],write_fanout=100*10000,read_fanout=50*200,gateways=ceil(50000/10000),live_deliveries_s=20*50000,live_bytes_s=20*50000*200,cache_bytes=100000*(2000+100),metrics_samples_day=1000*86400/15,log_bytes_day=1000*500*86400,image_bytes_day=1000*2000000,event_bytes_day=20*200*86400,event_retained_3copy_bytes=20*200*86400*7*3,full_api_bytes_s=1000*2000,daily_rows_bytes=100*86400*500,token_refill=100/60*12)
+n.update(tokens_after=min(100,20+n['token_refill'])-25,changed_blocks_bytes=2*100000000,unchanged_blocks_bytes=48*100000000,cache_three_copy_bytes=n['cache_bytes']*3,metrics_retained_samples=n['metrics_samples_day']*7,log_7d_bytes=n['log_bytes_day']*7)
+n['versions']={'base':7,'first_commit':7+1,'second_commit':7+2,'offsets':list(range(100,104)),'next_commit_offset':103+1}
+n['balances']={'start_cents':10000,'charge_cents':2500,'after_cents':10000-2500,'debit_cents':2500,'credit_cents':2500,'net_cents':2500-2500}
+n['tree_levels']=ceil(log(1000000,100));n['queue']={'incoming_s':1200,'outgoing_s':1000,'duration_s':60,'backlog':(1200-1000)*60,'recovery_s':12000/(1000-600)}
+n['per_design']={'paste_records_s':20,'paste_bytes':2000,'paste_bytes_s':20*2000,'paste_bytes_day':20*2000*86400,'notification_events_s':20,'notification_recipients':50,'notification_deliveries_s':20*50,'chat_messages_s':20,'chat_bytes':200,'chat_history_day_bytes':20*200*86400,'devices_per_message':2,'device_envelopes_s':20*2,'device_bytes_s':20*2*200,'autocomplete_qps':1000,'autocomplete_cache_hits_s':900,'autocomplete_source_qps':1000-900,'payment_intents_s':20,'payment_metadata_bytes':500,'payment_metadata_day_bytes':20*500*86400,'drivers':50000,'location_interval_s':5,'location_updates_s':50000/5,'location_bytes':200,'location_bytes_s':50000/5*200,'document_operations_s':20,'document_operation_bytes':200,'document_bytes_s':20*200,'document_day_bytes':20*200*86400}
+
+n['collaboration']={'base':'ab','position':1,'first_text':'X','second_text':'Y'}
+c=n['collaboration'];c['after_first']=c['base'][:c['position']]+c['first_text']+c['base'][c['position']:];c['second_transformed_position']=c['position']+len(c['first_text']);c['canonical']=c['after_first'][:c['second_transformed_position']]+c['second_text']+c['after_first'][c['second_transformed_position']:];c['client_b_pending']=c['base'][:c['position']]+c['second_text']+c['base'][c['position']:]
+n['resp']={'frame':'*3\r\n$3\r\nSET\r\n$1\r\nk\r\n$1\r\nv\r\n'};n['resp']['frame_bytes']=len(n['resp']['frame'].encode('ascii'));n['resp']['argument_lengths']=[len(x) for x in ['SET','k','v']]
+assert c['canonical']=='aXYb'
+assert n['tokens_after']==15 and n['tree_levels']==3 and n['balances']['net_cents']==0
+path=Path(__file__).resolve().parents[2]/'src/data/system-design/practice-designs-numbers.json';path.write_text(json.dumps(n,indent=2)+'\n');print(json.dumps(n,indent=2))

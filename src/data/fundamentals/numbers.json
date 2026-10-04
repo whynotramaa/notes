@@ -1,0 +1,1396 @@
+{
+  "dbms": {
+    "users": 100,
+    "shows": 8,
+    "seats_per_show": 100,
+    "show_seats": 800,
+    "bookings": 160,
+    "total_core_rows": 1068,
+    "page_bytes": 4096,
+    "header_bytes": 64,
+    "slot_bytes": 4,
+    "row_bytes": 124,
+    "rows_per_page": 31,
+    "unused_bytes": 64,
+    "heap_pages": 26,
+    "heap_bytes": 106496,
+    "index_entries": 252,
+    "leaf_pages": 4,
+    "index_pages": 5,
+    "index_bytes": 20480,
+    "heap_last_rows": 25,
+    "leaf_last_entries": 44,
+    "inventory_with_index_bytes": 126976,
+    "binary_height": 10,
+    "point_read_pages": 3,
+    "split_before": [
+      10,
+      20,
+      30,
+      40
+    ],
+    "split_after": [
+      10,
+      20,
+      25,
+      30,
+      40
+    ],
+    "join_comparisons": 16000,
+    "hash_visits": 260,
+    "estimated_rows": 16.0,
+    "actual_rows": 80,
+    "estimate_error": 5.0,
+    "record_slot_bytes": 128,
+    "full_page_payload_bytes": 3968,
+    "full_heap_rows": 775,
+    "balances": [
+      100,
+      120,
+      50,
+      70
+    ],
+    "bloom_false_positive": 0.01637826799443077,
+    "cache_hit_ratio": 0.9,
+    "wa": 7.0,
+    "closure_A": "ABCD",
+    "ranks": {
+      "row_number": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "rank": [
+        1,
+        1,
+        3,
+        4
+      ],
+      "dense_rank": [
+        1,
+        1,
+        2,
+        3
+      ]
+    },
+    "salary": [
+      90,
+      90,
+      70,
+      50
+    ],
+    "old_version": 7,
+    "new_version": 8,
+    "replicas": 3,
+    "R": 2,
+    "W": 2,
+    "quorum_overlap": 1,
+    "prices": [
+      120,
+      120,
+      80
+    ],
+    "ada_total": 240,
+    "bo_total": 80,
+    "norm_cross_product": 4,
+    "relation_degree": 3,
+    "relation_cardinality": 3,
+    "revenue": 320,
+    "partition_counts": [
+      200,
+      200,
+      200,
+      200
+    ],
+    "sql_left_join": [
+      [
+        "Ada",
+        "b_a",
+        120
+      ],
+      [
+        "Ada",
+        "b_b",
+        120
+      ],
+      [
+        "Bo",
+        "b_c",
+        80
+      ],
+      [
+        "Cy",
+        null,
+        null
+      ]
+    ],
+    "sql_rank_rows": [
+      [
+        90,
+        1,
+        1,
+        1
+      ],
+      [
+        90,
+        2,
+        1,
+        1
+      ],
+      [
+        70,
+        3,
+        3,
+        2
+      ],
+      [
+        50,
+        4,
+        4,
+        3
+      ]
+    ],
+    "sql_window_rows": [
+      [
+        120,
+        120,
+        240
+      ],
+      [
+        120,
+        240,
+        240
+      ],
+      [
+        80,
+        320,
+        320
+      ]
+    ],
+    "sql_aggregates": [
+      320,
+      3,
+      106.66666666666667
+    ],
+    "cover_checks": {
+      "": "",
+      "A": "ABCD",
+      "B": "BC",
+      "C": "C",
+      "D": "D",
+      "AB": "ABCD",
+      "AC": "ABCD",
+      "AD": "ABCD",
+      "BC": "BC",
+      "BD": "BCD",
+      "CD": "CD",
+      "ABC": "ABCD",
+      "ABD": "ABCD",
+      "ACD": "ABCD",
+      "BCD": "BCD",
+      "ABCD": "ABCD"
+    },
+    "instructor_closures": {
+      "": "",
+      "C": "C",
+      "I": "CI",
+      "S": "S",
+      "CI": "CI",
+      "CS": "CIS",
+      "IS": "CIS",
+      "CIS": "CIS"
+    },
+    "instructor_keys": [
+      "CS",
+      "IS"
+    ],
+    "join_outputs": {
+      "inner": [
+        [
+          "a",
+          "b_a",
+          "r_a"
+        ]
+      ],
+      "left": [
+        [
+          "a",
+          "b_a",
+          "r_a"
+        ],
+        [
+          "b",
+          "b_b",
+          null
+        ]
+      ],
+      "right": [
+        [
+          "a",
+          "b_a",
+          "r_a"
+        ],
+        [
+          "c",
+          null,
+          "r_c"
+        ]
+      ],
+      "full": [
+        [
+          "a",
+          "b_a",
+          "r_a"
+        ],
+        [
+          "b",
+          "b_b",
+          null
+        ],
+        [
+          "c",
+          null,
+          "r_c"
+        ]
+      ],
+      "cross": [
+        [
+          "b_a",
+          "r_a"
+        ],
+        [
+          "b_a",
+          "r_c"
+        ],
+        [
+          "b_b",
+          "r_a"
+        ],
+        [
+          "b_b",
+          "r_c"
+        ]
+      ],
+      "semi": [
+        "b_a"
+      ],
+      "anti": [
+        "b_b"
+      ]
+    },
+    "lossy_original": [
+      [
+        "a",
+        "b_1",
+        "c_1"
+      ],
+      [
+        "a",
+        "b_2",
+        "c_2"
+      ]
+    ],
+    "lossy_ab": [
+      [
+        "a",
+        "b_1"
+      ],
+      [
+        "a",
+        "b_2"
+      ]
+    ],
+    "lossy_ac": [
+      [
+        "a",
+        "c_1"
+      ],
+      [
+        "a",
+        "c_2"
+      ]
+    ],
+    "lossy_join": [
+      [
+        "a",
+        "b_1",
+        "c_1"
+      ],
+      [
+        "a",
+        "b_1",
+        "c_2"
+      ],
+      [
+        "a",
+        "b_2",
+        "c_1"
+      ],
+      [
+        "a",
+        "b_2",
+        "c_2"
+      ]
+    ],
+    "borrow_before": [
+      [
+        10
+      ],
+      [
+        25,
+        30,
+        40
+      ]
+    ],
+    "borrow_after": [
+      [
+        10,
+        25
+      ],
+      [
+        30,
+        40
+      ]
+    ],
+    "merge_after": [
+      10,
+      30
+    ],
+    "bloom_bits": [
+      0,
+      1,
+      0,
+      1,
+      1,
+      0,
+      1,
+      0
+    ],
+    "bloom_exact_pair_fp": 0.25,
+    "bloom_filter_bytes": 128,
+    "recovery_start": [
+      100,
+      100
+    ],
+    "recovery_redo": [
+      120,
+      50
+    ],
+    "recovery_final": [
+      120,
+      100
+    ],
+    "replica_lag_ms": 20,
+    "sync_ack_ms": 12,
+    "async_ack_ms": 5,
+    "hot_shard_counts": [
+      650,
+      50,
+      50,
+      50
+    ],
+    "hot_fraction": 0.8125,
+    "global_pool_connections": 160,
+    "bounded_pool_connections": 64,
+    "server_connection_limit": 80,
+    "operational_reserve": 16,
+    "wa_wal_bytes": 4096,
+    "wa_flush_bytes": 8192,
+    "wa_compaction_bytes": 16384,
+    "wa_total_bytes": 28672,
+    "reservation_after_rows": 1069,
+    "replicated_inventory_bytes": 380928,
+    "sync_penalty_ms": 7,
+    "hot_shard_mean_ratio": 3.25,
+    "plan_selectivity_actual": 0.1,
+    "pool_available": 64,
+    "bookings_after": 161,
+    "replicated_inventory_pages": 93,
+    "revenue_average_rounded": 106.666667,
+    "exercises": {
+      "E1": 1068,
+      "E2": [
+        240,
+        80,
+        320
+      ],
+      "E3": [
+        [
+          1,
+          1,
+          3,
+          4
+        ],
+        [
+          1,
+          1,
+          2,
+          3
+        ]
+      ],
+      "E4": [
+        31,
+        64
+      ],
+      "E5": [
+        26,
+        106496,
+        775,
+        25
+      ],
+      "E6": [
+        252,
+        4,
+        44,
+        20480
+      ],
+      "E7": [
+        16000,
+        260
+      ],
+      "E8": 5.0,
+      "E9": 7.0,
+      "E10": 1,
+      "E11": [
+        20,
+        5,
+        12,
+        7
+      ],
+      "E12": [
+        0.8125,
+        3.25
+      ],
+      "E13": [
+        160,
+        64,
+        8
+      ],
+      "E17": [
+        [
+          100,
+          100
+        ],
+        [
+          120,
+          50
+        ],
+        [
+          120,
+          100
+        ]
+      ],
+      "E18": 0.25,
+      "E20": [
+        7,
+        8
+      ],
+      "E25": [
+        106496,
+        20480,
+        126976,
+        380928,
+        93
+      ]
+    }
+  },
+  "cn": {
+    "rate_bps": 100000000,
+    "packet_bytes": 1500,
+    "distance_m": 1000000,
+    "speed_mps": 200000000,
+    "transmission_ms": 0.12000000000000001,
+    "propagation_ms": 5.0,
+    "processing_ms": 0.05,
+    "queue_ms": 0.5,
+    "one_link_delay_ms": 5.67,
+    "two_link_no_queue_ms": 10.24,
+    "rtt_ms": 40,
+    "bdp_bytes": 500000.0,
+    "stop_wait_mbps": 0.2991026919242273,
+    "window_bytes": 64000,
+    "window_mbps": 12.8,
+    "tcp_payload_bytes": 1460,
+    "udp_payload_bytes": 1472,
+    "ethernet_frame_bytes": 1518,
+    "tagged_frame_bytes": 1522,
+    "mac_bits": 48,
+    "ipv4_bits": 32,
+    "ipv6_bits": 128,
+    "subnets": {
+      "8": {
+        "addresses": 16777216,
+        "ordinary_hosts": 16777214
+      },
+      "16": {
+        "addresses": 65536,
+        "ordinary_hosts": 65534
+      },
+      "24": {
+        "addresses": 256,
+        "ordinary_hosts": 254
+      },
+      "25": {
+        "addresses": 128,
+        "ordinary_hosts": 126
+      },
+      "26": {
+        "addresses": 64,
+        "ordinary_hosts": 62
+      },
+      "27": {
+        "addresses": 32,
+        "ordinary_hosts": 30
+      },
+      "28": {
+        "addresses": 16,
+        "ordinary_hosts": 14
+      },
+      "30": {
+        "addresses": 4,
+        "ordinary_hosts": 2
+      },
+      "31": {
+        "addresses": 2,
+        "ordinary_hosts": 0
+      },
+      "32": {
+        "addresses": 1,
+        "ordinary_hosts": 0
+      }
+    },
+    "network": "192.168.10.64",
+    "broadcast": "192.168.10.127",
+    "first_host": "192.168.10.65",
+    "last_host": "192.168.10.126",
+    "hosts": 62,
+    "crc": "001",
+    "tcp_isn": 1000,
+    "syn_next": 1001,
+    "after_data": 2461,
+    "cwnd": [
+      1460,
+      2920,
+      5840,
+      11680
+    ],
+    "burst": 50,
+    "shannon_bps": 4000000.0,
+    "nyquist_bps": 4000000.0,
+    "cold_handshake_ms": 120,
+    "token_seconds": 2.0,
+    "rr_counts": [
+      3,
+      3,
+      3
+    ],
+    "dns_ttl_remaining": 180,
+    "client_ip": "192.168.10.70",
+    "gateway": "192.168.10.65",
+    "server_ip": "203.0.113.20",
+    "public_ip": "198.51.100.7"
+  },
+  "os": {
+    "cores": 2,
+    "page_bytes": 4096,
+    "virtual_bits": 32,
+    "offset_bits": 12,
+    "vpn_bits": 20,
+    "virtual_pages": 1048576,
+    "pte_bytes": 4,
+    "linear_table_bytes": 4194304,
+    "virtual_address": 13396,
+    "vpn": 3,
+    "offset": 1108,
+    "frame": 9,
+    "physical_address": 37972,
+    "tlb_hit_rate": 0.9,
+    "memory_ns": 100,
+    "tlb_ns": 10,
+    "effective_ns": 120.0,
+    "cow_pages": 8,
+    "cow_before_bytes": 32768,
+    "cow_after_bytes": 36864,
+    "allocation_bytes": 10000,
+    "allocated_pages": 3,
+    "internal_waste": 2288,
+    "jobs": [
+      [
+        "A",
+        0,
+        5
+      ],
+      [
+        "B",
+        1,
+        3
+      ],
+      [
+        "C",
+        2,
+        1
+      ]
+    ],
+    "schedules": {
+      "fcfs": {
+        "timeline": [
+          [
+            "A",
+            0,
+            5
+          ],
+          [
+            "B",
+            5,
+            8
+          ],
+          [
+            "C",
+            8,
+            9
+          ]
+        ],
+        "rows": [
+          {
+            "name": "A",
+            "arrival": 0,
+            "burst": 5,
+            "completion": 5,
+            "turnaround": 5,
+            "waiting": 0,
+            "response": 0
+          },
+          {
+            "name": "B",
+            "arrival": 1,
+            "burst": 3,
+            "completion": 8,
+            "turnaround": 7,
+            "waiting": 4,
+            "response": 4
+          },
+          {
+            "name": "C",
+            "arrival": 2,
+            "burst": 1,
+            "completion": 9,
+            "turnaround": 7,
+            "waiting": 6,
+            "response": 6
+          }
+        ],
+        "mean_waiting": 3.3333333333333335
+      },
+      "sjf": {
+        "timeline": [
+          [
+            "A",
+            0,
+            5
+          ],
+          [
+            "C",
+            5,
+            6
+          ],
+          [
+            "B",
+            6,
+            9
+          ]
+        ],
+        "rows": [
+          {
+            "name": "A",
+            "arrival": 0,
+            "burst": 5,
+            "completion": 5,
+            "turnaround": 5,
+            "waiting": 0,
+            "response": 0
+          },
+          {
+            "name": "B",
+            "arrival": 1,
+            "burst": 3,
+            "completion": 9,
+            "turnaround": 8,
+            "waiting": 5,
+            "response": 5
+          },
+          {
+            "name": "C",
+            "arrival": 2,
+            "burst": 1,
+            "completion": 6,
+            "turnaround": 4,
+            "waiting": 3,
+            "response": 3
+          }
+        ],
+        "mean_waiting": 2.6666666666666665
+      },
+      "srtf": {
+        "timeline": [
+          [
+            "A",
+            0,
+            1
+          ],
+          [
+            "B",
+            1,
+            2
+          ],
+          [
+            "C",
+            2,
+            3
+          ],
+          [
+            "B",
+            3,
+            4
+          ],
+          [
+            "B",
+            4,
+            5
+          ],
+          [
+            "A",
+            5,
+            6
+          ],
+          [
+            "A",
+            6,
+            7
+          ],
+          [
+            "A",
+            7,
+            8
+          ],
+          [
+            "A",
+            8,
+            9
+          ]
+        ],
+        "rows": [
+          {
+            "name": "A",
+            "arrival": 0,
+            "burst": 5,
+            "completion": 9,
+            "turnaround": 9,
+            "waiting": 4,
+            "response": 0
+          },
+          {
+            "name": "B",
+            "arrival": 1,
+            "burst": 3,
+            "completion": 5,
+            "turnaround": 4,
+            "waiting": 1,
+            "response": 0
+          },
+          {
+            "name": "C",
+            "arrival": 2,
+            "burst": 1,
+            "completion": 3,
+            "turnaround": 1,
+            "waiting": 0,
+            "response": 0
+          }
+        ],
+        "mean_waiting": 1.6666666666666667
+      },
+      "rr": {
+        "timeline": [
+          [
+            "A",
+            0,
+            2
+          ],
+          [
+            "B",
+            2,
+            4
+          ],
+          [
+            "C",
+            4,
+            5
+          ],
+          [
+            "A",
+            5,
+            7
+          ],
+          [
+            "B",
+            7,
+            8
+          ],
+          [
+            "A",
+            8,
+            9
+          ]
+        ],
+        "rows": [
+          {
+            "name": "A",
+            "arrival": 0,
+            "burst": 5,
+            "completion": 9,
+            "turnaround": 9,
+            "waiting": 4,
+            "response": 0
+          },
+          {
+            "name": "B",
+            "arrival": 1,
+            "burst": 3,
+            "completion": 8,
+            "turnaround": 7,
+            "waiting": 4,
+            "response": 1
+          },
+          {
+            "name": "C",
+            "arrival": 2,
+            "burst": 1,
+            "completion": 5,
+            "turnaround": 3,
+            "waiting": 2,
+            "response": 2
+          }
+        ],
+        "mean_waiting": 3.3333333333333335
+      }
+    },
+    "refs": [
+      1,
+      2,
+      3,
+      4,
+      1,
+      2,
+      5,
+      1,
+      2,
+      3,
+      4,
+      5
+    ],
+    "replacement": {
+      "fifo_3": {
+        "faults": 9,
+        "trace": [
+          {
+            "page": 1,
+            "frames": [
+              1
+            ],
+            "miss": true
+          },
+          {
+            "page": 2,
+            "frames": [
+              1,
+              2
+            ],
+            "miss": true
+          },
+          {
+            "page": 3,
+            "frames": [
+              1,
+              2,
+              3
+            ],
+            "miss": true
+          },
+          {
+            "page": 4,
+            "frames": [
+              2,
+              3,
+              4
+            ],
+            "miss": true
+          },
+          {
+            "page": 1,
+            "frames": [
+              3,
+              4,
+              1
+            ],
+            "miss": true
+          },
+          {
+            "page": 2,
+            "frames": [
+              4,
+              1,
+              2
+            ],
+            "miss": true
+          },
+          {
+            "page": 5,
+            "frames": [
+              1,
+              2,
+              5
+            ],
+            "miss": true
+          },
+          {
+            "page": 1,
+            "frames": [
+              1,
+              2,
+              5
+            ],
+            "miss": false
+          },
+          {
+            "page": 2,
+            "frames": [
+              1,
+              2,
+              5
+            ],
+            "miss": false
+          },
+          {
+            "page": 3,
+            "frames": [
+              2,
+              5,
+              3
+            ],
+            "miss": true
+          },
+          {
+            "page": 4,
+            "frames": [
+              5,
+              3,
+              4
+            ],
+            "miss": true
+          },
+          {
+            "page": 5,
+            "frames": [
+              5,
+              3,
+              4
+            ],
+            "miss": false
+          }
+        ]
+      },
+      "fifo_4": {
+        "faults": 10,
+        "trace": [
+          {
+            "page": 1,
+            "frames": [
+              1
+            ],
+            "miss": true
+          },
+          {
+            "page": 2,
+            "frames": [
+              1,
+              2
+            ],
+            "miss": true
+          },
+          {
+            "page": 3,
+            "frames": [
+              1,
+              2,
+              3
+            ],
+            "miss": true
+          },
+          {
+            "page": 4,
+            "frames": [
+              1,
+              2,
+              3,
+              4
+            ],
+            "miss": true
+          },
+          {
+            "page": 1,
+            "frames": [
+              1,
+              2,
+              3,
+              4
+            ],
+            "miss": false
+          },
+          {
+            "page": 2,
+            "frames": [
+              1,
+              2,
+              3,
+              4
+            ],
+            "miss": false
+          },
+          {
+            "page": 5,
+            "frames": [
+              2,
+              3,
+              4,
+              5
+            ],
+            "miss": true
+          },
+          {
+            "page": 1,
+            "frames": [
+              3,
+              4,
+              5,
+              1
+            ],
+            "miss": true
+          },
+          {
+            "page": 2,
+            "frames": [
+              4,
+              5,
+              1,
+              2
+            ],
+            "miss": true
+          },
+          {
+            "page": 3,
+            "frames": [
+              5,
+              1,
+              2,
+              3
+            ],
+            "miss": true
+          },
+          {
+            "page": 4,
+            "frames": [
+              1,
+              2,
+              3,
+              4
+            ],
+            "miss": true
+          },
+          {
+            "page": 5,
+            "frames": [
+              2,
+              3,
+              4,
+              5
+            ],
+            "miss": true
+          }
+        ]
+      },
+      "lru_3": {
+        "faults": 10,
+        "trace": [
+          {
+            "page": 1,
+            "frames": [
+              1
+            ],
+            "miss": true
+          },
+          {
+            "page": 2,
+            "frames": [
+              1,
+              2
+            ],
+            "miss": true
+          },
+          {
+            "page": 3,
+            "frames": [
+              1,
+              2,
+              3
+            ],
+            "miss": true
+          },
+          {
+            "page": 4,
+            "frames": [
+              2,
+              3,
+              4
+            ],
+            "miss": true
+          },
+          {
+            "page": 1,
+            "frames": [
+              3,
+              4,
+              1
+            ],
+            "miss": true
+          },
+          {
+            "page": 2,
+            "frames": [
+              4,
+              1,
+              2
+            ],
+            "miss": true
+          },
+          {
+            "page": 5,
+            "frames": [
+              1,
+              2,
+              5
+            ],
+            "miss": true
+          },
+          {
+            "page": 1,
+            "frames": [
+              1,
+              2,
+              5
+            ],
+            "miss": false
+          },
+          {
+            "page": 2,
+            "frames": [
+              1,
+              2,
+              5
+            ],
+            "miss": false
+          },
+          {
+            "page": 3,
+            "frames": [
+              1,
+              2,
+              3
+            ],
+            "miss": true
+          },
+          {
+            "page": 4,
+            "frames": [
+              2,
+              3,
+              4
+            ],
+            "miss": true
+          },
+          {
+            "page": 5,
+            "frames": [
+              3,
+              4,
+              5
+            ],
+            "miss": true
+          }
+        ]
+      },
+      "opt_3": {
+        "faults": 7,
+        "trace": [
+          {
+            "page": 1,
+            "frames": [
+              1
+            ],
+            "miss": true
+          },
+          {
+            "page": 2,
+            "frames": [
+              1,
+              2
+            ],
+            "miss": true
+          },
+          {
+            "page": 3,
+            "frames": [
+              1,
+              2,
+              3
+            ],
+            "miss": true
+          },
+          {
+            "page": 4,
+            "frames": [
+              1,
+              2,
+              4
+            ],
+            "miss": true
+          },
+          {
+            "page": 1,
+            "frames": [
+              1,
+              2,
+              4
+            ],
+            "miss": false
+          },
+          {
+            "page": 2,
+            "frames": [
+              1,
+              2,
+              4
+            ],
+            "miss": false
+          },
+          {
+            "page": 5,
+            "frames": [
+              1,
+              2,
+              5
+            ],
+            "miss": true
+          },
+          {
+            "page": 1,
+            "frames": [
+              1,
+              2,
+              5
+            ],
+            "miss": false
+          },
+          {
+            "page": 2,
+            "frames": [
+              1,
+              2,
+              5
+            ],
+            "miss": false
+          },
+          {
+            "page": 3,
+            "frames": [
+              2,
+              5,
+              3
+            ],
+            "miss": true
+          },
+          {
+            "page": 4,
+            "frames": [
+              5,
+              3,
+              4
+            ],
+            "miss": true
+          },
+          {
+            "page": 5,
+            "frames": [
+              5,
+              3,
+              4
+            ],
+            "miss": false
+          }
+        ]
+      }
+    },
+    "banker": {
+      "available": 1,
+      "allocation": [
+        1,
+        1,
+        1
+      ],
+      "maximum": [
+        3,
+        2,
+        3
+      ],
+      "need": [
+        2,
+        1,
+        2
+      ],
+      "safe_sequence": [
+        "B",
+        "A",
+        "C"
+      ],
+      "work": [
+        1,
+        2,
+        3,
+        4
+      ]
+    },
+    "counter_initial": 10,
+    "counter_lost": 11,
+    "counter_correct": 12,
+    "permissions": [
+      "7 = 4 + 2 + 1",
+      "5 = 4 + 1",
+      "5 = 4 + 1"
+    ],
+    "cache_line_bytes": 64,
+    "counter_bytes": 8,
+    "counters_per_line": 8,
+    "connections": 1000,
+    "idle": 980,
+    "ready": 20,
+    "fd_limit": 1024,
+    "reserved_fd": 24,
+    "connection_capacity": 1000,
+    "quantum_ms": 2,
+    "switch_ms": 0.1,
+    "switch_fraction": 0.047619047619047616,
+    "quota_ms": 50,
+    "period_ms": 100,
+    "cpu_fraction": 0.5
+  }
+}

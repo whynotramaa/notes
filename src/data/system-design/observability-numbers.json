@@ -1,0 +1,80 @@
+{
+  "day_s": 86400,
+  "month_days": 30,
+  "qps": 1000,
+  "log_bytes": 500,
+  "slo": 0.999,
+  "failures": 600,
+  "window_s": 60,
+  "labels": [
+    12,
+    6,
+    5
+  ],
+  "buckets": 12,
+  "services": 20,
+  "requests": [
+    900,
+    100
+  ],
+  "bad": [
+    9,
+    10
+  ],
+  "spans": [
+    200,
+    120,
+    80,
+    20
+  ],
+  "sample_rate": 0.01,
+  "span_bytes": 300,
+  "spans_per_trace": 8,
+  "tail_wait_s": 10,
+  "pool_size": 40,
+  "pool_busy": 32,
+  "cache_hits": 900,
+  "cache_misses": 100,
+  "ingest": 1200,
+  "drain": 1000,
+  "burst_s": 60,
+  "recovery_ingest": 600,
+  "log_bytes_s": 500000,
+  "log_bytes_day": 43200000000,
+  "requests_window": 60000,
+  "monthly_requests": 2592000000,
+  "series": 360,
+  "histogram_series": 5040,
+  "series_with_users": 18000000,
+  "error_rate": 0.01,
+  "error_budget": 2592000.0,
+  "weighted_error": 0.019,
+  "wrong_mean_error": 0.055,
+  "sampled_traces_s": 10.0,
+  "trace_bytes_s": 24000.0,
+  "tail_buffer_traces": 10000,
+  "tail_buffer_bytes": 24000000,
+  "pool_fraction": 0.8,
+  "cache_hit_fraction": 0.9,
+  "backlog": 12000,
+  "burn_rate": 10.0,
+  "budget_used_fraction": 0.0002314814814814815,
+  "budget_exhaust_s": 259200.0,
+  "drain_s": 30.0,
+  "trace_self_ms": 80,
+  "max_parallel_ms": 140,
+  "buckets_counts": [
+    50,
+    95,
+    99,
+    100
+  ],
+  "bucket_deltas": [
+    50,
+    45,
+    4,
+    1
+  ],
+  "scrape_samples_day": 5760000.0,
+  "retained_log_bytes": 302400000000
+}

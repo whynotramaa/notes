@@ -1,0 +1,60 @@
+{
+  "events_s": 20,
+  "event_bytes": 200,
+  "read_qps": 1000,
+  "shards": 4,
+  "followers": 10000,
+  "publishers_s": 100,
+  "active_reads_s": 50,
+  "candidates": 200,
+  "rows": 1000000,
+  "replay_s": 20000,
+  "snapshot_events": 1000,
+  "projection_s": 100,
+  "outbox_poll_s": 2,
+  "lease_s": 10,
+  "work_s": 15,
+  "ring_old": [
+    0,
+    25,
+    50,
+    75
+  ],
+  "ring_new": [
+    0,
+    20,
+    40,
+    60,
+    80
+  ],
+  "modulus": 100,
+  "events_day": 1728000,
+  "raw_event_bytes_day": 345600000,
+  "mean_shard_qps": 250.0,
+  "hot_shard_qps": 600.0,
+  "cold_shard_qps": 133.33333333333334,
+  "fanout_write_entries_s": 1000000,
+  "fanout_read_candidates_s": 10000,
+  "replay_seconds": 50.0,
+  "snapshot_replay_seconds": 0.05,
+  "projection_lag_after_pause_s": 10,
+  "projection_backlog": 200,
+  "projection_drain_s": 2.5,
+  "poll_mean_delay_s": 1.0,
+  "lease_overlap_s": 5,
+  "moved_fraction": 0.2,
+  "modulo_moved": 80,
+  "ledger": {
+    "before_cents": 10000,
+    "reserved_cents": 2500,
+    "available_cents": 7500,
+    "charge_cents": 2500,
+    "refund_cents": 2500
+  },
+  "versions": {
+    "before": 7,
+    "next": 8,
+    "stale_expected": 7,
+    "actual_after_other_write": 8
+  }
+}

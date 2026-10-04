@@ -37,6 +37,13 @@
     map.scrollLeft = box.left - map.getBoundingClientRect().left + box.width / 2 - map.clientWidth / 2;
   }
 
+  const moving = [...document.querySelectorAll('svg.fig')].filter(s => s.querySelector('.anim'));
+  moving.forEach(s => { s.pauseAnimations(); s.setCurrentTime(0); });
+  if (!matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    const player = new IntersectionObserver(entries => entries.forEach(e => e.isIntersecting ? e.target.unpauseAnimations() : e.target.pauseAnimations()), { threshold: 0.25 });
+    moving.forEach(s => player.observe(s));
+  }
+
   const contents = document.getElementById('contents-dialog');
   if (contents?.showModal) {
     document.getElementById('contents-open').addEventListener('click', () => contents.showModal());

@@ -1,0 +1,101 @@
+{
+  "status": "in_progress",
+  "requested_retry_time": "06:00 Asia/Kolkata",
+  "objective": "Complete the full sysdzn.md syllabus as deeply explained, diagram-heavy system design field guides using the existing octlm aesthetic.",
+  "latest_user_feedback": "The first draft is far too minimal to understand. Keep paragraphs short but substantially expand complete topics with mechanisms, intermediate states, worked examples, costs, failure histories and interview practice.",
+  "canonical_content": "src/content/system-design",
+  "completed": [],
+  "in_progress": {
+    "parent": [
+      "full-series content/figure/numeric QA",
+      "API completed pending independent read-through"
+    ],
+    "review_recovery_storage": [
+      "reliability",
+      "rate-limiting",
+      "storage",
+      "cdn",
+      "traffic-routing depth repair"
+    ],
+    "review_search_realtime": [
+      "search",
+      "realtime",
+      "data-pipelines",
+      "security",
+      "queues depth repair"
+    ],
+    "review_operations_practice": [
+      "observability",
+      "scaling-patterns",
+      "interview-method",
+      "practice-designs",
+      "kafka depth repair"
+    ]
+  },
+  "remaining_units": [
+    "cdn",
+    "data-pipelines",
+    "security",
+    "traffic-routing depth repair",
+    "queues depth repair",
+    "kafka depth repair"
+  ],
+  "requirements": [
+    "Preserve syllabus order and cover every item",
+    "7 to 13 parts per note",
+    "Continuous numbered sections",
+    "At least 30 substantial sections for a book unit",
+    "Short paragraphs but full explanations",
+    "40 interview questions and 25 graded exercises with worked solutions",
+    "Compute illustrative arithmetic",
+    "Many distinct intermediate-state hand-drawn diagrams",
+    "Reuse Astro renderer and palette",
+    "Verify coverage, build, light/dark desktop/mobile and diagrams",
+    "Do not overwrite concurrent user fundamentals work"
+  ],
+  "warning": "The original numbered authoring scripts are compressed first-draft generators. Do not rerun them over revised canonical markdown or reviewer figure edits. expand-networking.py is also incomplete and must not be blindly rerun after direct edits.",
+  "resume": "Read AGENTS.md and the explainer-design skill, inspect current canonical files and child task status, continue from the actual state, correct known review findings, finish all remaining units at the user-corrected depth, then build and verify. Only set status complete when the entire requested syllabus is finished and verified.",
+  "schedule_id": "scheduled-task:command:mcp:7dd8e904-3286-4be0-9ed0-c17e4ee6cf50:schedule-task:system-design-0600-retry-20261004",
+  "next_retry_utc": null,
+  "retry_enabled": false,
+  "resumed_at": "2026-10-04T00:30:00Z",
+  "ownership_audit": "Prior reviewers idle; no active task duplicated. Fundamentals excluded.",
+  "drafted_and_structurally_checked": [
+    "networking",
+    "performance",
+    "databases",
+    "nosql",
+    "distributed-systems",
+    "caching",
+    "apis-and-services"
+  ],
+  "verification": {
+    "last_build": "passed; no missing figures or KaTeX errors",
+    "structure": "7 checked units,285figure functions,0errors/0warnings",
+    "restored_ledger": "copies-review-numbers.py now present and assertions pass",
+    "visual": "API mobile overflow0; native drawer and theme handlers work; screenshot transport failing, SVG raster QA underway",
+    "mobile": "162 current expanded pages: horizontal overflow0,math render markers0; actual native drawer/theme/scrollspy confirmed",
+    "figures": "Original300SVGfunctions looked at;347newfunctions realfontgeometrycheck0outsidecanvas,2sd_storage_finaltextcollisionsassignedforrepair. New contact-sheet review underway.",
+    "limitations": "T3 snapshot transport fails; actual browser layout/interaction testing and SVG raster QA available."
+  },
+  "drafted_pending_final_verification": [
+    "networking",
+    "performance",
+    "databases",
+    "nosql",
+    "distributed-systems",
+    "caching",
+    "apis-and-services",
+    "observability",
+    "reliability",
+    "search",
+    "scaling-patterns",
+    "rate-limiting",
+    "interview-method",
+    "realtime",
+    "storage",
+    "practice-designs",
+    "data-pipelines"
+  ],
+  "updated_at": "2026-10-04T01:10:52.765135+00:00"
+}

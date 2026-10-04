@@ -1,0 +1,53 @@
+{
+  "crc_data": "1101",
+  "crc_generator": "1011",
+  "crc_steps": [
+    "0110000",
+    "0011100",
+    "0001010",
+    "0000001"
+  ],
+  "crc_remainder": "001",
+  "crc_codeword": "1101001",
+  "crc_received_remainder": "000",
+  "ipv4_header_bytes": 20,
+  "tcp_header_bytes": 20,
+  "ethernet_header_bytes": 14,
+  "fcs_bytes": 4,
+  "vlan_tag_bytes": 4,
+  "frame_bytes": 1518,
+  "tcp_payload_bytes": 1460,
+  "tagged_bytes": 1522,
+  "network_mask": "255.255.255.192",
+  "client_last_octet_binary": "01000110",
+  "mask_last_octet_binary": "11000000",
+  "network_last_octet_binary": "01000000",
+  "remaining_24_addresses": 192,
+  "aggregate": "192.168.10.0/25",
+  "snr_linear": 15,
+  "signal_bandwidth_hz": 1000000,
+  "symbol_levels": 4,
+  "shannon_bps": 4000000.0,
+  "nyquist_bps": 4000000.0,
+  "mac_octets": 6,
+  "nat_private_port": 51000,
+  "nat_public_port": 40001,
+  "https_port": 443,
+  "illustrative_start_ttl": 64,
+  "ttl_after_gateway": 63,
+  "route_prefixes": [
+    "10.0.0.0/8",
+    "10.1.0.0/16",
+    "10.1.2.0/24"
+  ],
+  "route_destination": "10.1.2.50",
+  "switch_ports": [
+    1,
+    2,
+    3
+  ],
+  "vlan_ids": [
+    10,
+    20
+  ]
+}

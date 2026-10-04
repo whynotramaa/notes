@@ -1,0 +1,167 @@
+{
+  "texts": [
+    "red bird scores",
+    "blue bird scores",
+    "red match live",
+    "bird bird match"
+  ],
+  "postings": {
+    "red": [
+      [
+        1,
+        1
+      ],
+      [
+        3,
+        1
+      ]
+    ],
+    "bird": [
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        2
+      ],
+      [
+        4,
+        1
+      ],
+      [
+        4,
+        2
+      ]
+    ],
+    "scores": [
+      [
+        1,
+        3
+      ],
+      [
+        2,
+        3
+      ]
+    ],
+    "blue": [
+      [
+        2,
+        1
+      ]
+    ],
+    "match": [
+      [
+        3,
+        2
+      ],
+      [
+        4,
+        3
+      ]
+    ],
+    "live": [
+      [
+        3,
+        3
+      ]
+    ]
+  },
+  "lengths": [
+    3,
+    3,
+    3,
+    3
+  ],
+  "average_length": 3.0,
+  "red_docs": [
+    1,
+    3
+  ],
+  "bird_docs": [
+    1,
+    2,
+    4
+  ],
+  "intersection": [
+    1
+  ],
+  "union": [
+    1,
+    2,
+    3,
+    4
+  ],
+  "tfidf_red": 0.6931471805599453,
+  "idf_red": 0.6931471805599453,
+  "idf_bird": 0.3566749439387324,
+  "bm25_bird_once": 0.3566749439387324,
+  "bm25_bird_twice": 0.49042804791575706,
+  "bm25_red_bird": 1.0498221244986776,
+  "edit_bird_bird": 0,
+  "edit_bird_brd": 1,
+  "edit_bird_brad": 2,
+  "prefixes": [
+    "b",
+    "bi",
+    "bir",
+    "bird"
+  ],
+  "million_scan_bytes": 500000000,
+  "candidate_bytes": 50000,
+  "scan_ratio": 10000.0,
+  "posting_bytes": 48,
+  "positions_bytes": 48,
+  "total_occurrence_bytes": 96,
+  "length_double_adjustment": 1.75,
+  "bird_twice_factor": 1.375,
+  "delta_bird": [
+    1,
+    1,
+    2
+  ],
+  "raw_docs_bytes": 500000000,
+  "index_bytes": 750000000.0,
+  "copies": 3,
+  "total_index_bytes": 2250000000.0,
+  "primary_shards": 4,
+  "shard_bytes": 187500000.0,
+  "shard_copies": 12,
+  "query_rate": 1000,
+  "shard_queries_s": 4000,
+  "local_top_k": 10,
+  "returned_candidates": 40,
+  "fetch_documents": 10,
+  "deep_offset": 1000,
+  "deep_candidates": 4040,
+  "cursor_candidates": 40,
+  "write_rate": 20,
+  "refresh_interval_s": 1,
+  "buffered_writes": 20,
+  "bulk_size": 1000,
+  "bulk_payload_bytes": 500000,
+  "rebuild_s": 200.0,
+  "updates_during_rebuild": 4000.0,
+  "precision": 0.6,
+  "recall": 0.75,
+  "ndcg_discount": [
+    1.0,
+    0.6309297535714575,
+    0.5,
+    0.43067655807339306
+  ],
+  "cache_hits": 800.0,
+  "cache_misses": 200.0,
+  "failed_shard_fraction": 0.25,
+  "delete_versions": [
+    7,
+    8,
+    6
+  ],
+  "routing": [
+    1,
+    2,
+    3,
+    0
+  ]
+}

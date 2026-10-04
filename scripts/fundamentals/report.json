@@ -1,0 +1,40 @@
+{
+  "units": [
+    {
+      "slug": "dbms",
+      "parts": 12,
+      "sections": 60,
+      "bodyFigures": 72,
+      "words": 37264,
+      "bodyWords": 32820,
+      "questions": 48,
+      "exercises": 25,
+      "formulas": 160
+    },
+    {
+      "slug": "cn",
+      "parts": 12,
+      "sections": 56,
+      "bodyFigures": 62,
+      "words": 26933,
+      "bodyWords": 22142,
+      "questions": 48,
+      "exercises": 25,
+      "formulas": 20
+    },
+    {
+      "slug": "os",
+      "parts": 12,
+      "sections": 56,
+      "bodyFigures": 70,
+      "words": 20809,
+      "bodyWords": 18053,
+      "questions": 45,
+      "exercises": 25,
+      "formulas": 51
+    }
+  ],
+  "errors": [],
+  "warnings": [],
+  "checkedFigureFunctions": 210
+}

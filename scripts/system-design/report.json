@@ -1,0 +1,249 @@
+{
+  "units": [
+    {
+      "slug": "networking",
+      "parts": 7,
+      "sections": 32,
+      "bodyFigures": 39,
+      "words": 13467,
+      "bodyWords": 10654,
+      "questions": 46,
+      "exercises": 30,
+      "formulas": 51
+    },
+    {
+      "slug": "performance",
+      "parts": 7,
+      "sections": 35,
+      "bodyFigures": 40,
+      "words": 13309,
+      "bodyWords": 9790,
+      "questions": 40,
+      "exercises": 25,
+      "formulas": 85
+    },
+    {
+      "slug": "databases",
+      "parts": 8,
+      "sections": 36,
+      "bodyFigures": 39,
+      "words": 14796,
+      "bodyWords": 11140,
+      "questions": 40,
+      "exercises": 25,
+      "formulas": 57
+    },
+    {
+      "slug": "nosql",
+      "parts": 7,
+      "sections": 35,
+      "bodyFigures": 38,
+      "words": 13298,
+      "bodyWords": 9754,
+      "questions": 40,
+      "exercises": 25,
+      "formulas": 33
+    },
+    {
+      "slug": "distributed-systems",
+      "parts": 8,
+      "sections": 32,
+      "bodyFigures": 40,
+      "words": 15465,
+      "bodyWords": 11967,
+      "questions": 40,
+      "exercises": 25,
+      "formulas": 15
+    },
+    {
+      "slug": "caching",
+      "parts": 8,
+      "sections": 32,
+      "bodyFigures": 40,
+      "words": 15518,
+      "bodyWords": 12085,
+      "questions": 40,
+      "exercises": 25,
+      "formulas": 15
+    },
+    {
+      "slug": "traffic-routing",
+      "parts": 8,
+      "sections": 34,
+      "bodyFigures": 38,
+      "words": 18196,
+      "bodyWords": 12715,
+      "questions": 40,
+      "exercises": 25,
+      "formulas": 115
+    },
+    {
+      "slug": "queues",
+      "parts": 7,
+      "sections": 33,
+      "bodyFigures": 35,
+      "words": 17243,
+      "bodyWords": 12801,
+      "questions": 43,
+      "exercises": 25,
+      "formulas": 83
+    },
+    {
+      "slug": "kafka",
+      "parts": 9,
+      "sections": 36,
+      "bodyFigures": 36,
+      "words": 17420,
+      "bodyWords": 11928,
+      "questions": 40,
+      "exercises": 30,
+      "formulas": 12
+    },
+    {
+      "slug": "apis-and-services",
+      "parts": 7,
+      "sections": 31,
+      "bodyFigures": 36,
+      "words": 13082,
+      "bodyWords": 10091,
+      "questions": 41,
+      "exercises": 25,
+      "formulas": 5
+    },
+    {
+      "slug": "reliability",
+      "parts": 8,
+      "sections": 32,
+      "bodyFigures": 39,
+      "words": 10921,
+      "bodyWords": 7707,
+      "questions": 40,
+      "exercises": 25,
+      "formulas": 32
+    },
+    {
+      "slug": "rate-limiting",
+      "parts": 8,
+      "sections": 32,
+      "bodyFigures": 37,
+      "words": 11106,
+      "bodyWords": 7868,
+      "questions": 40,
+      "exercises": 25,
+      "formulas": 45
+    },
+    {
+      "slug": "storage",
+      "parts": 8,
+      "sections": 32,
+      "bodyFigures": 37,
+      "words": 10756,
+      "bodyWords": 7500,
+      "questions": 40,
+      "exercises": 25,
+      "formulas": 16
+    },
+    {
+      "slug": "cdn",
+      "parts": 8,
+      "sections": 32,
+      "bodyFigures": 39,
+      "words": 11007,
+      "bodyWords": 7788,
+      "questions": 40,
+      "exercises": 25,
+      "formulas": 21
+    },
+    {
+      "slug": "search",
+      "parts": 9,
+      "sections": 36,
+      "bodyFigures": 36,
+      "words": 13280,
+      "bodyWords": 9673,
+      "questions": 40,
+      "exercises": 25,
+      "formulas": 35
+    },
+    {
+      "slug": "realtime",
+      "parts": 9,
+      "sections": 36,
+      "bodyFigures": 36,
+      "words": 13129,
+      "bodyWords": 9472,
+      "questions": 40,
+      "exercises": 25,
+      "formulas": 21
+    },
+    {
+      "slug": "data-pipelines",
+      "parts": 9,
+      "sections": 36,
+      "bodyFigures": 36,
+      "words": 13004,
+      "bodyWords": 9453,
+      "questions": 40,
+      "exercises": 25,
+      "formulas": 14
+    },
+    {
+      "slug": "security",
+      "parts": 9,
+      "sections": 36,
+      "bodyFigures": 36,
+      "words": 13171,
+      "bodyWords": 9575,
+      "questions": 40,
+      "exercises": 25,
+      "formulas": 13
+    },
+    {
+      "slug": "observability",
+      "parts": 9,
+      "sections": 36,
+      "bodyFigures": 36,
+      "words": 17656,
+      "bodyWords": 12263,
+      "questions": 40,
+      "exercises": 30,
+      "formulas": 12
+    },
+    {
+      "slug": "scaling-patterns",
+      "parts": 9,
+      "sections": 36,
+      "bodyFigures": 36,
+      "words": 17472,
+      "bodyWords": 11997,
+      "questions": 40,
+      "exercises": 30,
+      "formulas": 12
+    },
+    {
+      "slug": "interview-method",
+      "parts": 9,
+      "sections": 36,
+      "bodyFigures": 36,
+      "words": 16939,
+      "bodyWords": 11677,
+      "questions": 40,
+      "exercises": 30,
+      "formulas": 12
+    },
+    {
+      "slug": "practice-designs",
+      "parts": 9,
+      "sections": 36,
+      "bodyFigures": 36,
+      "words": 18741,
+      "bodyWords": 13104,
+      "questions": 40,
+      "exercises": 30,
+      "formulas": 12
+    }
+  ],
+  "errors": [],
+  "warnings": [],
+  "checkedFigureFunctions": 865
+}

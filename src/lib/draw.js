@@ -178,3 +178,226 @@ function fmt(s) {
 
 export const fmtN = (v) => Math.round(v).toLocaleString('en-US');
 export const softmax = (xs) => { const m = Math.max(...xs); const e = xs.map((x) => Math.exp(x - m)); const s = e.reduce((a, b) => a + b, 0); return e.map((x) => x / s); };
+
+const kt = (a) => a.map((v) => +v.toFixed(4)).join(';');
+const win = (at) => { const a = Math.max(0, Math.min(1, at[0])), b = Math.max(a, Math.min(1, at[1])); return [a, b]; };
+
+Object.assign(D.prototype, {
+  cycle: 6,
+  wrap(fn, open, close = '</g>') {
+    const i = this.parts.length;
+    fn(this);
+    const inner = this.parts.splice(i).join('');
+    this.parts.push(open + inner + close);
+    return this;
+  },
+  during(at, fn, o = {}) {
+    const [a, b] = win(at), dur = o.dur ?? this.cycle;
+    const vals = b >= 1 ? (a <= 0 ? '1;1' : '0;1') : (a <= 0 ? '1;0' : '0;1;0');
+    const keys = b >= 1 ? (a <= 0 ? '0;1' : kt([0, a])) : (a <= 0 ? kt([0, b]) : kt([0, a, b]));
+    return this.wrap(fn, `<g class="anim">`, `<animate attributeName="opacity" values="${vals}" keyTimes="${keys}" calcMode="discrete" dur="${dur}s" repeatCount="indefinite"/></g>`);
+  },
+  phase(i, n, fn, o = {}) { return this.during([i / n, o.hold ? 1 : (i + 1) / n], fn, o); },
+  travel(pts, o = {}) {
+    const d = typeof pts === 'string' ? pts : 'M' + pts.map((p) => p.join(',')).join(' L');
+    const [a, b] = win(o.at ?? [0, 1]), dur = o.dur ?? this.cycle;
+    const i = this.parts.length;
+    if (typeof o.token === 'function') o.token(this);
+    else if (o.token === 'packet') this.envelope(-9, -6, 18, 12, { fill: o.fill ?? C.accSoft, stroke: o.color ?? C.acc, sw: 0.9 });
+    else if (o.label) { const w = o.w ?? Math.max(26, String(o.label).length * 6.4 + 12); this.rect(-w / 2, -9, w, 18, { r: 5, fill: o.fill ?? C.accSoft, stroke: o.color ?? C.acc, sw: 0.9 }); this.text(0, 0.5, o.label, { cls: 'mono', size: o.size ?? 9.5 }); }
+    else this.parts.push(`<circle r="${o.r ?? 4}" style="fill:${o.color ?? C.acc}"/>`);
+    const tok = this.parts.splice(i).join('');
+    const kp = a <= 0 && b >= 1 ? '' : ` keyPoints="${a <= 0 ? '0;1;1' : b >= 1 ? '0;0;1' : '0;0;1;1'}" keyTimes="${a <= 0 ? kt([0, b, 1]) : b >= 1 ? kt([0, a, 1]) : kt([0, a, b, 1])}" calcMode="linear"`;
+    const vis = a <= 0 && b >= 1 ? '' : `<animate attributeName="opacity" values="${a <= 0 ? '1;0' : b >= 1 ? '0;1' : '0;1;0'}" keyTimes="${a <= 0 ? kt([0, b]) : b >= 1 ? kt([0, a]) : kt([0, a, b])}" calcMode="discrete" dur="${dur}s" repeatCount="indefinite"/>`;
+    this.parts.push(`<g class="anim" opacity="${a <= 0 ? 1 : 0}">${tok}<animateMotion path="${d}" dur="${dur}s" repeatCount="indefinite"${kp}${o.rotate ? ' rotate="auto"' : ''}/>${vis}</g>`);
+    return this;
+  },
+  pulse(x, y, o = {}) {
+    const [a, b] = win(o.at ?? [0, 1]), dur = o.dur ?? this.cycle, r0 = o.r0 ?? 4, r1 = o.r1 ?? 20;
+    const keys = kt([0, a, b, 1]);
+    this.parts.push(`<circle class="anim" cx="${x}" cy="${y}" r="${r0}" style="fill:none;stroke:${o.color ?? C.acc}" stroke-width="${o.sw ?? 1.4}" opacity="0"><animate attributeName="r" values="${r0};${r0};${r1};${r1}" keyTimes="${keys}" dur="${dur}s" repeatCount="indefinite"/><animate attributeName="opacity" values="0;0.9;0;0" keyTimes="${keys}" dur="${dur}s" repeatCount="indefinite"/></circle>`);
+    return this;
+  },
+  blink(fn, o = {}) {
+    const dur = o.dur ?? 1.6;
+    return this.wrap(fn, `<g class="anim">`, `<animate attributeName="opacity" values="1;${o.low ?? 0.25};1" dur="${dur}s" repeatCount="indefinite"/></g>`);
+  },
+  shift(dx, dy, fn, o = {}) {
+    const [a, b] = win(o.at ?? [0, 1]), dur = o.dur ?? this.cycle;
+    const keys = o.back ? kt([0, a, b, (b + 1) / 2, 1]) : kt([0, a, b, 1]);
+    const vals = o.back ? `0 0;0 0;${dx} ${dy};${dx} ${dy};0 0` : `0 0;0 0;${dx} ${dy};${dx} ${dy}`;
+    return this.wrap(fn, `<g class="anim">`, `<animateTransform attributeName="transform" type="translate" values="${vals}" keyTimes="${keys}" dur="${dur}s" repeatCount="indefinite"/></g>`);
+  },
+  spin(cx, cy, fn, o = {}) {
+    const dur = o.dur ?? 4, dir = o.ccw ? -360 : 360;
+    return this.wrap(fn, `<g class="anim">`, `<animateTransform attributeName="transform" type="rotate" from="0 ${cx} ${cy}" to="${dir} ${cx} ${cy}" dur="${dur}s" repeatCount="indefinite"/></g>`);
+  },
+  flowline(pts, o = {}) {
+    const d = typeof pts === 'string' ? pts : 'M' + pts.map((p) => p.join(',')).join(' L');
+    const gap = o.gap ?? 9, dir = o.reverse ? -1 : 1;
+    this.parts.push(`<path class="anim" d="${d}" style="fill:none;stroke:${o.color ?? C.acc}" stroke-width="${o.sw ?? 1.6}" stroke-linecap="round" stroke-dasharray="2 ${gap}"><animate attributeName="stroke-dashoffset" from="${dir * (gap + 2) * 2}" to="0" dur="${o.dur ?? 1.2}s" repeatCount="indefinite"/></path>`);
+    return this;
+  },
+
+  server(x, y, w, h, o = {}) {
+    const fill = o.fill ?? C.card, stroke = o.stroke ?? C.ink2, u = o.unit ?? 15;
+    this.rect(x, y, w, h, { r: 3, fill, stroke, sw: o.sw });
+    const n = Math.max(1, Math.floor((h - 6) / u));
+    for (let i = 0; i < n; i++) {
+      const yy = y + 4 + i * u;
+      if (i) this.line(x + 4, yy, x + w - 4, yy, { stroke: C.line, sw: 0.7, single: true, rough: 0.4 });
+      for (let k = 0; k < 3; k++) this.line(x + 8 + k * 4, yy + 4, x + 8 + k * 4, yy + u - 4, { stroke: C.line, sw: 0.7, single: true, rough: 0.3 });
+      this.dot(x + w - 9, yy + u / 2, 1.8, o.led && o.led(i) ? C.acc : C.gray);
+    }
+    if (o.label) this.text(x + w / 2, y + h + 13, o.label, { cls: o.lcls ?? 'sm', size: o.size });
+    return this;
+  },
+  db(x, y, w, h, o = {}) {
+    const fill = o.fill ?? C.card, stroke = o.stroke ?? C.ink2, e = Math.min(16, h * 0.28);
+    this.fillRect(x + 1, y + e / 2, w - 2, h - e, fill);
+    this.ellipse(x + w / 2, y + h - e / 2, w, e, { fill, stroke, sw: o.sw });
+    this.fillRect(x + 1, y + e / 2, w - 2, h - e, fill);
+    this.line(x, y + e / 2, x, y + h - e / 2, { stroke, single: true });
+    this.line(x + w, y + e / 2, x + w, y + h - e / 2, { stroke, single: true });
+    this.path(`M${x},${y + h - e / 2} Q${x + w / 2},${y + h + e / 2} ${x + w},${y + h - e / 2}`, { stroke, single: true });
+    for (const t of o.bands ?? [0.42, 0.7]) this.path(`M${x},${y + e / 2 + (h - e) * t} Q${x + w / 2},${y + e + (h - e) * t + e / 2} ${x + w},${y + e / 2 + (h - e) * t}`, { stroke: C.line, single: true, sw: 0.8 });
+    this.ellipse(x + w / 2, y + e / 2, w, e, { fill: o.top ?? fill, stroke, sw: o.sw });
+    if (o.label) this.text(x + w / 2, y + h / 2 + e / 3, o.label, { cls: o.lcls ?? 'lbl', size: o.size ?? 11, vc: true });
+    if (o.under) this.text(x + w / 2, y + h + 14, o.under, { cls: 'sm' });
+    return this;
+  },
+  disk(cx, cy, dia, o = {}) {
+    const stroke = o.stroke ?? C.ink2;
+    this.circle(cx, cy, dia, { fill: o.fill ?? C.card, stroke });
+    this.circle(cx, cy, dia * 0.62, { stroke: C.line, sw: 0.7 });
+    this.circle(cx, cy, dia * 0.18, { fill: C.paper, stroke });
+    if (o.arm !== false) this.line(cx + dia * 0.55, cy + dia * 0.42, cx + dia * 0.12, cy - dia * 0.2, { stroke: C.ink, sw: 1.6, single: true });
+    if (o.label) this.text(cx, cy + dia / 2 + 14, o.label, { cls: 'sm' });
+    return this;
+  },
+  ram(x, y, w, h, o = {}) {
+    this.rect(x, y, w, h, { r: 2, fill: o.fill ?? C.card, stroke: o.stroke ?? C.ink2 });
+    const n = o.chips ?? Math.max(2, Math.floor(w / 34));
+    const cw = (w - 12 - (n - 1) * 6) / n;
+    for (let i = 0; i < n; i++) this.rect(x + 6 + i * (cw + 6), y + 5, cw, h - 16, { r: 1, fill: o.chip ? o.chip(i) : C.paper, stroke: C.ink2, sw: 0.8 });
+    for (let t = x + 5; t < x + w - 4; t += 5) this.line(t, y + h - 6, t, y + h - 1, { stroke: C.gray, sw: 0.8, single: true, rough: 0.2 });
+    if (o.label) this.text(x + w / 2, y + h + 13, o.label, { cls: 'sm' });
+    return this;
+  },
+  cpu(x, y, s, o = {}) {
+    const p = Math.max(3, Math.round(s / 12));
+    for (let i = 0; i < p; i++) {
+      const t = x + s * (i + 1) / (p + 1);
+      const u = y + s * (i + 1) / (p + 1);
+      this.line(t, y - 6, t, y, { stroke: C.gray, single: true, rough: 0.3 });
+      this.line(t, y + s, t, y + s + 6, { stroke: C.gray, single: true, rough: 0.3 });
+      this.line(x - 6, u, x, u, { stroke: C.gray, single: true, rough: 0.3 });
+      this.line(x + s, u, x + s + 6, u, { stroke: C.gray, single: true, rough: 0.3 });
+    }
+    this.rect(x, y, s, s, { r: 3, fill: o.fill ?? C.card, stroke: o.stroke ?? C.ink2 });
+    this.rect(x + s * 0.22, y + s * 0.22, s * 0.56, s * 0.56, { r: 2, fill: o.die ?? C.paper, stroke: C.line, sw: 0.8 });
+    if (o.label) this.text(x + s / 2, y + s / 2, o.label, { cls: o.lcls ?? 'mono', size: o.size ?? 10, vc: true });
+    if (o.under) this.text(x + s / 2, y + s + 18, o.under, { cls: 'sm' });
+    return this;
+  },
+  laptop(x, y, w, o = {}) {
+    const h = w * 0.62;
+    this.rect(x + w * 0.08, y, w * 0.84, h, { r: 3, fill: o.fill ?? C.card, stroke: o.stroke ?? C.ink2 });
+    this.rect(x + w * 0.13, y + h * 0.1, w * 0.74, h * 0.76, { r: 1, fill: o.screen ?? C.paper, stroke: C.line, sw: 0.7 });
+    this.poly([[x, y + h + 8], [x + w * 0.08, y + h], [x + w * 0.92, y + h], [x + w, y + h + 8]], { fill: o.fill ?? C.card, stroke: o.stroke ?? C.ink2 });
+    if (o.label) this.text(x + w / 2, y + h + 22, o.label, { cls: 'sm' });
+    return this;
+  },
+  phone(x, y, h, o = {}) {
+    const w = h * 0.52;
+    this.rect(x, y, w, h, { r: 6, fill: o.fill ?? C.card, stroke: o.stroke ?? C.ink2 });
+    this.rect(x + 4, y + 9, w - 8, h - 20, { r: 1, fill: o.screen ?? C.paper, stroke: C.line, sw: 0.7 });
+    this.dot(x + w / 2, y + h - 5.5, 1.6, C.gray);
+    if (o.label) this.text(x + w / 2, y + h + 13, o.label, { cls: 'sm' });
+    return this;
+  },
+  person(x, y, s = 30, o = {}) {
+    const st = o.stroke ?? C.ink2;
+    this.circle(x, y + s * 0.18, s * 0.34, { fill: o.fill ?? C.card, stroke: st });
+    this.path(`M${x - s * 0.32},${y + s} Q${x - s * 0.32},${y + s * 0.42} ${x},${y + s * 0.42} Q${x + s * 0.32},${y + s * 0.42} ${x + s * 0.32},${y + s}`, { stroke: st, fill: o.fill ?? C.card, single: true });
+    if (o.label) this.text(x, y + s + 13, o.label, { cls: 'sm' });
+    return this;
+  },
+  envelope(x, y, w, h, o = {}) {
+    this.rect(x, y, w, h, { r: 1.5, fill: o.fill ?? C.paper, stroke: o.stroke ?? C.ink2, sw: o.sw ?? 1 });
+    this.lines([[x + 1, y + 1], [x + w / 2, y + h * 0.58], [x + w - 1, y + 1]], { stroke: o.stroke ?? C.ink2, sw: (o.sw ?? 1) * 0.8, single: true, rough: 0.3 });
+    if (o.label) this.text(x + w / 2, y + h + 11, o.label, { cls: 'mono', size: 9 });
+    return this;
+  },
+  doc(x, y, w, h, o = {}) {
+    const f = Math.min(12, w * 0.25);
+    this.poly([[x, y], [x + w - f, y], [x + w, y + f], [x + w, y + h], [x, y + h]], { fill: o.fill ?? C.paper, stroke: o.stroke ?? C.ink2 });
+    this.lines([[x + w - f, y], [x + w - f, y + f], [x + w, y + f]], { stroke: o.stroke ?? C.ink2, single: true, sw: 0.8 });
+    if (o.lines !== false) for (let yy = y + f + 6; yy < y + h - 5; yy += 6) this.line(x + 5, yy, x + w - 6 - ((yy * 7) % 9), yy, { stroke: C.line, sw: 0.7, single: true, rough: 0.3 });
+    if (o.label) this.text(x + w / 2, y + h + 13, o.label, { cls: 'sm' });
+    return this;
+  },
+  cloud(x, y, w, h, o = {}) {
+    const d = `M${x + w * 0.18},${y + h} C${x - w * 0.04},${y + h} ${x - w * 0.02},${y + h * 0.52} ${x + w * 0.16},${y + h * 0.5} C${x + w * 0.14},${y + h * 0.1} ${x + w * 0.46},${y - h * 0.04} ${x + w * 0.56},${y + h * 0.22} C${x + w * 0.66},${y + h * 0.04} ${x + w * 0.9},${y + h * 0.16} ${x + w * 0.86},${y + h * 0.44} C${x + w * 1.04},${y + h * 0.46} ${x + w * 1.04},${y + h} ${x + w * 0.82},${y + h} Z`;
+    if (o.fill) this.parts.push(`<path d="${d}" style="fill:${o.fill}"/>`);
+    this.path(d, { stroke: o.stroke ?? C.ink2, single: true });
+    if (o.label) this.text(x + w / 2, y + h * 0.62, o.label, { cls: o.lcls ?? 'lbl', size: o.size, vc: true });
+    return this;
+  },
+  lock(x, y, s = 18, o = {}) {
+    const st = o.stroke ?? C.ink2;
+    this.path(`M${x + s * 0.22},${y + s * 0.45} L${x + s * 0.22},${y + s * 0.28} Q${x + s * 0.22},${y} ${x + s * 0.5},${y} Q${x + s * 0.78},${y} ${x + s * 0.78},${y + s * 0.28} L${x + s * 0.78},${y + s * 0.45}`, { stroke: st, single: true, sw: 1.4 });
+    this.rect(x, y + s * 0.45, s, s * 0.6, { r: 2, fill: o.fill ?? C.card, stroke: st });
+    this.dot(x + s / 2, y + s * 0.72, 1.6, st);
+    return this;
+  },
+  key(x, y, s = 24, o = {}) {
+    const st = o.stroke ?? C.ink2;
+    this.circle(x + s * 0.2, y, s * 0.36, { fill: o.fill ?? C.card, stroke: st });
+    this.lines([[x + s * 0.38, y], [x + s, y], [x + s, y + s * 0.18]], { stroke: st, single: true, sw: 1.3 });
+    this.line(x + s * 0.8, y, x + s * 0.8, y + s * 0.14, { stroke: st, single: true, sw: 1.3 });
+    return this;
+  },
+  router(x, y, w, o = {}) {
+    const h = w * 0.34, st = o.stroke ?? C.ink2;
+    this.line(x + w * 0.25, y, x + w * 0.18, y - h * 0.9, { stroke: st, single: true });
+    this.line(x + w * 0.75, y, x + w * 0.82, y - h * 0.9, { stroke: st, single: true });
+    this.rect(x, y, w, h, { r: h / 2.4, fill: o.fill ?? C.card, stroke: st });
+    for (let i = 0; i < 4; i++) this.dot(x + w * 0.3 + i * w * 0.13, y + h / 2, 1.6, o.led && o.led(i) ? C.acc : C.gray);
+    if (o.label) this.text(x + w / 2, y + h + 13, o.label, { cls: 'sm' });
+    return this;
+  },
+  clock(cx, cy, dia, o = {}) {
+    this.circle(cx, cy, dia, { fill: o.fill ?? C.paper, stroke: o.stroke ?? C.ink2 });
+    for (let i = 0; i < 12; i++) { const a = i * Math.PI / 6; this.line(cx + Math.cos(a) * dia * 0.4, cy + Math.sin(a) * dia * 0.4, cx + Math.cos(a) * dia * 0.46, cy + Math.sin(a) * dia * 0.46, { stroke: C.gray, single: true, rough: 0.2, sw: 0.8 }); }
+    const hand = (dd) => dd.line(cx, cy, cx, cy - dia * 0.36, { stroke: o.hand ?? C.acc, sw: 1.6, single: true, rough: 0.2 });
+    if (o.spin) this.spin(cx, cy, hand, { dur: o.spin }); else { const a = (o.t ?? 0) * 2 * Math.PI - Math.PI / 2; this.line(cx, cy, cx + Math.cos(a) * dia * 0.36, cy + Math.sin(a) * dia * 0.36, { stroke: o.hand ?? C.acc, sw: 1.6, single: true, rough: 0.2 }); }
+    this.dot(cx, cy, 2, C.ink);
+    if (o.label) this.text(cx, cy + dia / 2 + 13, o.label, { cls: 'sm' });
+    return this;
+  },
+  gear(cx, cy, r, o = {}) {
+    const n = o.teeth ?? 8, pts = [];
+    for (let i = 0; i < n * 2; i++) { const a = i * Math.PI / n, rr = i % 2 ? r * 0.78 : r; pts.push([cx + Math.cos(a - 0.18) * rr, cy + Math.sin(a - 0.18) * rr], [cx + Math.cos(a + 0.18) * rr, cy + Math.sin(a + 0.18) * rr]); }
+    const draw = (dd) => { dd.poly(pts, { fill: o.fill ?? C.card, stroke: o.stroke ?? C.ink2 }); dd.circle(cx, cy, r * 0.6, { fill: C.paper, stroke: o.stroke ?? C.ink2 }); };
+    if (o.spin) this.spin(cx, cy, draw, { dur: o.spin, ccw: o.ccw }); else draw(this);
+    return this;
+  },
+  pin(x, y, o = {}) {
+    const st = o.stroke ?? C.ink, f = o.fill ?? C.card;
+    this.path(`M${x},${y} C${x - 2},${y - 6} ${x - 7},${y - 9} ${x - 7},${y - 14} A7,7 0 1 1 ${x + 7},${y - 14} C${x + 7},${y - 9} ${x + 2},${y - 6} ${x},${y} Z`, { stroke: st, fill: f, single: true });
+    this.dot(x, y - 14, 2.2, st);
+    if (o.label) this.text(x + (o.dx ?? 0), y + (o.dy ?? 12), o.label, { cls: o.lcls ?? 'sm', a: o.a, size: o.size });
+    return this;
+  },
+  tape(x, y, cells, o = {}) {
+    const cw = o.cw ?? 34, h = o.h ?? 26;
+    cells.forEach((c, i) => {
+      const hot = o.hot ? o.hot(i) : false;
+      this.rect(x + i * cw, y, cw, h, { r: 0, fill: hot ? C.accSoft : (o.fill ? o.fill(i) : C.card), stroke: hot ? C.acc : C.ink2, sw: 0.9 });
+      if (c != null && c !== '') this.text(x + i * cw + cw / 2, y + h / 2 + 0.5, c, { cls: 'mono', size: o.size ?? 10 });
+      if (o.idx) this.text(x + i * cw + cw / 2, y + h + 10, String(o.idx(i)), { cls: 'xs' });
+    });
+    return this;
+  },
+});
