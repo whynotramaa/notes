@@ -232,11 +232,7 @@ Object.assign(D.prototype, {
     const dur = o.dur ?? 4, dir = o.ccw ? -360 : 360;
     return this.wrap(fn, `<g class="anim">`, `<animateTransform attributeName="transform" type="rotate" from="0 ${cx} ${cy}" to="${dir} ${cx} ${cy}" dur="${dur}s" repeatCount="indefinite"/></g>`);
   },
-  glow(fn, o = {}) {
-    const fid = `glow-${this.id}`;
-    if (!this.glowed) { this.glowed = true; this.parts.push(`<defs><filter id="${fid}" x="-60%" y="-60%" width="220%" height="220%"><feGaussianBlur stdDeviation="${o.blur ?? 3.2}" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>`); }
-    return this.wrap(fn, `<g filter="url(#${fid})">`);
-  },
+  glow(fn) { return this.wrap(fn, '<g>'); },
   beacon(x, y, o = {}) {
     this.glow((d) => d.dot(x, y, o.r ?? 4, o.color ?? C.acc));
     return this.pulse(x, y, { r0: o.r ?? 4, r1: o.r1 ?? 16, dur: o.dur ?? 2.4, at: o.at ?? [0, 0.7], color: o.color });
