@@ -1,7 +1,34 @@
-import { C, fig, beMap, beCover, card, actors, say, steps, panel, hbars, cross, tick, shield, browser } from '../lib/be-kit.js';
+import { C, fig, beMap, beCover, card, actors, say, steps, panel, hbars, cross, tick, shield, browser, hourglass, signpost, gauge, crowd, seg, lanes, bubble, sheet } from '../lib/be-kit.js';
+import { pipe, bolt } from '../lib/sd-kit.js';
 
 const PARTS = ['Authentication vs authorization', 'Access control models', 'Resource ownership and IDOR', 'Policy engines and testing', 'Input validation', 'Input attacks', 'Multi-tenancy models', 'Running a multi-tenant backend', 'Authorization end to end'];
+function door(d, x, y, w, h, o = {}) {
+  d.rect(x, y, w, h, { r: 2, fill: o.fill ?? C.card, stroke: o.stroke ?? C.ink2 });
+  d.dot(x + w - 8, y + h / 2, 2.4, o.stroke ?? C.ink2);
+  if (o.label) d.text(x + w / 2, y - 10, o.label, { cls: 'xs', color: o.lc });
+}
+
+function shop(d, x, y, w, label, o = {}) {
+  const h = w * 0.8, st = o.stroke ?? C.ink2;
+  d.rect(x, y + h * 0.3, w, h * 0.7, { r: 1, fill: o.fill ?? C.card, stroke: st });
+  for (let i = 0; i < 4; i++) d.poly([[x + i * w / 4, y + h * 0.3], [x + (i + 1) * w / 4, y + h * 0.3], [x + (i + 1) * w / 4 - 2, y + h * 0.12], [x + i * w / 4 + 2, y + h * 0.12]], { fill: i % 2 ? C.paper : (o.awn ?? C.accSoft), stroke: st, sw: 0.8 });
+  d.rect(x + w * 0.38, y + h * 0.6, w * 0.24, h * 0.4, { r: 1, fill: C.paper, stroke: st, sw: 0.8 });
+  if (label) d.text(x + w / 2, y + h + 12, label, { cls: 'xs' });
+}
+
+function sieve(d, x, y, w, gap, o = {}) {
+  d.path(`M${x},${y} Q${x + w / 2},${y + 18} ${x + w},${y}`, { stroke: o.stroke ?? C.ink2, single: true, sw: 1.4 });
+  for (let i = 1; i < w / gap; i++) d.dot(x + i * gap, y + 4 + Math.sin(i / (w / gap) * Math.PI) * 9, 1.4, C.gray);
+}
+
+function ruler(d, x, y, w, label) {
+  d.rect(x, y, w, 14, { r: 1, fill: C.paper, stroke: C.ink2, sw: 0.8 });
+  for (let i = 0; i <= w; i += 8) d.line(x + i, y, x + i, y + (i % 40 ? 5 : 9), { stroke: C.gray, single: true, sw: 0.7 });
+  if (label) d.text(x + w + 8, y + 7, label, { cls: 'xs', a: 'start' });
+}
+
 export const where_be_authz = (stage = 99) => beMap('where_be_authz', PARTS, stage);
+
 export const cover_be_authz = () => beCover('cover_be_authz', 'IV', ['Authorization', 'and validation'], 'What this user may do, and whether this input makes sense', (d, y) => {
   d.person(90, y + 60, 64, { fill: C.card });
   d.mono(90, y + 150, 'user 42', { size: 11 });
@@ -27,10 +54,13 @@ export function be_authz_vs_authn() {
 }
 
 export function be_authz_default_deny() {
-  const d = fig('be_authz_default_deny', 'DEFAULT DENY: NO RULE THAT ALLOWS IT MEANS NO', 260);
-  steps(d, [['request', 'user, action, resource'], ['find allow rules', 'that match'], ['any match?', ''], ['allow', 'or 403']], 70, 3);
-  d.text(320, 170, 'a new endpoint with no rule is closed, not open', { cls: 'sm', color: C.acc });
-  d.text(320, 200, 'least privilege: each role gets only the permissions its job needs', { cls: 'xs' });
+  const d = fig('be_authz_default_deny', 'DEFAULT DENY: NO RULE THAT ALLOWS IT MEANS NO', 300);
+  door(d, 300, 60, 70, 140, { fill: C.paper });
+  d.person(250, 110, 40); d.doc(220, 150, 30, 40, { fill: C.card });
+  d.text(235, 208, 'guest list', { cls: 'xs' });
+  [['user 42 · read order 123', true, 90], ['user 42 · POST /admin/new', false, 160]].forEach(([s, ok, y]) => { d.person(80, y - 14, 26, { stroke: ok ? C.ink2 : C.acc, fill: ok ? C.card : C.accSoft }); d.mono(110, y + 24, s, { size: 8.5, a: 'start' }); (ok ? tick : cross)(d, 200, y, 7, ok ? C.ink2 : C.acc); });
+  d.text(500, 110, 'no allow rule matches', { cls: 'sm', color: C.acc }); d.text(500, 130, '→ 403', { cls: 'mono', size: 11, color: C.acc });
+  d.text(320, 250, 'a new endpoint with no rule is closed, not open; each role gets only what its job needs', { cls: 'xs' });
   return d.svg();
 }
 
@@ -46,10 +76,13 @@ export function be_authz_server_side() {
 }
 
 export function be_authz_layers() {
-  const d = fig('be_authz_layers', 'WHERE EACH AUTHORIZATION CHECK BELONGS', 320);
-  const L = [['gateway', 'token valid? scope present?', false], ['route middleware', 'role may call this endpoint?', false], ['service / handler', 'this user may act on THIS order?', true], ['database', 'tenant row-level security', false]];
-  L.forEach(([a, b, hot], i) => { const y = 50 + i * 62; d.rect(60, y, 200, 44, { r: 7, fill: hot ? C.accSoft : C.card, stroke: hot ? C.acc : C.ink2 }); d.text(160, y + 22, a, { cls: 'ttl', color: hot ? C.acc : undefined }); d.text(290, y + 22, b, { cls: 'sm', a: 'start' }); if (i < 3) d.arrow(160, y + 46, 160, y + 60, { stroke: C.gray, hl: 4 }); });
-  d.text(320, 304, 'the object-level check needs the loaded resource, so it cannot live only in a gateway', { cls: 'xs' });
+  const d = fig('be_authz_layers', 'WHERE EACH AUTHORIZATION CHECK BELONGS', 340);
+  const L = [['gateway', 'token valid? scope present?'], ['route middleware', 'role may call this endpoint?'], ['service / handler', 'this user may act on THIS order?'], ['database', 'tenant row-level security']];
+  L.forEach(([a, b], i) => { const y = 40 + i * 64, hot = i === 2; d.rect(170, y, 440, 56, { r: 0, fill: hot ? C.accSoft : C.card, stroke: hot ? C.acc : C.ink2 }); d.text(186, y + 20, a, { cls: 'ttl', a: 'start', color: hot ? C.acc : undefined }); d.text(186, y + 40, b, { cls: 'xs', a: 'start' }); });
+  shield(d, 560, 46, 38, {}); d.rect(545, 112, 30, 34, { r: 2, fill: C.paper, stroke: C.ink2 }); d.doc(548, 172, 26, 36, { fill: C.paper, stroke: C.acc }); d.db(540, 238, 40, 46, {});
+  d.person(110, 40, 34); d.line(110, 80, 110, 290, { stroke: C.line, single: true, dash: [3, 4] });
+  d.travel([[110, 76], [110, 290]], { token: (dd) => dd.dot(0, 0, 5, C.acc), dur: 5 });
+  d.text(320, 326, 'the object-level check needs the loaded resource, so it cannot live only in a gateway', { cls: 'xs' });
   return d.svg();
 }
 
@@ -65,9 +98,16 @@ export function be_rbac() {
 }
 
 export function be_rbac_explosion() {
-  const d = fig('be_rbac_explosion', 'ASSIGNMENT ROWS FOR 1,000,000 USERS AND 40 PERMISSIONS', 220);
-  hbars(d, [['direct user-permission', 40000000, '40,000,000 rows'], ['users-roles + roles-permissions', 1000200, '1,000,200 rows', true]], { y: 70, gap: 56, w: 300, x: 230 });
-  d.text(320, 190, 'the risk flips at scale: "role explosion" when every exception becomes a new role', { cls: 'xs' });
+  const d = fig('be_rbac_explosion', 'ASSIGNMENT ROWS FOR 1,000,000 USERS AND 40 PERMISSIONS', 320);
+  for (let i = 0; i < 6; i++) d.person(40, 50 + i * 36, 22);
+  for (let k = 0; k < 8; k++) d.rect(220, 52 + k * 26, 20, 18, { r: 2, fill: C.card, stroke: C.ink2 });
+  for (let i = 0; i < 6; i++) for (let k = 0; k < 8; k++) d.line(54, 62 + i * 36, 218, 61 + k * 26, { stroke: C.acc, single: true, sw: 0.5, op: 0.6 });
+  d.text(140, 280, 'direct: 40,000,000 rows', { cls: 'mono', size: 9.5, color: C.acc });
+  for (let i = 0; i < 6; i++) d.person(360, 50 + i * 36, 22);
+  ['customer', 'manager', 'support'].forEach((s, k) => { const y = 80 + k * 60; d.rect(440, y, 70, 30, { r: 15, fill: C.accSoft, stroke: C.acc }); d.text(475, y + 15, s, { cls: 'xs' }); for (let i = 0; i < 6; i++) if (i % 3 === k) d.line(374, 62 + i * 36, 438, y + 15, { stroke: C.ink2, single: true, sw: 0.8 }); for (let p = 0; p < 3; p++) d.line(512, y + 15, 570, 60 + (k * 3 + p) * 22, { stroke: C.ink2, single: true, sw: 0.6 }); });
+  for (let k = 0; k < 9; k++) d.rect(570, 52 + k * 22, 20, 16, { r: 2, fill: C.card, stroke: C.ink2 });
+  d.text(475, 280, 'through roles: 1,000,200 rows', { cls: 'mono', size: 9.5 });
+  d.text(320, 306, 'at scale the risk flips: role explosion when every exception becomes a new role', { cls: 'xs' });
   return d.svg();
 }
 
@@ -80,70 +120,93 @@ export function be_acl() {
 }
 
 export function be_abac() {
-  const d = fig('be_abac', 'ABAC: A RULE OVER ATTRIBUTES OF THE USER, THE RESOURCE AND THE CONTEXT', 300);
-  card(d, 20, 50, 180, ['user', 'role: support', 'region: IN', 'mfa: true'], {});
-  card(d, 230, 50, 180, ['resource', 'type: refund', 'amount: 4,500', 'region: IN'], {});
-  card(d, 440, 50, 180, ['context', 'time: 14:05', 'network: office', ''], {});
-  d.rect(60, 180, 520, 70, { r: 8, fill: C.accSoft, stroke: C.acc });
-  d.mono(320, 205, 'allow if user.role == support and user.region == resource.region', { size: 9.5 });
-  d.mono(320, 228, 'and resource.amount <= 5000 and user.mfa', { size: 9.5 });
+  const d = fig('be_abac', 'ABAC: A RULE OVER ATTRIBUTES OF THE USER, THE RESOURCE AND THE CONTEXT', 320);
+  d.person(80, 50, 40); card(d, 30, 110, 100, ['role: support', 'region: IN', 'mfa: true'], { size: 8.5, bold: false });
+  d.doc(270, 50, 60, 60, { fill: C.card }); card(d, 250, 120, 100, ['type: refund', 'amount: 4,500', 'region: IN'], { size: 8.5, bold: false });
+  d.clock(500, 75, 46, { t: 0.58 }); card(d, 450, 110, 100, ['time: 14:05', 'network: office'], { size: 8.5, bold: false });
+  [[80, 180], [300, 190], [500, 168]].forEach(([x, y]) => d.arrow(x, y, 320, 222, { stroke: C.gray, hl: 5 }));
+  d.rect(60, 228, 520, 60, { r: 8, fill: C.accSoft, stroke: C.acc });
+  d.mono(320, 248, 'allow if user.role == support and user.region == resource.region', { size: 9 });
+  d.mono(320, 268, 'and resource.amount <= 5000 and user.mfa', { size: 9 });
   return d.svg();
 }
 
 export function be_rebac_graph() {
   const d = fig('be_rebac_graph', 'ReBAC: PERMISSION FOLLOWS RELATIONSHIPS IN A GRAPH', 300);
-  const n = [['user 42', 70, 150], ['team kitchen', 230, 150], ['restaurant 9', 400, 150], ['menu 3', 560, 150]];
-  n.forEach(([s, x, y], i) => { d.circle(x, y, 84, { fill: i === 3 ? C.accSoft : C.card, stroke: i === 3 ? C.acc : C.ink2 }); d.text(x, y, s, { cls: 'sm' }); });
-  [['member_of', 70, 230], ['owns', 230, 400], ['contains', 400, 560]].forEach(([s, a, b]) => { d.arrow(a + 44, 150, b - 44, 150, { stroke: C.acc }); d.mono((a + b) / 2, 134, s, { size: 9.5 }); });
-  d.text(320, 240, 'can user 42 edit menu 3? walk: user -> team -> restaurant -> menu', { cls: 'xs' });
+  d.person(70, 110, 46); d.text(70, 180, 'user 42', { cls: 'xs' });
+  crowd(d, 200, 116, 3, { s: 34, gap: 22 }); d.text(222, 180, 'team kitchen', { cls: 'xs' });
+  shop(d, 360, 100, 80, 'restaurant 9');
+  d.doc(530, 95, 60, 76, { fill: C.accSoft, stroke: C.acc }); d.text(560, 186, 'menu 3', { cls: 'xs', color: C.acc });
+  [['member_of', 100, 190], ['owns', 262, 356], ['contains', 444, 526]].forEach(([s, a, b]) => { d.arrow(a, 135, b, 135, { stroke: C.acc, hl: 6 }); d.mono((a + b) / 2, 120, s, { size: 9 }); });
+  d.travel([[100, 150], [190, 150], [262, 150], [356, 150], [444, 150], [526, 150]], { at: [0, 0.8] });
+  d.text(320, 250, 'can user 42 edit menu 3? walk: user → team → restaurant → menu', { cls: 'xs' });
   return d.svg();
 }
 
 export function be_rebac_check() {
-  const d = fig('be_rebac_check', 'RELATION TUPLES, ZANZIBAR STYLE, AND ONE CHECK', 300);
-  card(d, 20, 50, 340, ['team:kitchen#member@user:42', 'restaurant:9#owner@team:kitchen#member', 'menu:3#parent@restaurant:9', 'menu editor = owner of parent'], { lh: 24, size: 9.5 });
-  d.rect(390, 60, 230, 90, { r: 8, fill: C.accSoft, stroke: C.acc }); d.mono(505, 90, 'check(menu:3, edit,', { size: 10 }); d.mono(505, 110, '      user:42)', { size: 10 }); d.text(505, 136, '-> allowed (3 hops)', { cls: 'sm', color: C.acc });
-  d.text(320, 230, 'Google described Zanzibar in 2019; SpiceDB and OpenFGA follow the model', { cls: 'xs' });
+  const d = fig('be_rebac_check', 'RELATION TUPLES, ZANZIBAR STYLE, AND ONE CHECK', 320);
+  d.line(30, 60, 370, 60, { stroke: C.ink2, single: true });
+  ['team:kitchen#member@user:42', 'restaurant:9#owner@team:kitchen#member', 'menu:3#parent@restaurant:9'].forEach((s, i) => { const y = 74 + i * 52; d.line(60 + i * 60, 60, 60 + i * 60, y, { stroke: C.gray, single: true }); d.rect(30 + i * 20, y, 300, 30, { r: 4, fill: C.card, stroke: C.ink2 }); d.mono(180 + i * 20, y + 15, s, { size: 8.5 }); });
+  d.mono(180, 250, 'menu editor = owner of parent', { size: 9.5 });
+  d.rect(400, 70, 220, 110, { r: 8, fill: C.accSoft, stroke: C.acc }); d.mono(510, 100, 'check(menu:3, edit,', { size: 10 }); d.mono(510, 120, '      user:42)', { size: 10 }); tick(d, 450, 152, 8); d.text(520, 152, 'allowed, 3 hops', { cls: 'sm', color: C.acc });
+  d.text(320, 296, 'Google described Zanzibar in 2019; SpiceDB and OpenFGA follow the model', { cls: 'xs' });
   return d.svg();
 }
 
 export function be_authz_inheritance() {
-  const d = fig('be_authz_inheritance', 'PERMISSIONS INHERIT DOWN THE HIERARCHY UNLESS SOMETHING STOPS THEM', 320);
-  d.box(250, 50, 140, 40, 'org: Spice Group', { r: 6, size: 11 });
-  [['restaurant 9', 150], ['restaurant 10', 490]].forEach(([s, x]) => { d.line(320, 90, x, 130, { stroke: C.gray, single: true }); d.box(x - 70, 130, 140, 38, s, { r: 6, size: 11, fill: x === 150 ? C.accSoft : C.card, stroke: x === 150 ? C.acc : C.ink2 }); });
-  [['menu', 80], ['orders', 220]].forEach(([s, x]) => { d.line(150, 168, x, 210, { stroke: C.acc, single: true }); d.box(x - 50, 210, 100, 34, s, { r: 6, size: 10, fill: C.accFaint, stroke: C.acc }); });
-  d.text(470, 230, 'manager of restaurant 9\ncan edit its menu and orders,\nnot restaurant 10', { cls: 'xs', vc: true });
+  const d = fig('be_authz_inheritance', 'PERMISSIONS INHERIT DOWN THE HIERARCHY UNLESS SOMETHING STOPS THEM', 330);
+  d.rect(270, 40, 100, 60, { r: 2, fill: C.card, stroke: C.ink2 }); for (let i = 0; i < 6; i++) d.rect(280 + (i % 3) * 30, 48 + Math.floor(i / 3) * 24, 18, 16, { r: 1, fill: C.paper, stroke: C.line }); d.text(320, 116, 'org: Spice Group', { cls: 'xs' });
+  shop(d, 110, 140, 80, 'restaurant 9', { stroke: C.acc }); shop(d, 450, 140, 80, 'restaurant 10', { awn: C.card });
+  d.line(320, 100, 150, 150, { stroke: C.acc, single: true }); d.line(320, 100, 490, 150, { stroke: C.gray, single: true });
+  [['menu', 70], ['orders', 210]].forEach(([s, x]) => { d.line(150, 220, x, 250, { stroke: C.acc, single: true }); d.doc(x - 22, 250, 44, 50, { fill: C.accFaint, stroke: C.acc }); d.text(x, 312, s, { cls: 'xs' }); });
+  d.person(30, 150, 34, { stroke: C.acc, fill: C.accSoft }); d.text(40, 200, 'manager', { cls: 'xs', color: C.acc });
+  cross(d, 490, 270, 10, C.ink2); d.text(490, 300, 'no rights here', { cls: 'xs' });
   return d.svg();
 }
 
 export function be_authz_ownership() {
-  const d = fig('be_authz_ownership', 'PUT THE OWNERSHIP CHECK IN THE QUERY, NOT AFTER IT', 300);
-  card(d, 20, 50, 290, ['order = db.get(order_id)', 'return order', '', '-- any id, any user'], { title: 'vulnerable', hot: [1] });
-  card(d, 330, 50, 290, ['SELECT * FROM orders', 'WHERE id = %s', '  AND user_id = %s', '-- None -> 404'], { title: 'scoped', hot: [2] });
-  d.text(320, 220, 'scoping the query makes "forgot to check" impossible for that code path', { cls: 'xs' });
+  const d = fig('be_authz_ownership', 'PUT THE OWNERSHIP CHECK IN THE QUERY, NOT AFTER IT', 320);
+  panel(d, 20, 40, 290, 260, 'vulnerable');
+  d.mono(165, 74, 'order = db.get(order_id)', { size: 9.5 });
+  for (let i = 0; i < 6; i++) d.doc(50 + i * 40, 110, 30, 40, { fill: C.card, lines: false });
+  d.path('M200,200 Q190,160 205,150', { stroke: C.acc, sw: 2, single: true }); d.person(220, 190, 34, { stroke: C.acc });
+  d.text(165, 270, 'any id, any user', { cls: 'xs', color: C.acc });
+  panel(d, 330, 40, 290, 260, 'scoped', true);
+  d.mono(475, 70, 'WHERE id = %s', { size: 9.5 }); d.mono(475, 88, 'AND user_id = %s', { size: 9.5, color: C.acc });
+  d.rect(395, 110, 160, 110, { r: 3, fill: C.card, stroke: C.acc }); d.mono(475, 128, 'user 42 only', { size: 9, color: C.acc }); [0, 1, 2].forEach((i) => d.doc(415 + i * 44, 145, 30, 40, { fill: C.paper, lines: false }));
+  d.text(475, 250, 'not yours → None → 404', { cls: 'xs' }); d.text(475, 270, '"forgot to check" cannot happen here', { cls: 'xs' });
   return d.svg();
 }
 
 export function be_idor_attack() {
-  const d = fig('be_idor_attack', 'IDOR: CHANGE THE NUMBER IN THE URL, GET SOMEONE ELSE\'S ORDER', 280);
-  d.mono(40, 80, 'GET /users/42/orders/789', { a: 'start', size: 12 }); d.text(400, 80, '200, your order', { cls: 'sm', a: 'start' });
-  d.mono(40, 130, 'GET /users/42/orders/790', { a: 'start', size: 12, color: C.acc }); d.text(400, 130, '200, user 43\'s order', { cls: 'sm', a: 'start', color: C.acc });
-  d.mono(40, 180, 'GET /users/43/orders/790', { a: 'start', size: 12, color: C.acc }); d.text(400, 180, '200, again', { cls: 'sm', a: 'start', color: C.acc });
-  d.text(320, 240, 'the token proves user 42; nothing checked that order 790 belongs to 42', { cls: 'xs' });
+  const d = fig('be_idor_attack', 'IDOR: CHANGE THE NUMBER IN THE URL, GET SOMEONE ELSE\'S ORDER', 320);
+  browser(d, 30, 50, 360, 220, '');
+  d.mono(90, 61, 'api.wren.example/users/42/orders/', { size: 9, a: 'start' });
+  d.rect(300, 54, 40, 16, { r: 3, fill: C.accSoft, stroke: C.acc });
+  d.phase(0, 2, (dd) => dd.mono(320, 62, '789', { size: 9.5 })); d.phase(1, 2, (dd) => dd.mono(320, 62, '790', { size: 9.5, color: C.acc }));
+  d.phase(0, 2, (dd) => { dd.person(110, 120, 40); dd.text(210, 140, 'your order', { cls: 'sm', a: 'start' }); });
+  d.phase(1, 2, (dd) => { dd.person(110, 120, 40, { stroke: C.acc, fill: C.accSoft }); dd.text(210, 140, 'user 43\'s order, address, phone', { cls: 'sm', a: 'start', color: C.acc }); });
+  d.server(470, 90, 90, 120, { label: 'API' }); d.text(515, 240, 'token proves 42;', { cls: 'xs' }); d.text(515, 256, 'nobody checks 790', { cls: 'xs', color: C.acc });
   return d.svg();
 }
 
 export function be_idor_enum() {
-  const d = fig('be_idor_enum', 'ENUMERATING 5,000,000 SEQUENTIAL ORDER IDS AT 50 REQUESTS PER SECOND', 240);
-  hbars(d, [['sequential ids', 27.8, '27.8 hours'], ['UUIDv4 (122 random bits)', 100, 'never, by guessing', true]], { y: 70, gap: 56, w: 280, x: 210 });
-  d.text(320, 200, 'random ids slow guessing; they do not replace the ownership check, ids leak', { cls: 'xs' });
+  const d = fig('be_idor_enum', 'ENUMERATING 5,000,000 SEQUENTIAL ORDER IDS AT 50 REQUESTS PER SECOND', 300);
+  d.tape(40, 70, ['4', '9', '9', '9', '9', '8', '7'], { cw: 28, h: 40, size: 16, hot: (i) => i === 6 });
+  d.text(140, 130, 'odometer: next id is obvious', { cls: 'xs' }); d.mono(140, 150, '27.8 hours to try all', { size: 10 });
+  [0, 1].forEach((i) => { const x = 380 + i * 70; d.rect(x, 64, 52, 52, { r: 8, fill: C.card, stroke: C.ink2 }); [[0.3, 0.3], [0.7, 0.7], [0.5, 0.5], [0.3, 0.7], [0.7, 0.3]].slice(0, 3 + i * 2).forEach(([a, b]) => d.dot(x + 52 * a, 64 + 52 * b, 3.5, C.ink)); });
+  d.text(450, 130, 'UUIDv4: 122 random bits', { cls: 'xs' }); d.mono(450, 150, 'never, by guessing', { size: 10, color: C.acc });
+  d.text(320, 230, 'random ids slow guessing; they never replace the ownership check, because ids leak', { cls: 'xs' });
   return d.svg();
 }
 
 export function be_bfla() {
-  const d = fig('be_bfla', 'BROKEN FUNCTION-LEVEL AUTHORIZATION: THE ADMIN ROUTE TRUSTS ANY TOKEN', 280);
-  [['GET /orders/123', 'customer route', false], ['POST /admin/refunds', 'admin route', true]].forEach(([r, s, hot], i) => { const y = 70 + i * 80; d.mono(40, y, r, { a: 'start', size: 11, color: hot ? C.acc : undefined }); d.text(40, y + 20, s, { cls: 'xs', a: 'start' }); d.arrow(260, y + 5, 380, y + 5, { stroke: hot ? C.acc : C.gray }); d.text(400, y + 5, hot ? 'checks token only: refund issued' : 'checks token + ownership', { cls: 'sm', a: 'start', color: hot ? C.acc : undefined }); });
-  d.text(320, 240, 'OWASP API Top 10: BOLA is API1, BFLA is API5', { cls: 'xs' });
+  const d = fig('be_bfla', 'BROKEN FUNCTION-LEVEL AUTHORIZATION: THE ADMIN ROUTE TRUSTS ANY TOKEN', 310);
+  door(d, 170, 80, 70, 130, { label: 'GET /orders/123' }); shield(d, 205, 220, 30, {}); d.text(205, 270, 'token + ownership', { cls: 'xs' });
+  door(d, 430, 80, 70, 130, { label: 'POST /admin/refunds', stroke: C.acc, lc: C.acc }); d.text(465, 236, 'token only', { cls: 'xs', color: C.acc });
+  d.person(320, 110, 46); d.mono(320, 172, 'customer token', { size: 9 });
+  d.shift(100, 0, (dd) => dd.envelope(330, 190, 40, 26, { fill: C.accSoft, stroke: C.acc, label: '₹4,500' }), { at: [0.2, 0.6], back: true });
+  d.text(320, 296, 'OWASP API Top 10: BOLA is API1, BFLA is API5', { cls: 'xs' });
   return d.svg();
 }
 
@@ -158,64 +221,73 @@ export function be_policy_engine() {
 }
 
 export function be_policy_code() {
-  const d = fig('be_policy_code', 'THE SAME RULE AS CODE IN A POLICY LANGUAGE', 260);
-  card(d, 20, 50, 290, ['permit (', '  principal in Role::"support",', '  action == Action::"refund",', '  resource', ') when { resource.amount <= 5000 };'], { title: 'Cedar', size: 9, hot: [4] });
-  card(d, 330, 50, 290, ['allow if {', '  input.user.role == "support"', '  input.action == "refund"', '  input.resource.amount <= 5000', '}'], { title: 'Rego (OPA)', size: 9 });
+  const d = fig('be_policy_code', 'THE SAME RULE AS CODE IN A POLICY LANGUAGE', 300);
+  [['Cedar', ['permit (', '  principal in Role::"support",', '  action == Action::"refund",', '  resource', ') when { resource.amount <= 5000 };'], 20], ['Rego (OPA)', ['allow if {', '  input.user.role == "support"', '  input.action == "refund"', '  input.resource.amount <= 5000', '}'], 330]].forEach(([t, L, x], i) => { d.doc(x, 50, 290, 170, { fill: i === 0 ? C.accFaint : C.paper, stroke: i === 0 ? C.acc : C.ink2, lines: false }); d.text(x + 145, 66, t, { cls: 'ttl' }); L.forEach((s, k) => d.mono(x + 16, 92 + k * 22, s, { a: 'start', size: 9 })); });
+  d.text(320, 250, 'policies live in one versioned place, reviewed and tested like code', { cls: 'xs' });
   return d.svg();
 }
 
 export function be_authz_cache() {
-  const d = fig('be_authz_cache', 'CACHING DECISIONS FOR 30 S MEANS A REVOKED PERMISSION LINGERS UP TO 30 S', 260);
-  const X = (t) => 80 + t * 14;
-  d.arrow(70, 160, 620, 160, { stroke: C.gray });
-  d.rect(X(0), 120, X(30) - X(0), 30, { r: 3, fill: C.card, stroke: C.ink2 }); d.text((X(0) + X(30)) / 2, 135, 'cached: allow', { cls: 'xs' });
-  d.line(X(12), 100, X(12), 160, { stroke: C.acc, sw: 1.6, single: true }); d.text(X(12), 90, 'role removed', { cls: 'xs', color: C.acc });
-  d.fillRect(X(12), 120, X(30) - X(12), 30, C.accSoft, 0.8);
-  [0, 12, 30].forEach((t) => d.mono(X(t), 176, `${t} s`, { size: 9 }));
-  d.text(320, 220, 'shorter TTLs or explicit invalidation for high-risk permissions', { cls: 'xs' });
+  const d = fig('be_authz_cache', 'CACHING DECISIONS FOR 30 S MEANS A REVOKED PERMISSION LINGERS UP TO 30 S', 300);
+  const X = (t) => 120 + t * 15;
+  d.arrow(110, 190, 620, 190, { stroke: C.gray });
+  d.rect(X(0), 140, X(30) - X(0), 34, { r: 3, fill: C.card, stroke: C.ink2 }); d.text((X(0) + X(12)) / 2, 157, 'cached: allow', { cls: 'xs' });
+  d.fillRect(X(12), 142, X(30) - X(12), 30, C.accSoft, 0.9); d.text((X(12) + X(30)) / 2, 157, 'still allowed', { cls: 'xs', color: C.acc });
+  d.line(X(12), 110, X(12), 190, { stroke: C.acc, sw: 1.6, single: true }); d.person(X(12), 60, 30, { stroke: C.acc }); cross(d, X(12) + 26, 80, 7); d.text(X(12) + 40, 100, 'role removed', { cls: 'xs', a: 'start', color: C.acc });
+  [0, 12, 30].forEach((t) => d.mono(X(t), 206, `${t} s`, { size: 9 }));
+  hourglass(d, 60, 120, 60, { level: 0.6 });
+  d.text(320, 260, 'shorter TTLs or explicit invalidation for high-risk permissions', { cls: 'xs' });
   return d.svg();
 }
 
 export function be_authz_matrix() {
-  const d = fig('be_authz_matrix', 'A PERMISSION MATRIX IS THE TEST PLAN: EVERY ROLE AGAINST EVERY ACTION', 320);
+  const d = fig('be_authz_matrix', 'A PERMISSION MATRIX IS THE TEST PLAN: EVERY ROLE AGAINST EVERY ACTION', 330);
   const roles = ['anonymous', 'customer', 'manager', 'support', 'admin'], acts = ['read menu', 'read own order', 'read any order', 'edit menu', 'refund'];
   const v = [[1, 0, 0, 0, 0], [1, 1, 0, 0, 0], [1, 1, 0, 1, 0], [1, 1, 1, 0, 1], [1, 1, 1, 1, 1]];
-  acts.forEach((a, j) => d.text(230 + j * 82, 56, a, { cls: 'xs' }));
-  roles.forEach((r, i) => { const y = 72 + i * 42; d.text(170, y + 14, r, { cls: 'sm', a: 'end' }); v[i].forEach((x, j) => { const cx = 230 + j * 82; d.rect(cx - 34, y, 68, 28, { r: 4, fill: x ? C.accSoft : C.paper, stroke: x ? C.acc : C.line }); d.text(cx, y + 14, x ? 'allow' : 'deny', { cls: 'xs' }); }); });
-  d.text(320, 300, 'test the denies as carefully as the allows: most bugs are missing denies', { cls: 'xs' });
+  acts.forEach((a, j) => d.text(250 + j * 78, 56, a, { cls: 'xs' }));
+  roles.forEach((r, i) => { const y = 72 + i * 44; d.person(40, y - 2, 26, { stroke: i === 0 ? C.gray : C.ink2 }); d.text(70, y + 14, r, { cls: 'sm', a: 'start' }); v[i].forEach((x, j) => { const cx = 250 + j * 78; d.rect(cx - 30, y, 60, 30, { r: 4, fill: x ? C.accSoft : C.paper, stroke: x ? C.acc : C.line }); (x ? tick : cross)(d, cx, y + 15, 6, x ? C.acc : C.gray); }); });
+  d.text(320, 310, 'test the denies as carefully as the allows: most bugs are missing denies', { cls: 'xs' });
   return d.svg();
 }
 
 export function be_valid_layers() {
-  const d = fig('be_valid_layers', 'VALID JSON, INVALID INPUT: FOUR LAYERS OF CHECKS', 320);
-  card(d, 20, 50, 230, ['{', '  "email": "asha@",', '  "age": -500,', '  "role": "admin",', '  "qty": "3"', '}'], { bold: false, hot: [1, 2, 3, 4] });
-  [['schema', 'fields, required, unknown', false], ['type', 'qty must be integer', false], ['semantic', 'email format, age 13..120', true], ['business rule', 'restaurant open? stock left?', false]].forEach(([a, b, hot], i) => { const y = 50 + i * 60; d.rect(300, y, 300, 46, { r: 7, fill: hot ? C.accSoft : C.card, stroke: hot ? C.acc : C.ink2 }); d.text(316, y + 16, a, { cls: 'ttl', a: 'start', size: 11 }); d.text(316, y + 33, b, { cls: 'xs', a: 'start' }); });
+  const d = fig('be_valid_layers', 'VALID JSON, INVALID INPUT: FOUR LAYERS OF CHECKS', 340);
+  card(d, 20, 50, 200, ['{', '  "email": "asha@",', '  "age": -500,', '  "role": "admin",', '  "qty": "3"', '}'], { bold: false, size: 9.5, hot: [1, 2, 3, 4] });
+  [['schema', 'fields, required, unknown', '"role" rejected'], ['type', 'qty must be an integer', '"3" rejected'], ['semantic', 'email format, age 13 to 120', '-500 rejected'], ['business rule', 'restaurant open? stock left?', '']].forEach(([a, b, out], i) => { const y = 70 + i * 62, x = 300; sieve(d, x, y, 180, 18 - i * 4, { stroke: i === 2 ? C.acc : C.ink2 }); d.text(x + 190, y, a, { cls: 'ttl', a: 'start', size: 11, color: i === 2 ? C.acc : undefined }); d.text(x + 190, y + 16, b, { cls: 'xs', a: 'start' }); if (out) { d.arrow(x + 4, y + 8, x - 40, y + 28, { stroke: C.gray, hl: 4 }); d.mono(x - 44, y + 40, out, { size: 8, a: 'end' }); } });
+  d.travel([[390, 50], [390, 300]], { token: (dd) => dd.rect(-8, -8, 16, 16, { r: 3, fill: C.accSoft, stroke: C.acc }) });
   return d.svg();
 }
 
 export function be_valid_allowlist() {
-  const d = fig('be_valid_allowlist', 'ALLOWLISTS NAME WHAT IS GOOD; BLOCKLISTS CHASE WHAT IS BAD', 280);
-  panel(d, 20, 40, 290, 210, 'blocklist');
-  d.mono(165, 90, 'reject "<script>"', { size: 10 });
-  ['<SCRIPT>', '<scr<script>ipt>', '<img onerror=...>'].forEach((s, i) => { d.mono(165, 130 + i * 24, s, { size: 9.5, color: C.acc }); });
-  d.text(165, 225, 'each bypass passes', { cls: 'xs', color: C.acc });
-  panel(d, 330, 40, 290, 210, 'allowlist', true);
-  d.mono(475, 90, 'sort in {price, rating, name}', { size: 9.5 });
-  d.mono(475, 130, 'status in {open, closed}', { size: 9.5 }); d.mono(475, 160, 'qty: integer 1..50', { size: 9.5 });
-  d.text(475, 225, 'anything else is rejected', { cls: 'xs' });
+  const d = fig('be_valid_allowlist', 'ALLOWLISTS NAME WHAT IS GOOD; BLOCKLISTS CHASE WHAT IS BAD', 320);
+  panel(d, 20, 40, 290, 250, 'blocklist');
+  d.person(80, 80, 36); d.doc(110, 80, 50, 60, { fill: C.card, lines: false }); d.mono(135, 104, '<script>', { size: 8 }); d.text(135, 152, 'banned', { cls: 'xs' });
+  ['<SCRIPT>', '<scr<script>ipt>', '<img onerror=…>'].forEach((s, i) => { d.person(200 + (i % 2) * 40, 160 + i * 20, 22, { stroke: C.acc }); d.mono(160, 210 + i * 20 - 30, s, { size: 8.5, color: C.acc, a: 'end' }); });
+  d.text(165, 270, 'each disguise walks past', { cls: 'xs', color: C.acc });
+  panel(d, 330, 40, 290, 250, 'allowlist', true);
+  d.doc(380, 80, 190, 130, { fill: C.paper, lines: false });
+  ['sort ∈ {price, rating, name}', 'status ∈ {open, closed}', 'qty: integer 1 to 50'].forEach((s, i) => { tick(d, 400, 108 + i * 32, 6); d.mono(414, 108 + i * 32, s, { size: 9, a: 'start' }); });
+  d.text(475, 250, 'anything not on the list is rejected', { cls: 'xs' });
   return d.svg();
 }
 
 export function be_valid_normalize() {
-  const d = fig('be_valid_normalize', 'NORMALIZE, THEN VALIDATE, THEN USE: AND ENCODE ON OUTPUT', 260);
-  steps(d, [['decode', 'UTF-8, URL'], ['normalize', 'NFC, trim, lower'], ['validate', 'allowlist rules'], ['use', 'typed value'], ['encode output', 'per context']], 80, 2);
-  d.text(320, 190, 'validating before normalizing lets "%2e%2e/" or a decomposed accent slip past', { cls: 'xs' });
+  const d = fig('be_valid_normalize', 'NORMALIZE, THEN VALIDATE, THEN USE: AND ENCODE ON OUTPUT', 300);
+  d.line(30, 170, 610, 170, { stroke: C.ink2, sw: 2, single: true }); [60, 180, 300, 420, 540].forEach((x) => d.circle(x, 178, 14, { fill: C.paper, stroke: C.ink2 }));
+  [['decode', 'UTF-8, URL', 60], ['normalize', 'NFC, trim, lower', 180], ['validate', 'allowlist rules', 300], ['use', 'typed value', 420], ['encode', 'per output context', 540]].forEach(([a, b, x], i) => {
+    if (i === 0) d.key(x - 18, 120, 36, {}); if (i === 1) { d.poly([[x - 26, 130], [x + 20, 130], [x + 26, 110], [x - 20, 110]], { fill: C.card, stroke: C.ink2 }); d.line(x - 6, 110, x - 6, 96, { stroke: C.ink2, sw: 2, single: true }); }
+    if (i === 2) shield(d, x, 90, 50, { fill: C.accSoft, stroke: C.acc }); if (i === 3) d.gear(x, 120, 22, { spin: 5 }); if (i === 4) d.envelope(x - 22, 106, 44, 28, {});
+    d.text(x, 210, a, { cls: 'ttl', size: 11, color: i === 2 ? C.acc : undefined }); d.text(x, 228, b, { cls: 'xs' }); });
+  d.travel([[20, 156], [610, 156]], { token: (dd) => dd.rect(-9, -9, 18, 18, { r: 3, fill: C.accSoft, stroke: C.acc }) });
+  d.text(320, 274, 'validating before normalizing lets "%2e%2e/" or a decomposed accent slip past', { cls: 'xs' });
   return d.svg();
 }
 
 export function be_valid_limits() {
-  const d = fig('be_valid_limits', 'BOUND EVERY DIMENSION BEFORE PARSING CAN HURT YOU', 290);
-  [['body size', '1 MB', 'stops memory exhaustion'], ['JSON depth', '32 levels', 'stops recursive-parser stack blowups'], ['array length', '100 items', 'stops O(n) work per request'], ['string length', '2,000 chars', 'stops huge fields in logs and DB'], ['unknown fields', 'rejected', 'stops mass assignment']].forEach(([a, b, c], i) => { const y = 50 + i * 44; d.text(150, y + 12, a, { cls: 'ttl', a: 'end', size: 11 }); d.chips(170, y, [b], { h: 24, fill: i === 4 ? C.accSoft : C.card, stroke: i === 4 ? C.acc : C.ink2 }); d.text(300, y + 12, c, { cls: 'sm', a: 'start' }); });
+  const d = fig('be_valid_limits', 'BOUND EVERY DIMENSION BEFORE PARSING CAN HURT YOU', 320);
+  d.rect(40, 90, 120, 90, { r: 3, fill: C.card, stroke: C.ink2 }); d.line(40, 120, 160, 120, { stroke: C.ink2, single: true }); d.line(100, 90, 100, 180, { stroke: C.ink2, single: true });
+  d.rect(30, 190, 140, 12, { r: 2, fill: C.paper, stroke: C.ink2 }); d.line(100, 202, 100, 220, { stroke: C.ink2, sw: 2, single: true }); d.line(70, 220, 130, 220, { stroke: C.ink2, sw: 2, single: true });
+  [['body size', '1 MB', 'memory exhaustion'], ['JSON depth', '32 levels', 'recursive-parser blowups'], ['array length', '100 items', 'O(n) work per request'], ['string length', '2,000 chars', 'huge fields in logs and DB'], ['unknown fields', 'rejected', 'mass assignment']].forEach(([a, b, c], i) => { const y = 54 + i * 48; ruler(d, 220, y, 120 - i * 14); d.text(220, y - 6, `${a}: ${b}`, { cls: 'mono', size: 9, a: 'start', color: i === 4 ? C.acc : undefined }); d.text(380, y + 7, `stops ${c}`, { cls: 'xs', a: 'start' }); });
   return d.svg();
 }
 
@@ -231,54 +303,65 @@ export function be_mass_assignment() {
 }
 
 export function be_param_pollution() {
-  const d = fig('be_param_pollution', 'HTTP PARAMETER POLLUTION: TWO PARSERS PICK DIFFERENT COPIES', 270);
-  d.mono(320, 70, 'POST /pay?amount=10&amount=1000', { size: 12, color: C.acc });
-  d.rect(60, 120, 220, 70, { r: 8, fill: C.card, stroke: C.ink2 }); d.text(170, 145, 'WAF / proxy', { cls: 'ttl' }); d.mono(170, 168, 'takes first: 10', { size: 10 });
-  d.rect(360, 120, 220, 70, { r: 8, fill: C.accSoft, stroke: C.acc }); d.text(470, 145, 'app framework', { cls: 'ttl', color: C.acc }); d.mono(470, 168, 'takes last: 1000', { size: 10, color: C.acc });
-  d.text(320, 230, 'reject duplicated scalar parameters instead of guessing which one was meant', { cls: 'xs' });
+  const d = fig('be_param_pollution', 'HTTP PARAMETER POLLUTION: TWO PARSERS PICK DIFFERENT COPIES', 300);
+  d.envelope(250, 50, 140, 80, {}); d.rect(260, 60, 60, 22, { r: 2, fill: C.card, stroke: C.ink2 }); d.mono(290, 71, 'amt=10', { size: 8.5 }); d.rect(320, 96, 64, 22, { r: 2, fill: C.accSoft, stroke: C.acc }); d.mono(352, 107, 'amt=1000', { size: 8.5, color: C.acc });
+  d.person(110, 150, 40); d.text(110, 216, 'WAF reads the first: 10', { cls: 'xs' });
+  d.person(530, 150, 40, { stroke: C.acc, fill: C.accSoft }); d.text(530, 216, 'app reads the last: 1000', { cls: 'xs', color: C.acc });
+  d.arrow(140, 160, 260, 90, { stroke: C.gray, hl: 5, dash: [3, 3] }); d.arrow(500, 160, 380, 116, { stroke: C.acc, hl: 5, dash: [3, 3] });
+  d.text(320, 270, 'reject duplicated scalar parameters instead of guessing which one was meant', { cls: 'xs' });
   return d.svg();
 }
 
 export function be_proto_pollution() {
-  const d = fig('be_proto_pollution', 'PROTOTYPE POLLUTION: A MERGE WRITES INTO Object.prototype', 300);
-  card(d, 20, 50, 300, ['{"__proto__": {"isAdmin": true}}'], { hot: [0] });
-  d.arrow(170, 90, 170, 130, { stroke: C.acc }); d.mono(170, 142, 'deepMerge(settings, body)', { size: 10 });
-  d.rect(60, 165, 220, 50, { r: 7, fill: C.accSoft, stroke: C.acc }); d.mono(170, 190, 'Object.prototype.isAdmin = true', { size: 9.5, color: C.acc });
-  card(d, 360, 80, 260, ['const u = {}', 'if (u.isAdmin) ...', '-> true for EVERY object'], { hot: [2] });
-  d.text(320, 260, 'fix: reject __proto__, constructor, prototype keys; use Object.create(null) or Map', { cls: 'xs' });
+  const d = fig('be_proto_pollution', 'PROTOTYPE POLLUTION: A MERGE WRITES INTO Object.prototype', 320);
+  d.mono(140, 60, '{"__proto__": {"isAdmin": true}}', { size: 9.5, color: C.acc });
+  d.arrow(140, 70, 140, 100, { stroke: C.acc, hl: 5 }); d.mono(140, 112, 'deepMerge(settings, body)', { size: 9 });
+  d.rect(300, 60, 200, 40, { r: 20, fill: C.accSoft, stroke: C.acc }); d.mono(400, 80, 'Object.prototype', { size: 10, color: C.acc });
+  d.travel([[140, 120], [300, 80]], { token: (dd) => dd.circle(0, 0, 10, { fill: C.acc, stroke: C.acc }), at: [0, 0.3] });
+  ['user', 'order', 'config', 'session', 'u = {}'].forEach((s, i) => { const x = 220 + i * 90; d.line(400, 100, x, 180, { stroke: C.acc, single: true, sw: 0.8 }); d.rect(x - 38, 180, 76, 30, { r: 15, fill: C.card, stroke: C.ink2 }); d.mono(x, 195, s, { size: 9 }); d.phase(1, 2, (dd) => dd.mono(x, 226, 'isAdmin', { size: 8, color: C.acc })); });
+  d.text(320, 290, 'fix: reject __proto__, constructor and prototype keys; use Object.create(null) or Map', { cls: 'xs' });
   return d.svg();
 }
 
 export function be_int_overflow() {
-  const d = fig('be_int_overflow', '50,000 x 45,000 PAISE IN A 32-BIT INTEGER WRAPS TO A NEGATIVE TOTAL', 260);
-  d.mono(320, 70, '50,000 x 45,000 = 2,250,000,000', { size: 13 });
-  d.mono(320, 100, 'int32 max      = 2,147,483,647', { size: 13 });
-  d.arrow(320, 116, 320, 146, { stroke: C.acc });
-  d.mono(320, 166, 'stored total   = -2,044,967,296 paise', { size: 13, color: C.acc });
-  d.text(320, 220, 'bound quantities, use 64-bit or decimal money types, and check sums server-side', { cls: 'xs' });
+  const d = fig('be_int_overflow', '50,000 x 45,000 PAISE IN A 32-BIT INTEGER WRAPS TO A NEGATIVE TOTAL', 320);
+  d.circle(170, 160, 200, { fill: C.paper, stroke: C.ink2 });
+  d.text(170, 66, '0', { cls: 'mono', size: 10 }); d.text(170, 262, '±2.1 bn', { cls: 'mono', size: 10, color: C.acc }); d.text(274, 160, '+', { size: 16 }); d.text(66, 160, '−', { size: 16 });
+  d.path('M170,70 A90,90 0 0 1 170,250', { stroke: C.slate, sw: 3, single: true }); d.path('M170,250 A90,90 0 0 1 112,229', { stroke: C.acc, sw: 3, single: true });
+  d.spin(170, 160, (dd) => dd.line(170, 160, 170, 80, { stroke: C.acc, sw: 2, single: true }), { dur: 6 });
+  d.mono(460, 100, '50,000 × 45,000 = 2,250,000,000', { size: 10 }); d.mono(460, 126, 'int32 max = 2,147,483,647', { size: 10 }); d.mono(460, 160, 'stored: −2,044,967,296', { size: 11, color: C.acc });
+  d.text(460, 220, 'bound quantities, use 64-bit or decimal', { cls: 'xs' }); d.text(460, 238, 'money types, check sums on the server', { cls: 'xs' });
   return d.svg();
 }
 
 export function be_type_confusion() {
-  const d = fig('be_type_confusion', 'TYPE CONFUSION: THE SAME FIELD ARRIVES AS FOUR DIFFERENT TYPES', 280);
-  [['"qty": 3', 'number', true], ['"qty": "3"', 'string: "3" + 1 = "31"', false], ['"qty": [3, 3]', 'array: qty.length checks pass', false], ['"qty": {"$gt": 0}', 'object: NoSQL operator', false]].forEach(([a, b, ok], i) => { const y = 60 + i * 46; d.mono(60, y, a, { a: 'start', size: 11 }); d.text(260, y, b, { cls: 'sm', a: 'start', color: ok ? undefined : C.acc }); if (ok) tick(d, 600, y, 7); else cross(d, 600, y, 7); });
-  d.text(320, 256, 'validate the type strictly before any comparison or arithmetic', { cls: 'xs' });
+  const d = fig('be_type_confusion', 'TYPE CONFUSION: THE SAME FIELD ARRIVES AS FOUR DIFFERENT TYPES', 320);
+  d.rect(270, 230, 100, 30, { r: 4, fill: C.card, stroke: C.ink2 }); d.circle(320, 236, 22, { fill: C.paper, stroke: C.acc }); d.text(320, 278, 'qty slot: integer', { cls: 'xs' });
+  [['"qty": 3', 'number', 90], ['"qty": "3"', '"3" + 1 = "31"', 230], ['"qty": [3, 3]', 'length checks pass', 390], ['"qty": {"$gt": 0}', 'NoSQL operator', 540]].forEach(([s, n, x], i) => {
+    if (i === 0) d.circle(x, 110, 30, { fill: C.accSoft, stroke: C.acc }); if (i === 1) d.rect(x - 16, 94, 32, 32, { r: 2, fill: C.card, stroke: C.ink2 }); if (i === 2) { d.rect(x - 24, 98, 20, 24, { r: 2, fill: C.card, stroke: C.ink2 }); d.rect(x + 4, 98, 20, 24, { r: 2, fill: C.card, stroke: C.ink2 }); } if (i === 3) d.poly([[x, 90], [x + 22, 110], [x, 130], [x - 22, 110]], { fill: C.card, stroke: C.ink2 });
+    d.mono(x, 60, s, { size: 9 }); d.text(x, 150, n, { cls: 'xs', color: i ? C.acc : undefined }); (i ? cross : tick)(d, x, 180, 7, i ? C.acc : C.ink2);
+  });
   return d.svg();
 }
 
 export function be_unicode() {
-  const d = fig('be_unicode', 'ONE LOOK, SEVERAL BYTE SEQUENCES: NORMALIZE BEFORE COMPARING', 290);
-  d.text(120, 70, '"é"', { size: 26 }); d.mono(260, 60, 'U+00E9 (NFC, 1 code point)', { size: 10, a: 'start' }); d.mono(260, 82, 'U+0065 U+0301 (NFD, 2 code points)', { size: 10, a: 'start' });
-  d.text(120, 160, '"admin"', { size: 22 }); d.mono(260, 150, 'a d m i n  (Latin)', { size: 10, a: 'start' }); d.mono(260, 172, 'а d m i n  (first letter Cyrillic U+0430)', { size: 10, a: 'start', color: C.acc });
-  d.text(320, 240, 'NFC for storage and comparison; NFKC plus confusable checks for usernames', { cls: 'xs' });
+  const d = fig('be_unicode', 'ONE LOOK, SEVERAL BYTE SEQUENCES: NORMALIZE BEFORE COMPARING', 320);
+  d.text(90, 80, 'é', { size: 34 }); d.text(90, 116, 'NFC', { cls: 'xs' }); d.tape(140, 64, ['C3', 'A9'], { cw: 36, h: 26 });
+  d.text(330, 80, 'é', { size: 34 }); d.text(330, 116, 'NFD', { cls: 'xs' }); d.tape(380, 64, ['65', 'CC', '81'], { cw: 36, h: 26, hot: (i) => i > 0 });
+  d.text(110, 180, 'admin', { size: 24 }); d.tape(190, 166, ['61', '64', '6D', '69', '6E'], { cw: 30, h: 26 });
+  d.text(110, 236, 'аdmin', { size: 24, color: C.acc }); d.tape(190, 222, ['D0 B0', '64', '6D', '69', '6E'], { cw: 30, h: 26, hot: (i) => i === 0, size: 8 });
+  d.text(400, 236, 'first letter Cyrillic U+0430', { cls: 'xs', a: 'start', color: C.acc });
+  d.text(320, 290, 'NFC for storage and comparison; NFKC plus confusable checks for usernames', { cls: 'xs' });
   return d.svg();
 }
 
 export function be_redos() {
-  const d = fig('be_redos', 'REDOS: (a+)+$ AGAINST "aaa...a!" BACKTRACKS ~2^n STEPS', 280);
-  hbars(d, [['n = 10', 1024, '1,024 steps'], ['n = 20', 1048576, '1,048,576 steps'], ['n = 30', 1073741824, '1,073,741,824 steps', true]], { y: 60, gap: 50, w: 280, x: 120 });
-  d.text(320, 230, 'at an illustrative 10^8 steps/s, one 31-byte request pins a core for ~10.7 s', { cls: 'xs' });
-  d.text(320, 252, 'fix: linear-time engines (RE2), timeouts, and no nested quantifiers', { cls: 'xs' });
+  const d = fig('be_redos', 'REDOS: (a+)+$ AGAINST "aaa...a!" BACKTRACKS ~2^n STEPS', 320);
+  const br = (x, y, len, depth) => { if (!depth) return; const a = [x - len, y + 30], b = [x + len, y + 30]; d.line(x, y, a[0], a[1], { stroke: depth < 3 ? C.acc : C.ink2, single: true, sw: 0.7 }); d.line(x, y, b[0], b[1], { stroke: depth < 3 ? C.acc : C.ink2, single: true, sw: 0.7 }); br(a[0], a[1], len / 2, depth - 1); br(b[0], b[1], len / 2, depth - 1); };
+  br(170, 60, 80, 7);
+  d.text(170, 290, 'every way to split "aaaa" between the two +', { cls: 'xs' });
+  hbars(d, [['n = 10', 1024, '1,024'], ['n = 20', 1048576, '1,048,576'], ['n = 30', 1073741824, '1,073,741,824', true]], { y: 70, gap: 46, w: 140, x: 410 });
+  d.text(480, 230, 'at 10⁸ steps/s, one 31-byte', { cls: 'xs' }); d.text(480, 246, 'request pins a core ~10.7 s', { cls: 'xs', color: C.acc }); d.text(480, 270, 'fix: RE2, timeouts, no nesting', { cls: 'xs' });
   return d.svg();
 }
 
@@ -304,34 +387,45 @@ export function be_tenancy_models() {
 
 export function be_tenant_id() {
   const d = fig('be_tenant_id', 'RESOLVE THE TENANT ONCE, FROM A TRUSTED SOURCE, AND CARRY IT EVERYWHERE', 300);
-  [['subdomain', 'spice.wren.example', false], ['token claim', '"tenant": "t9"', true], ['header', 'X-Tenant: t9 (never alone)', false]].forEach(([a, b, hot], i) => { const y = 60 + i * 60; d.rect(30, y, 230, 44, { r: 7, fill: hot ? C.accSoft : C.card, stroke: hot ? C.acc : C.ink2 }); d.text(46, y + 15, a, { cls: 'ttl', a: 'start', size: 11 }); d.mono(46, y + 32, b, { a: 'start', size: 9.5 }); d.arrow(264, y + 22, 340, 150, { stroke: hot ? C.acc : C.gray, hl: 5 }); });
-  d.rect(350, 110, 250, 80, { r: 8, fill: C.accFaint, stroke: C.acc }); d.text(475, 135, 'request context', { cls: 'ttl' }); d.mono(475, 160, 'tenant = t9 (verified', { size: 9.5 }); d.mono(475, 176, 'user 42 belongs to t9)', { size: 9.5 });
-  d.text(320, 270, 'the user must be a member of the tenant they name, checked on every request', { cls: 'xs' });
+  browser(d, 30, 50, 200, 50, 'spice.wren.example'); d.text(130, 116, 'subdomain', { cls: 'xs' });
+  d.key(60, 160, 46, { fill: C.accSoft, stroke: C.acc }); d.mono(160, 160, '"tenant": "t9"', { size: 9.5, color: C.acc }); d.text(130, 186, 'token claim', { cls: 'xs', color: C.acc });
+  d.envelope(60, 210, 50, 32, {}); d.mono(170, 226, 'X-Tenant: t9', { size: 9 }); d.text(130, 258, 'header, never alone', { cls: 'xs' });
+  [[232, 75], [210, 160], [210, 226]].forEach(([x, y], i) => d.arrow(x, y, 350, 150, { stroke: i === 1 ? C.acc : C.gray, hl: 5 }));
+  d.rect(360, 100, 240, 100, { r: 8, fill: C.accFaint, stroke: C.acc }); d.text(480, 122, 'request context', { cls: 'ttl' }); d.mono(480, 150, 'tenant = t9', { size: 10 }); d.mono(480, 172, 'user 42 ∈ t9: verified', { size: 9.5, color: C.acc });
+  d.text(320, 286, 'the user must be a member of the tenant they name, checked on every request', { cls: 'xs' });
   return d.svg();
 }
 
 export function be_tenant_rls() {
-  const d = fig('be_tenant_rls', 'POSTGRESQL ROW-LEVEL SECURITY: THE DATABASE ADDS THE TENANT FILTER ITSELF', 300);
-  card(d, 20, 50, 340, ['ALTER TABLE orders ENABLE ROW LEVEL SECURITY;', 'CREATE POLICY tenant_iso ON orders', '  USING (tenant_id =', '    current_setting(\'app.tenant\')::int);'], { size: 9, hot: [2, 3] });
-  card(d, 20, 170, 340, ['SET LOCAL app.tenant = 9;', 'SELECT * FROM orders;  -- only t9 rows'], { size: 9 });
-  d.text(490, 110, 'a forgotten WHERE\nclause returns 0 rows\nof other tenants', { cls: 'sm', vc: true, color: C.acc });
-  d.text(490, 220, 'app role must not own the table\nor have BYPASSRLS', { cls: 'xs', vc: true });
+  const d = fig('be_tenant_rls', 'POSTGRESQL ROW-LEVEL SECURITY: THE DATABASE ADDS THE TENANT FILTER ITSELF', 320);
+  card(d, 20, 50, 300, ['CREATE POLICY tenant_iso ON orders', '  USING (tenant_id =', '    current_setting(\'app.tenant\')::int);', 'SET LOCAL app.tenant = 9;', 'SELECT * FROM orders;'], { size: 9, hot: [1, 2], bold: false });
+  d.db(380, 50, 200, 230, {});
+  for (let i = 0; i < 8; i++) { const t9 = i % 3 === 0; d.rect(400, 80 + i * 22, 160, 16, { r: 2, fill: t9 ? C.accSoft : C.paper, stroke: t9 ? C.acc : C.line }); d.mono(420, 88 + i * 22, t9 ? 't9' : ['t10', 't11'][i % 2], { size: 8, a: 'start', color: t9 ? C.acc : C.gray }); }
+  d.text(170, 210, 'a forgotten WHERE returns', { cls: 'sm' }); d.text(170, 230, 'no other tenant\'s rows', { cls: 'sm', color: C.acc });
+  d.text(170, 270, 'app role must not own the table or have BYPASSRLS', { cls: 'xs' });
   return d.svg();
 }
 
 export function be_noisy_neighbor() {
-  const d = fig('be_noisy_neighbor', 'ONE TENANT SENDS 40% OF 2,000 REQ/S; PER-TENANT LIMITS PROTECT THE OTHERS', 280);
-  hbars(d, [['tenant t9 (sale day)', 800, '800 req/s', true], ['tenant t10', 120, '120 req/s'], ['tenant t11', 90, '90 req/s'], ['other 1,997 tenants', 990, '990 req/s total']], { y: 56, gap: 44, w: 260, x: 200 });
-  d.text(320, 250, 'quota per tenant plan; separate pools or queues for the largest tenants', { cls: 'xs' });
+  const d = fig('be_noisy_neighbor', 'ONE TENANT SENDS 40% OF 2,000 REQ/S; PER-TENANT LIMITS PROTECT THE OTHERS', 310);
+  const T = [['t9 (sale day)', 800, true], ['t10', 120], ['t11', 90], ['1,997 others', 990]];
+  T.forEach(([s, v, hot], i) => { const y = 70 + i * 50; d.text(120, y, s, { cls: 'sm', a: 'end', color: hot ? C.acc : undefined }); pipe(d, 130, 330, y, Math.max(6, v / 30), hot); d.circle(350, y, 22, { fill: C.paper, stroke: hot ? C.acc : C.ink2 }); d.line(340, y, 360, y, { stroke: hot ? C.acc : C.ink2, sw: 2, single: true }); d.mono(380, y, `${v} req/s`, { size: 9, a: 'start' }); });
+  d.server(500, 90, 90, 130, { label: 'shared API' });
+  d.text(320, 286, 'quota per tenant plan; separate pools or queues for the largest tenants', { cls: 'xs' });
   return d.svg();
 }
 
 export function be_tenant_cache() {
-  const d = fig('be_tenant_cache', 'A CACHE KEY WITHOUT THE TENANT SERVES ONE TENANT\'S DATA TO ANOTHER', 280);
-  panel(d, 20, 40, 290, 210, 'leaky key');
-  d.mono(165, 90, 'menu:3', { size: 12, color: C.acc }); d.text(165, 130, 't9 writes menu 3,\nt10 reads menu 3', { cls: 'sm', vc: true }); d.text(165, 190, 'ids collide per tenant', { cls: 'xs' });
-  panel(d, 330, 40, 290, 210, 'tenant-scoped key', true);
-  d.mono(475, 90, 'menu:t9:3', { size: 12 }); d.mono(475, 112, 'menu:t10:3', { size: 12 }); d.text(475, 160, 'build keys in one helper that\nrequires the tenant', { cls: 'xs', vc: true });
+  const d = fig('be_tenant_cache', 'A CACHE KEY WITHOUT THE TENANT SERVES ONE TENANT\'S DATA TO ANOTHER', 310);
+  panel(d, 20, 40, 290, 240, 'leaky key');
+  shop(d, 50, 80, 60, 't9 writes'); shop(d, 210, 80, 60, 't10 reads', { awn: C.card });
+  d.rect(115, 180, 80, 40, { r: 4, fill: C.accSoft, stroke: C.acc }); d.mono(155, 200, 'menu:3', { size: 10, color: C.acc });
+  d.arrow(80, 150, 125, 178, { stroke: C.ink2, hl: 5 }); d.arrow(185, 178, 240, 150, { stroke: C.acc, hl: 5 });
+  d.text(165, 250, 'ids collide across tenants', { cls: 'xs' });
+  panel(d, 330, 40, 290, 240, 'tenant-scoped key', true);
+  shop(d, 360, 80, 60, 't9'); shop(d, 520, 80, 60, 't10', { awn: C.card });
+  d.rect(355, 180, 90, 34, { r: 4, fill: C.card, stroke: C.ink2 }); d.mono(400, 197, 'menu:t9:3', { size: 9 }); d.rect(505, 180, 90, 34, { r: 4, fill: C.card, stroke: C.ink2 }); d.mono(550, 197, 'menu:t10:3', { size: 9 });
+  d.text(475, 250, 'one key helper that requires the tenant', { cls: 'xs' });
   return d.svg();
 }
 
@@ -348,22 +442,30 @@ export function be_tenant_jobs() {
 }
 
 export function be_tenant_leak() {
-  const d = fig('be_tenant_leak', 'CROSS-TENANT LEAKS COME FROM SHARED PATHS THAT FORGET THE TENANT', 300);
-  [['query', 'missing AND tenant_id = ?'], ['cache', 'key without tenant'], ['search index', 'no tenant filter on query'], ['export job', 'tenant context lost in worker'], ['logs and support tools', 'search across all tenants'], ['object storage', 'shared bucket, guessable keys']].forEach(([a, b], i) => { const x = 20 + (i % 2) * 310, y = 44 + Math.floor(i / 2) * 80; d.rect(x, y, 290, 64, { r: 7, fill: i === 0 ? C.accFaint : C.card, stroke: i === 0 ? C.acc : C.line }); d.text(x + 14, y + 22, a, { cls: 'ttl', a: 'start' }); d.text(x + 14, y + 44, b, { cls: 'sm', a: 'start' }); });
+  const d = fig('be_tenant_leak', 'CROSS-TENANT LEAKS COME FROM SHARED PATHS THAT FORGET THE TENANT', 320);
+  const P = [['query', 'missing AND tenant_id = ?'], ['cache', 'key without tenant'], ['search index', 'no tenant filter'], ['export job', 'context lost in worker'], ['logs, support tools', 'search across tenants'], ['object storage', 'shared bucket, guessable keys']];
+  P.forEach(([a, b], i) => { const x = 20 + (i % 3) * 205, y = 50 + Math.floor(i / 3) * 130, cx = x + 30, cy = y + 40;
+    d.rect(x, y, 190, 110, { r: 8, fill: i === 0 ? C.accFaint : C.card, stroke: i === 0 ? C.acc : C.line });
+    if (i === 0) d.db(cx - 18, cy - 20, 36, 40, {}); if (i === 1) d.ram(cx - 22, cy - 12, 44, 24, {}); if (i === 2) { d.circle(cx, cy, 30, { fill: C.paper, stroke: C.ink2 }); d.line(cx + 10, cy + 10, cx + 18, cy + 18, { stroke: C.ink2, sw: 2.5, single: true }); } if (i === 3) d.gear(cx, cy, 16, {}); if (i === 4) d.doc(cx - 14, cy - 20, 28, 40, {}); if (i === 5) d.path(`M${cx - 18},${cy - 16} L${cx - 12},${cy + 18} L${cx + 12},${cy + 18} L${cx + 18},${cy - 16}`, { stroke: C.ink2, fill: C.paper, single: true });
+    d.blink((dd) => dd.dot(cx + 22, cy + 22, 3, C.acc), { dur: 1.2 + i * 0.2 });
+    d.text(x + 64, y + 30, a, { cls: 'ttl', a: 'start', size: 11 }); d.text(x + 64, y + 50, b, { cls: 'xs', a: 'start' }); });
   return d.svg();
 }
 
 export function be_authz_e2e() {
-  const d = fig('be_authz_e2e', 'PATCH /restaurants/9/menu/3 BY MANAGER ASHA: EVERY CHECK, IN ORDER', 360);
-  const s = [['size + JSON', '413 / 400'], ['authenticate', '401'], ['tenant', 'Asha in t9?'], ['schema + types', '422'], ['policy', 'manager of r9?'], ['load menu 3', 'scoped to t9'], ['business rule', 'not locked? 409'], ['write', 'audit log']];
-  s.forEach(([a, b], i) => { const r = Math.floor(i / 4), c = r ? 3 - (i % 4) : i % 4, x = 24 + c * 152, y = 60 + r * 140; const hot = i === 4; d.rect(x, y, 132, 64, { r: 8, fill: hot ? C.accSoft : C.card, stroke: hot ? C.acc : C.ink2 }); d.text(x + 66, y + 24, a, { cls: 'ttl', color: hot ? C.acc : undefined }); d.text(x + 66, y + 44, b, { cls: 'xs' }); if (i % 4 < 3) d.arrow(r ? x - 4 : x + 136, y + 32, r ? x - 16 : x + 148, y + 32, { stroke: C.gray, hl: 5 }); if (i === 3) d.arrow(x + 66, y + 68, x + 66, y + 136, { stroke: C.gray, hl: 5 }); });
-  d.text(320, 320, 'cheap checks first, object checks after loading, every failure with its own status', { cls: 'xs' });
+  const d = fig('be_authz_e2e', 'PATCH /restaurants/9/menu/3 BY MANAGER ASHA: EVERY CHECK, IN ORDER', 330);
+  const s = [['size + JSON', '413 / 400'], ['authenticate', '401'], ['tenant', 'Asha in t9?'], ['schema + types', '422'], ['policy', 'manager of r9?'], ['load menu 3', 'scoped to t9'], ['business rule', 'locked? 409'], ['write', 'audit log']];
+  d.line(20, 220, 620, 220, { stroke: C.ink2, single: true });
+  s.forEach(([a, b], i) => { const x = 40 + i * 74, hot = i === 4; door(d, x, 110, 44, 110, { fill: hot ? C.accSoft : C.card, stroke: hot ? C.acc : C.ink2 }); d.text(x + 22, 92, a, { cls: 'xs', color: hot ? C.acc : undefined }); d.mono(x + 22, 236, b, { size: 8.5 }); });
+  d.travel([[20, 196], [620, 196]], { token: (dd) => dd.person(0, -24, 24, { stroke: C.acc, fill: C.accSoft }), dur: 8 });
+  d.text(320, 290, 'cheap checks first, object checks after loading, every failure with its own status', { cls: 'xs' });
   return d.svg();
 }
 
 export function be_authz_components() {
-  const d = fig('be_authz_components', 'EACH PIECE OF THIS UNIT AND ITS ONE JOB', 330);
+  const d = fig('be_authz_components', 'EACH PIECE OF THIS UNIT AND ITS ONE JOB', 340);
   const c = [['default deny', 'unknown means no'], ['RBAC / ABAC / ReBAC', 'decide who may act'], ['ownership check', 'stop IDOR on every object'], ['policy engine', 'one place for the rules'], ['schema + allowlists', 'reject malformed input'], ['DTOs + limits', 'stop mass assignment and DoS'], ['tenant context + RLS', 'keep tenants apart'], ['quotas + fair queues', 'keep tenants fair']];
-  c.forEach(([t, s], i) => { const x = 20 + (i % 2) * 310, y = 44 + Math.floor(i / 2) * 70; d.rect(x, y, 290, 56, { r: 7, fill: i === 2 ? C.accFaint : C.card, stroke: i === 2 ? C.acc : C.line }); d.text(x + 14, y + 19, t, { cls: 'ttl', a: 'start' }); d.text(x + 14, y + 39, s, { cls: 'sm', a: 'start' }); });
+  const ic = [(x, y) => door(d, x + 6, y, 22, 32, {}), (x, y) => d.person(x + 16, y, 30), (x, y) => d.doc(x + 4, y, 26, 32, { fill: C.accSoft, stroke: C.acc }), (x, y) => d.doc(x + 4, y, 26, 32, {}), (x, y) => shield(d, x + 17, y, 30, {}), (x, y) => ruler(d, x, y + 10, 34), (x, y) => shop(d, x, y, 34, ''), (x, y) => gauge(d, x + 17, y + 26, 16, 0.5, {})];
+  c.forEach(([t, s], i) => { const x = 20 + (i % 2) * 310, y = 44 + Math.floor(i / 2) * 72; d.rect(x, y, 290, 58, { r: 7, fill: i === 2 ? C.accFaint : C.card, stroke: i === 2 ? C.acc : C.line }); ic[i](x + 12, y + 13); d.text(x + 64, y + 20, t, { cls: 'ttl', a: 'start' }); d.text(x + 64, y + 40, s, { cls: 'sm', a: 'start' }); });
   return d.svg();
 }

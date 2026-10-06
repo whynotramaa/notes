@@ -21,9 +21,15 @@ export function actors(d, list, y, bottom, o = {}) {
   const x0 = o.x0 ?? 70, x1 = o.x1 ?? 570;
   const xs = list.map((_, i) => list.length === 1 ? 320 : x0 + i * (x1 - x0) / (list.length - 1));
   list.forEach((s, i) => {
-    const hot = o.hot === i;
-    d.box(xs[i] - 55, y, 110, 30, s, { r: 6, fill: hot ? C.accSoft : C.card, stroke: hot ? C.acc : C.ink2, size: 11 });
-    d.line(xs[i], y + 34, xs[i], bottom, { stroke: C.line, dash: [3, 5], single: true });
+    const hot = o.hot === i, x = xs[i], st = hot ? C.acc : C.ink2, f = hot ? C.accSoft : C.card;
+    const k = o.icons?.[i] ?? (/redis|database|\bdb\b|postgres|store|kafka|broker|denylist/i.test(s) ? 'db' : /browser|page|tab/i.test(s) ? 'browser' : /phone|mobile|app\b|client cache/i.test(s) ? 'phone' : /attacker|victim|user|owner|editor|customer|courier/i.test(s) ? 'person' : 'server');
+    if (k === 'db') d.db(x - 16, y - 18, 32, 28, { fill: f, stroke: st });
+    else if (k === 'browser') { d.rect(x - 22, y - 16, 44, 26, { r: 4, fill: f, stroke: st }); d.line(x - 22, y - 8, x + 22, y - 8, { stroke: st, single: true, sw: 0.8 }); [0, 1, 2].forEach((j) => d.dot(x - 17 + j * 5, y - 12, 1.4, C.gray)); }
+    else if (k === 'phone') d.phone(x - 8, y - 20, 30, { fill: f, stroke: st });
+    else if (k === 'person') d.person(x, y - 20, 28, { fill: f, stroke: st });
+    else d.server(x - 14, y - 18, 28, 28, { unit: 9, fill: f, stroke: st });
+    d.text(x, y + 20, s, { cls: 'sm', size: 11, color: hot ? C.acc : undefined });
+    d.line(x, y + 30, x, bottom, { stroke: C.line, dash: [3, 5], single: true });
   });
   return xs;
 }
@@ -31,6 +37,7 @@ export function actors(d, list, y, bottom, o = {}) {
 export function say(d, xa, xb, y, label, o = {}) {
   const col = o.hot ? C.acc : (o.color ?? C.ink2);
   d.arrow(xa, y, xb, y, { stroke: col, sw: o.hot ? 1.5 : 1.05, hl: 6, dash: o.dash });
+  if (o.hot) d.travel([[xa, y], [xb, y]], { token: 'packet', at: [0.1, 0.6] });
   d.text((xa + xb) / 2, y - 9, label, { cls: o.cls ?? 'mono', size: o.size ?? 9.5, color: o.hot ? C.acc : undefined });
 }
 

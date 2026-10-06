@@ -42,7 +42,7 @@ Other runtimes answer the same questions differently. The **JVM** runs Java, Kot
 
 **Python's** CPython interpreter has the **global interpreter lock**, the GIL, which lets only one thread execute Python bytecode at a time. Threads still help for I/O-bound work, since the GIL is released while waiting, but CPU-bound Python does not run in parallel on threads. Python servers scale with multiple processes, gunicorn or uvicorn workers, and with asyncio's event loop for high concurrency. Python 3.13 in 2024 shipped an optional free-threaded build without the GIL, from PEP 703, still experimental for most libraries.
 
-@fig be_rt_compare | Four runtimes, four ways of letting 1,000 requests share 8 cores.
+@fig be_runtime_compare | Four runtimes, four ways of letting 1,000 requests share 8 cores.
 
 The comparison shows the trade every runtime makes. Event loops are cheap per connection and fragile to CPU work. OS threads are simple and costly at scale. Green threads, goroutines and virtual threads, give simple code and cheap concurrency, with the runtime doing the scheduling. Knowing which one your service runs, and what blocks it, is the knowledge the syllabus asks you to bring to an interview.
 

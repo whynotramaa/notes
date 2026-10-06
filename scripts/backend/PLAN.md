@@ -4,7 +4,7 @@ Source syllabus: `backend.md` (71 items). Series folder: `src/content/backend/`.
 
 Shape per unit: 7 to 10 parts, about 30 to 35 sections of 250 to 320 prose words each, not counting callouts (2 to 4 paragraphs; the user rejected thinner drafts on 2026-10-06), 35 to 50 figures, `99-interview.md` with 40+ questions, 25+ exercises, worked solutions. Apply unslop rules: no mid-sentence colons, active voice, plain words.
 
-Progress: units 1 to 12 written at full depth. Figure ids are checked with `scratchpad/ids.sh <slug> beNN.js` (Cross-check of @fig ids vs exports).
+Progress: units 1 to 12, 14 and 15 written at full depth; figures in units 1 to 5 redrawn as pictorial scenes. Unit 13 (security) is parked as a defensive draft of Parts I to IV in `scripts/backend/drafts/security/`, outside the build; its SSRF part was not written.
 
 ## Units (order, slug, title, syllabus items)
 

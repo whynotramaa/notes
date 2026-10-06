@@ -501,8 +501,8 @@ export function be_go_gc() {
   return d.svg();
 }
 
-export function be_rt_compare() {
-  const d = fig('be_rt_compare', 'FOUR RUNTIMES, FOUR ANSWERS TO "HOW DO 1,000 REQUESTS SHARE 8 CORES?"', 340);
+export function be_runtime_compare() {
+  const d = fig('be_runtime_compare', 'FOUR RUNTIMES, FOUR ANSWERS TO "HOW DO 1,000 REQUESTS SHARE 8 CORES?"', 340);
   const r = [['Node.js', 'one JS thread + event loop; libuv pool for blocking work; processes for cores'], ['Go', 'goroutines multiplexed onto GOMAXPROCS threads; blocking looks synchronous'], ['JVM', 'platform threads in pools; virtual threads (Java 21) park cheaply on I/O'], ['Python', 'GIL: one thread runs bytecode at a time; asyncio or processes for scale']];
   r.forEach(([t, s], i) => { const y = 50 + i * 70; d.rect(30, y, 580, 56, { r: 8, fill: C.paper, stroke: C.line }); d.text(50, y + 20, t, { cls: 'ttl', a: 'start' }); d.text(50, y + 40, s, { cls: 'xs', a: 'start' }); });
   d.circle(560, 78, 30, { stroke: C.ink2 }); for (let i = 0; i < 4; i++) d.dot(540 + i * 13, 148, 4, C.acc); d.cpu(546, 196, 26); d.lock(548, 254, 22, { stroke: C.acc });
